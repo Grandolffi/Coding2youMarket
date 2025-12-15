@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { auth } = require('./login');
 
-const { insertCliente, getClientes, editCliente, deleteCliente } = require("../model/DAO/clienteDAO");
+const { insertCliente, getClientes, editCliente, deleteCliente } = require("../Model/DAO/clienteDAO");
 
 // READ 
 router.get("/clientes", async (req, res) => {
