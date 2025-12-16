@@ -8,10 +8,7 @@ class Pagamento {
     usuarioId,
     cartaoId,
     valor,
-    status,
-    transacaoId,
-    dataPagamento,
-    dataVencimento
+    status
   ) {
     this.id = id;
     this.assinaturaId = assinaturaId;
@@ -30,12 +27,11 @@ class Pagamento {
 
 //CREATE
 
-async function insertPagamento(assinaturaId, usuarioId, cartaoId, valor, status, transacaoId, dataPagamento, dataVencimento) {
+async function insertPagamento(assinaturaId, usuarioId, cartaoId, valor) {
+  const status = 'pendente';
 
-  const statusPermitidos = ['pendente', 'aprovado', 'recusado', 'estornado'];
-
-  if (!usuarioId || !cartaoId || valor == null || !statusPermitidos.includes(status)) {
-    console.error("Falha ao inserir pagamento: campos obrigatórios ou status inválido.");
+  if (!usuarioId || !cartaoId || valor == null) {
+    console.error("Falha ao inserir pagamento: dados inválidos.");
     return false;
   }
 
@@ -46,30 +42,24 @@ async function insertPagamento(assinaturaId, usuarioId, cartaoId, valor, status,
       usuarioId,
       cartaoId,
       valor,
-      status,
-      transacaoId,
-      dataPagamento,
-      dataVencimento
+      status
     )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *
     `,
-    [
-      assinaturaId, usuarioId, cartaoId, valor, status, transacaoId, dataPagamento, dataVencimento
-    ]
+    [assinaturaId, usuarioId, cartaoId, valor, status]
   );
 
   return result.rows[0];
 }
 
-// READ TODOS 
+
+//READ
 
 async function getPagamentos() {
   const { rows } = await pool.query("SELECT * FROM pagamento");
   return rows;
 }
-
-//READ POR USUÁRIO
 
 async function getPagamentosPorUsuario(usuarioId) {
   if (!usuarioId) {
@@ -85,9 +75,7 @@ async function getPagamentosPorUsuario(usuarioId) {
   return rows;
 }
 
-// READ POR ASSINATURA
-
-async function getPagamentosPorAssinatura(assinaturaId) {
+async function getPagamentosPorAssinaturaId(assinaturaId) {
   if (!assinaturaId) {
     console.error("assinaturaId não informado.");
     return false;
@@ -101,36 +89,51 @@ async function getPagamentosPorAssinatura(assinaturaId) {
   return rows;
 }
 
-// UPDATE 
+// READ - PAGAMENTOS POR USUARIO ID
 
-async function updateStatusPagamento(id, status, transacaoId) {
+async function getPagamentoPorId(usuarioId) {
+  if (!usuarioId) {
+    console.error("usuarioId não informado.");
+    return false;
+  }
+
+  const { rows } = await pool.query(
+    `
+    SELECT *
+    FROM pagamento
+    WHERE usuarioId = $1
+    `,
+    [usuarioId]
+  );
+
+  return rows;
+}
+
+//UPDATE
+
+async function updateStatusPagamento(id, status) {
   const statusPermitidos = ['pendente', 'aprovado', 'recusado', 'estornado'];
 
   if (!id || !statusPermitidos.includes(status)) {
-    console.error("Falha ao atualizar pagamento: status inválido ou ID ausente.");
+    console.error("Falha ao atualizar pagamento.");
     return false;
   }
 
   const result = await pool.query(
     `
     UPDATE pagamento
-    SET status = $1,
-        transacaoId = COALESCE($2, transacaoId),
-        dataPagamento = CASE
-          WHEN $1 = 'aprovado' THEN NOW()
-          ELSE dataPagamento
-        END
-    WHERE id = $3
+    SET status = $1
+    WHERE id = $2
     RETURNING *
     `,
-    [status, transacaoId, id]
+    [status, id]
   );
 
   if (result.rows.length === 0) return false;
   return result.rows[0];
 }
 
-//DELETE 
+//DELETE
 
 async function deletePagamento(id) {
   if (!id) {
@@ -150,8 +153,6 @@ async function deletePagamento(id) {
   return result.rows.length > 0;
 }
 
-//DELETE 
-
 module.exports = {
-  Pagamento, insertPagamento, getPagamentos, getPagamentosPorUsuario, getPagamentosPorAssinatura, updateStatusPagamento, deletePagamento
+  Pagamento, insertPagamento, getPagamentos, getPagamentoPorId, getPagamentosPorAssinaturaId, updateStatusPagamento, deletePagamento
 };
