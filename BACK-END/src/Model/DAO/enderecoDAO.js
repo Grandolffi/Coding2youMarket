@@ -135,10 +135,5 @@ async function deleteEndereco(id) {
 // EXPORTS 
 
 module.exports = {
-  Endereco,
-  insertEndereco,
-  getEnderecos,
-  getEnderecosPorUsuario,
-  editEndereco,
-  deleteEndereco
+  Endereco, insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco
 };

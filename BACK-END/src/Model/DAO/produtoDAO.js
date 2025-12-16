@@ -15,15 +15,7 @@ class Produto {
 
 //CREATE
 
-async function insertProduto(
-  nome,
-  descricao,
-  categoria,
-  preco,
-  unidade,
-  imagem,
-  ativo
-) {
+async function insertProduto(nome, descricao, categoria, preco, unidade, imagem) {
   if (!nome || !categoria || preco == null || !unidade) {
     console.error("Falha ao inserir produto: campos obrigatórios ausentes.");
     return false;
@@ -34,7 +26,7 @@ async function insertProduto(
     INSERT INTO produtos (
       nome, descricao, categoria, preco, unidade, imagem, ativo
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    VALUES ($1, $2, $3, $4, $5, $6, true)
     RETURNING *
     `,
     [nome, descricao, categoria, preco, unidade, imagem, ativo]
@@ -68,16 +60,7 @@ async function getProdutosByCategoria(categoria) {
 
 // UPDATE
 
-async function editProduto(
-  id_produto,
-  nome,
-  descricao,
-  categoria,
-  preco,
-  unidade,
-  imagem,
-  ativo
-) {
+async function editProduto(id_produto, nome, descricao, categoria, preco, unidade, imagem, ativo) {
   if (!id_produto || !nome || !categoria || preco == null || !unidade) {
     console.error("Falha ao editar produto: campos obrigatórios ausentes.");
     return false;

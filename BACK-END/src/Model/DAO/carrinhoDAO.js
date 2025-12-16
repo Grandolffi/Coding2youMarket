@@ -1,9 +1,9 @@
 const pool = require('../../Config/Db/mysqlConnect');
 
 class Carrinho {
-  constructor(id, usuarioId, produtoId, quantidade, observacao) {
+  constructor(id, pedidoId, produtoId, quantidade, observacao) {
     this.id = id;
-    this.usuarioId = usuarioId;
+    this.pedidoId = pedidoId;
     this.produtoId = produtoId;
     this.quantidade = quantidade;
     this.observacao = observacao;
@@ -11,22 +11,21 @@ class Carrinho {
 }
 
 // CREATE
-
 async function insertCarrinho(
-  usuarioId,
+  pedidoId,
   produtoId,
   quantidade,
   observacao
 ) {
-  if (!usuarioId || !produtoId || quantidade == null) {
-    console.error("Falha ao inserir no carrinho: usuarioId, produtoId e quantidade são obrigatórios.");
+  if (!pedidoId || !produtoId || quantidade == null) {
+    console.error("Falha ao inserir no carrinho: pedidoId, produtoId e quantidade são obrigatórios.");
     return false;
   }
 
   const result = await pool.query(
     `
     INSERT INTO carrinho (
-      usuarioId,
+      pedidoId,
       produtoId,
       quantidade,
       observacao
@@ -34,39 +33,35 @@ async function insertCarrinho(
     VALUES ($1, $2, $3, $4)
     RETURNING *
     `,
-    [usuarioId, produtoId, quantidade, observacao]
+    [pedidoId, produtoId, quantidade, observacao]
   );
 
   return result.rows[0];
 }
 
-//READ 
-
+// READ 
 async function getCarrinho() {
   const { rows } = await pool.query("SELECT * FROM carrinho");
   return rows;
 }
 
-// READ POR USUÁRIO
-
-async function getCarrinhoPorUsuario(usuarioId) {
-  if (!usuarioId) {
-    console.error("usuarioId não informado.");
+// READ POR PEDIDO
+async function getCarrinhoPorPedido(pedidoId) {
+  if (!pedidoId) {
+    console.error("pedidoId não informado.");
     return false;
   }
 
   const { rows } = await pool.query(
-    "SELECT * FROM carrinho WHERE usuarioId = $1",
-    [usuarioId]
+    "SELECT * FROM carrinho WHERE pedidoId = $1",
+    [pedidoId]
   );
 
   return rows;
 }
 
-// UPDATE 
-
+// UPDATE
 async function editCarrinho(id, quantidade, observacao) {
-
   if (!id || quantidade == null) {
     console.error("Falha ao editar carrinho: id e quantidade são obrigatórios.");
     return false;
@@ -76,7 +71,7 @@ async function editCarrinho(id, quantidade, observacao) {
     `
     UPDATE carrinho
     SET quantidade = $1,
-    observacao = $2
+        observacao = $2
     WHERE id = $3
     RETURNING *
     `,
@@ -87,17 +82,16 @@ async function editCarrinho(id, quantidade, observacao) {
   return result.rows[0];
 }
 
-// DELETE 
-
+// DELETE
 async function deleteCarrinho(id) {
-
   if (!id) {
     console.error("ID do carrinho não informado.");
     return false;
   }
 
   const result = await pool.query(
-    `DELETE FROM carrinho
+    `
+    DELETE FROM carrinho
     WHERE id = $1
     RETURNING id
     `,
@@ -107,8 +101,7 @@ async function deleteCarrinho(id) {
   return result.rows.length > 0;
 }
 
-// EXPORTS 
-
+// EXPORTS
 module.exports = {
-  Carrinho, insertCarrinho, getCarrinho, getCarrinhoPorUsuario, editCarrinho, deleteCarrinho
+  Carrinho, insertCarrinho, getCarrinho, getCarrinhoPorPedido, editCarrinho, deleteCarrinho
 };
