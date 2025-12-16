@@ -10,8 +10,12 @@ class Produto {
     this.unidade = unidade;
     this.imagem = imagem;
     this.ativo = ativo;
+    this.estoque = estoque;
+    this.estoqueMinimo = estoqueMinimo;
   }
 }
+
+//estoque e estoque minimo
 
 //CREATE
 

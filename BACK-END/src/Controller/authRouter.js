@@ -53,6 +53,7 @@ router.post("/auth/login", async (req, res) => {
                 message: "E-mail não encontrado"
             });
         }
+
         // Verifica senha (sem hash no MVP)
         if (usuario.senha !== senha) {
             return res.status(401).json({
@@ -60,6 +61,7 @@ router.post("/auth/login", async (req, res) => {
                 message: "Senha incorreta"
             });
         }
+
         // Verifica se conta está ativa
         if (!usuario.ativo) {
             return res.status(403).json({
@@ -67,6 +69,7 @@ router.post("/auth/login", async (req, res) => {
                 message: "Conta desativada"
             });
         }
+
         // Gera token JWT
         const token = jwt.sign(
             {
@@ -77,6 +80,7 @@ router.post("/auth/login", async (req, res) => {
             process.env.JWT_SECRET || 'chave-secreta-subscrivery',
             { expiresIn: '24h' }
         );
+
         // Remove senha da resposta
         const { senha: _, ...usuarioSemSenha } = usuario;
         return res.status(200).json({

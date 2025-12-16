@@ -9,6 +9,29 @@ class Pedido {
   }
 }
 
+//novos atributos
+
+/*
+CREATE TABLE IF NOT EXISTS pedidos (
+  id SERIAL PRIMARY KEY,
+  usuarioId INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+  enderecoId INTEGER REFERENCES enderecos(id),
+  frequencia VARCHAR(20) CHECK (frequencia IN ('semanal', 'quinzenal', 'mensal')),
+  diaEntrega INTEGER,
+  valorTotal DECIMAL(10, 2),
+  valorFrete DECIMAL(10, 2) DEFAULT 15.00,
+  descontoClub DECIMAL(10, 2) DEFAULT 0,
+  valorFinal DECIMAL(10, 2),
+  status VARCHAR(30) DEFAULT 'ativa' CHECK (status IN ('ativa', 'pausada', 'cancelada', 'pendente_estoque')),
+  dataInicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  dataProximaEntrega TIMESTAMP,
+  dataProximaCobranca TIMESTAMP,
+  dataCancelamento TIMESTAMP
+); 
+*/
+
+
+
 // CREATE
 async function insertPedido(usuarioId, precoTotal) {
   if (!usuarioId || precoTotal == null) {
