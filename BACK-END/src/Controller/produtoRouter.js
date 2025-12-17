@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto} = require("../Model/DAO/produtoDAO");
+const {insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto, getCategorias} = require("../Model/DAO/produtoDAO");
 
 
 // READ - TODOS
@@ -69,6 +69,31 @@ router.get("/produtos/:id", async (req, res) => {
             error: error.message
         });
     }
+});
+
+//GET CATEGORIAS
+router.get("/categorias", async (req, res) => {
+  try {
+    const categorias = await getCategorias();
+
+    if (!categorias || categorias.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhuma categoria encontrada"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      categorias
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar categorias",
+      error: error.message
+    });
+  }
 });
 
 

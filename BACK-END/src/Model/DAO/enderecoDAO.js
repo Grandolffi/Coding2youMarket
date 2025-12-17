@@ -1,22 +1,7 @@
 const pool = require('../../Config/Db/mysqlConnect');
 
-/* =======================
-   MODEL
-======================= */
 class Endereco {
-  constructor(
-    id,
-    usuarioId,
-    cep,
-    rua,
-    numero,
-    complemento,
-    bairro,
-    cidade,
-    estado,
-    apelido,
-    principal
-  ) {
+  constructor(id, usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal) {
     this.id = id;
     this.usuarioId = usuarioId;
     this.cep = cep;

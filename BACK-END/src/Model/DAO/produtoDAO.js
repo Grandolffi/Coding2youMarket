@@ -15,7 +15,6 @@ class Produto {
   }
 }
 
-//estoque e estoque minimo
 
 //CREATE
 

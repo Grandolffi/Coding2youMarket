@@ -1,16 +1,7 @@
 const pool = require('../../Config/Db/mysqlConnect');
 
 class Pagamento {
-  constructor(
-    id,
-    pedidoId,
-    assinaturaId,
-    usuarioId,
-    cartaoId,
-    valor,
-    status,
-    dataPagamento
-  ) {
+  constructor(id,pedidoId, assinaturaId,usuarioId, cartaoId, valor, status, dataPagamento) {
     this.id = id;
     this.pedidoId = pedidoId;
     this.assinaturaId = assinaturaId;
