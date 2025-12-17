@@ -1,115 +1,211 @@
 const pool = require('../../Config/Db/mysqlConnect');
 
 class Pedido {
-  constructor(id, usuarioId, precoTotal, data) {
+  constructor(
+    id,
+    usuarioId,
+    enderecoId,
+    frequencia,
+    diaEntrega,
+    valorTotal,
+    valorFrete,
+    descontoClub,
+    valorFinal,
+    status,
+    dataInicio,
+    dataProximaEntrega,
+    dataProximaCobranca,
+    dataCancelamento
+  ) {
     this.id = id;
     this.usuarioId = usuarioId;
-    this.precoTotal = precoTotal;
-    this.data = data;
+    this.enderecoId = enderecoId;
+    this.frequencia = frequencia;
+    this.diaEntrega = diaEntrega;
+    this.valorTotal = valorTotal;
+    this.valorFrete = valorFrete;
+    this.descontoClub = descontoClub;
+    this.valorFinal = valorFinal;
+    this.status = status;
+    this.dataInicio = dataInicio;
+    this.dataProximaEntrega = dataProximaEntrega;
+    this.dataProximaCobranca = dataProximaCobranca;
+    this.dataCancelamento = dataCancelamento;
   }
 }
 
-//novos atributos
-
-/*
-CREATE TABLE IF NOT EXISTS pedidos (
-  id SERIAL PRIMARY KEY,
-  usuarioId INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
-  enderecoId INTEGER REFERENCES enderecos(id),
-  frequencia VARCHAR(20) CHECK (frequencia IN ('semanal', 'quinzenal', 'mensal')),
-  diaEntrega INTEGER,
-  valorTotal DECIMAL(10, 2),
-  valorFrete DECIMAL(10, 2) DEFAULT 15.00,
-  descontoClub DECIMAL(10, 2) DEFAULT 0,
-  valorFinal DECIMAL(10, 2),
-  status VARCHAR(30) DEFAULT 'ativa' CHECK (status IN ('ativa', 'pausada', 'cancelada', 'pendente_estoque')),
-  dataInicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  dataProximaEntrega TIMESTAMP,
-  dataProximaCobranca TIMESTAMP,
-  dataCancelamento TIMESTAMP
-); 
-*/
-
-
-
-// CREATE
-async function insertPedido(usuarioId, precoTotal) {
-  if (!usuarioId || precoTotal == null) {
-    console.error("Falha ao criar pedido: usuarioId e precoTotal são obrigatórios.");
+//CREATE
+async function insertPedido({
+  usuarioId,
+  enderecoId,
+  frequencia,
+  diaEntrega,
+  valorTotal,
+  valorFrete = 15.00, //VALOR FRETE PADRAO
+  descontoClub = 0,
+  valorFinal,
+  status = 'ativa',
+  dataProximaEntrega,
+  dataProximaCobranca
+}) {
+  if (!usuarioId || !enderecoId || !frequencia || valorTotal == null || valorFinal == null) {
+    console.error('Falha ao criar pedido: dados obrigatórios ausentes.');
     return false;
   }
 
-  const [result] = await pool.query(
+  const { rows } = await pool.query(
     `
-    INSERT INTO pedido (
+    INSERT INTO pedidos (
       usuarioId,
-      precoTotal,
-      data
+      enderecoId,
+      frequencia,
+      diaEntrega,
+      valorTotal,
+      valorFrete,
+      descontoClub,
+      valorFinal,
+      status,
+      dataProximaEntrega,
+      dataProximaCobranca
     )
-    VALUES (?, ?, NOW())
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    RETURNING *
     `,
-    [usuarioId, precoTotal]
+    [
+      usuarioId,
+      enderecoId,
+      frequencia,
+      diaEntrega,
+      valorTotal,
+      valorFrete,
+      descontoClub,
+      valorFinal,
+      status,
+      dataProximaEntrega,
+      dataProximaCobranca
+    ]
   );
 
-  return result;
+  return rows[0];
 }
 
-// READ
+//READ
 async function getPedidos() {
-  const [rows] = await pool.query("SELECT * FROM pedido");
+  const { rows } = await pool.query('SELECT * FROM pedidos ORDER BY id DESC');
   return rows;
 }
 
-// READ POR USUÁRIO
-async function getPedidoPorUsuario(usuarioId) {
-  if (!usuarioId) {
-    console.error("usuarioId não informado.");
-    return false;
-  }
+async function getPedidoPorId(id) {
+  if (!id) return false;
 
-  const [rows] = await pool.query(
-    "SELECT * FROM pedido WHERE usuarioId = ?",
+  const { rows } = await pool.query(
+    'SELECT * FROM pedidos WHERE id = $1',
+    [id]
+  );
+
+  return rows[0];
+}
+
+async function getPedidosPorUsuario(usuarioId) {
+  if (!usuarioId) return false;
+
+  const { rows } = await pool.query(
+    'SELECT * FROM pedidos WHERE usuarioId = $1 ORDER BY id DESC',
     [usuarioId]
   );
 
   return rows;
 }
 
-// UPDATE
-async function editPedido(id, precoTotal) {
-  if (!id || precoTotal == null) {
-    console.error("Falha ao editar pedido: id e precoTotal são obrigatórios.");
-    return false;
-  }
-
-  const [result] = await pool.query(
-    `
-    UPDATE pedido
-    SET precoTotal = ?
-    WHERE id = ?
-    `,
-    [precoTotal, id]
+async function getPedidosAtivos() {
+  const { rows } = await pool.query(
+    "SELECT * FROM pedidos WHERE status = 'ativa'"
   );
-
-  return result.affectedRows > 0;
+  return rows;
 }
 
-// DELETE
+//UPDATE
+async function updateStatusPedido(id, status) {
+  const statusPermitidos = ['ativa', 'pausada', 'cancelada', 'pendente_estoque'];
+
+  if (!id || !statusPermitidos.includes(status)) return false;
+
+  const dataCancelamento =
+    status === 'cancelada' ? new Date() : null;
+
+  const { rows } = await pool.query(
+    `
+    UPDATE pedidos
+    SET
+      status = $1,
+      dataCancelamento = $2
+    WHERE id = $3
+    RETURNING *
+    `,
+    [status, dataCancelamento, id]
+  );
+
+  return rows[0] || false;
+}
+
+//UPDATE DATAS PEDIDO
+async function updateDatasPedido(
+  id,
+  dataProximaEntrega,
+  dataProximaCobranca
+) {
+  if (!id) return false;
+
+  const { rows } = await pool.query(
+    `
+    UPDATE pedidos
+    SET
+      dataProximaEntrega = $1,
+      dataProximaCobranca = $2
+    WHERE id = $3
+    RETURNING *
+    `,
+    [dataProximaEntrega, dataProximaCobranca, id]
+  );
+
+  return rows[0];
+}
+
+//DELETE HARD DELETE 
 async function deletePedido(id) {
+  if (!id) return false;
+
+  const { rowCount } = await pool.query(
+    'DELETE FROM pedidos WHERE id = $1',
+    [id]
+  );
+
+  return rowCount > 0;
+}
+
+//DELETE SOFT DELETE
+async function cancelarPedido(id) {
   if (!id) {
     console.error("ID do pedido não informado.");
     return false;
   }
 
-  const [result] = await pool.query(
-    "DELETE FROM pedido WHERE id = ?",
+  const { rows } = await pool.query(
+    `
+    UPDATE pedidos
+    SET
+      status = 'cancelada',
+      dataCancelamento = NOW()
+    WHERE id = $1
+      AND status <> 'cancelada'
+    RETURNING *
+    `,
     [id]
   );
 
-  return result.affectedRows > 0;
+  return rows[0] || false;
 }
 
-// EXPORTS
 module.exports = {
-  Pedido, insertPedido, getPedidos, getPedidoPorUsuario, editPedido, deletePedido
+  Pedido, insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, deletePedido,cancelarPedido
 };

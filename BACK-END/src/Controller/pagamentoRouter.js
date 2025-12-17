@@ -1,14 +1,120 @@
 const express = require("express");
 const router = express.Router();
 
-const { insertPagamento, getPagamentos, getPagamentosPorUsuarioId, getPagamentosPorAssinaturaId, updateStatusPagamento, getPagamentoPorId} = require("../Model/DAO/pagamentoDAO");
+const {
+  insertPagamento,
+  getPagamentos,
+  getPagamentoPorId,
+  getPagamentosPorUsuario,
+  getPagamentosPorPedidoId,
+  getPagamentosPorAssinaturaId,
+  updateStatusPagamento
+} = require("../Model/DAO/pagamentoDAO");
 
 
-//READ
+//READ POR PEDIDO ID
+router.get("/pagamentos/pedido/:pedidoId", async (req, res) => {
+  try {
+    const { pedidoId } = req.params;
+
+    if (!pedidoId) {
+      return res.status(400).json({
+        success: false,
+        message: "pedidoId não informado"
+      });
+    }
+
+    const pagamentos = await getPagamentosPorPedidoId(pedidoId);
+
+    if (!pagamentos || pagamentos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhum pagamento encontrado para este pedido"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      pagamentos
+    });
+
+  } catch (error) {
+    console.error("Erro ao buscar pagamento por pedidoId:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor",
+      error: error.message
+    });
+  }
+});
+
+
+//READ POR USUÁRIO
+router.get("/pagamentos/usuario/:usuarioId", async (req, res) => {
+  try {
+    const { usuarioId } = req.params;
+
+    const pagamentos = await getPagamentosPorUsuario(usuarioId);
+
+    if (!pagamentos || pagamentos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhum pagamento encontrado para este usuário"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      pagamentos
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar pagamentos do usuário",
+      error: error.message
+    });
+  }
+});
+
+
+//READ POR ASSINATURA ID 
+router.get("/pagamentos/assinatura/:assinaturaId", async (req, res) => {
+  try {
+    const { assinaturaId } = req.params;
+
+    const pagamentos = await getPagamentosPorAssinaturaId(assinaturaId);
+
+    if (!pagamentos || pagamentos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhum pagamento encontrado para esta assinatura"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      pagamentos
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar pagamentos da assinatura",
+      error: error.message
+    });
+  }
+});
+
+
+//READ TODOS
 router.get("/pagamentos", async (req, res) => {
   try {
     const pagamentos = await getPagamentos();
-    return res.status(200).json(pagamentos);
+    return res.status(200).json({
+      success: true,
+      pagamentos
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -19,7 +125,7 @@ router.get("/pagamentos", async (req, res) => {
 });
 
 
-// READ POR ID 
+//READ POR ID
 router.get("/pagamentos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -55,64 +161,12 @@ router.get("/pagamentos/:id", async (req, res) => {
 });
 
 
-//READ POR USUÁRIO
-router.get("/pagamentos/usuario/:usuarioId", async (req, res) => {
-  try {
-    const { usuarioId } = req.params;
-
-    const pagamentos = await getPagamentosPorUsuarioId(usuarioId);
-
-    if (!pagamentos || pagamentos.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Nenhum pagamento encontrado para este usuário"
-      });
-    }
-
-    return res.status(200).json(pagamentos);
-
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Erro ao buscar pagamentos do usuário",
-      error: error.message
-    });
-  }
-});
-
-
-//READ POR ASSINATURA
-router.get("/pagamentos/assinatura/:assinaturaId", async (req, res) => {
-  try {
-    const { assinaturaId } = req.params;
-
-    const pagamentos = await getPagamentosPorAssinaturaId(assinaturaId);
-
-    if (!pagamentos || pagamentos.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Nenhum pagamento encontrado para esta assinatura"
-      });
-    }
-
-    return res.status(200).json(pagamentos);
-
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Erro ao buscar pagamentos da assinatura",
-      error: error.message
-    });
-  }
-});
-
-
 //CREATE
 router.post("/pagamentos", async (req, res) => {
   try {
     const { assinaturaId, usuarioId, cartaoId, valor } = req.body;
 
-    if (!assinaturaId || !usuarioId || !cartaoId || valor == null) {
+    if (!usuarioId || !cartaoId || valor == null) {
       return res.status(400).json({
         success: false,
         message: "Campos obrigatórios não informados"
@@ -182,7 +236,7 @@ router.put("/pagamentos/:id/status", async (req, res) => {
 });
 
 
-//CANCELAR / SOFT DELETE
+//CANCELAR / SOFT DELETE 
 router.patch("/pagamentos/:id/cancelar", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -196,14 +250,14 @@ router.patch("/pagamentos/:id/cancelar", async (req, res) => {
       });
     }
 
-    if (pagamento.status === 'aprovado') {
+    if (pagamento.status === "aprovado") {
       return res.status(403).json({
         success: false,
         message: "Pagamento aprovado não pode ser cancelado"
       });
     }
 
-    const pagamentoCancelado = await updateStatusPagamento(id, 'estornado');
+    const pagamentoCancelado = await updateStatusPagamento(id, "estornado");
 
     return res.status(200).json({
       success: true,
