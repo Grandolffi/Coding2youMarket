@@ -1,4 +1,4 @@
-const pool = require('../../Config/Db/mysqlConnect');
+const pool = require('./db');
 
 class Endereco {
   constructor(id, usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal) {
@@ -17,7 +17,7 @@ class Endereco {
 }
 
 //CREATE 
-async function insertEndereco( usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal) {
+async function insertEndereco(usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal) {
 
   if (!usuarioId || !cep || !rua || !numero || !bairro || !cidade || !estado) {
     console.error("Falha ao inserir endereço: campos obrigatórios ausentes.");
@@ -26,7 +26,7 @@ async function insertEndereco( usuarioId, cep, rua, numero, complemento, bairro,
 
   const result = await pool.query(
     `
-    INSERT INTO endereco (
+    INSERT INTO enderecos (
       usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal
     )
 
@@ -44,7 +44,7 @@ async function insertEndereco( usuarioId, cep, rua, numero, complemento, bairro,
 // READ TODOS
 
 async function getEnderecos() {
-  const { rows } = await pool.query("SELECT * FROM endereco");
+  const { rows } = await pool.query("SELECT * FROM enderecos");
   return rows;
 }
 

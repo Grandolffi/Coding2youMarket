@@ -1,4 +1,4 @@
-const pool = require('../../Config/Db/mysqlConnect');
+const pool = require('./db');
 
 class Pedido {
   constructor(id, usuarioId, enderecoId, frequencia, diaEntrega, valorTotal, valorFrete, descontoClub, valorFinal,
@@ -193,5 +193,5 @@ async function cancelarPedido(id) {
 }
 
 module.exports = {
-  Pedido, insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, deletePedido,cancelarPedido
+  Pedido, insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, deletePedido, cancelarPedido
 };
