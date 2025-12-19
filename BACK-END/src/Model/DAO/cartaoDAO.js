@@ -25,7 +25,7 @@ async function insertCartaoCredito(usuarioId, tokenCartao, bandeira, ultimos4Dig
 
   const result = await pool.query(
     `
-    INSERT INTO cartao_credito (
+    INSERT INTO cartoes_credito (
       usuarioId,
       tokenCartao,
       bandeira,
@@ -47,7 +47,7 @@ async function insertCartaoCredito(usuarioId, tokenCartao, bandeira, ultimos4Dig
 
 // READ TODOS
 async function getCartoesCredito() {
-  const { rows } = await pool.query("SELECT * FROM cartao_credito");
+  const { rows } = await pool.query("SELECT * FROM cartoes_credito");
   return rows;
 }
 
@@ -60,7 +60,7 @@ async function getCartoesPorUsuario(usuarioId) {
   }
 
   const { rows } = await pool.query(
-    "SELECT * FROM cartao_credito WHERE usuarioId = $1",
+    "SELECT * FROM cartoes_credito WHERE usuarioId = $1",
     [usuarioId]
   );
 
@@ -92,7 +92,7 @@ async function editCartaoCredito(
 
   const result = await pool.query(
     `
-    UPDATE cartao_credito
+    UPDATE cartoes_credito
     SET nomeImpresso = $1,
         principal = $2
     WHERE id = $3
@@ -115,7 +115,7 @@ async function deleteCartaoCredito(id) {
 
   const result = await pool.query(
     `
-    DELETE FROM cartao_credito
+    DELETE FROM cartoes_credito
     WHERE id = $1
     RETURNING id
     `,
