@@ -1,206 +1,223 @@
 const express = require("express");
 const router = express.Router();
 
-const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco } = require("../Model/DAO/enderecoDAO");
+const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco} 
+= require("../Model/DAO/enderecoDAO");
+
+const auth = require("../Middleware/authJWTMid");
+
+router.use(auth);
 
 
-// READ - TODOS
+// READ TODOS
+
 router.get("/enderecos", async (req, res) => {
-    try {
-        const enderecos = await getEnderecos();
-        return res.status(200).json(enderecos);
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar endereços",
-            error: error.message
-        });
-    }
+  try {
+    // 👉 se quiser depois, aqui pode validar se é admin
+    const enderecos = await getEnderecos();
+    return res.status(200).json({
+      success: true,
+      enderecos
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar endereços",
+      error: error.message
+    });
+  }
 });
 
-// READ POR USUÁRIO
-router.get("/enderecos/usuario/:usuarioId", async (req, res) => {
-    try {
-        const { usuarioId } = req.params;
 
-        const enderecos = await getEnderecosPorUsuario(usuarioId);
+// READ MEUS 
+router.get("/enderecos/meus", async (req, res) => {
+  try {
+    const usuarioId = req.usuario.userId;
 
-        if (!enderecos || enderecos.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Nenhum endereço encontrado para este usuário"
-            });
-        }
+    const enderecos = await getEnderecosPorUsuario(usuarioId);
 
-        return res.status(200).json(enderecos);
+    return res.status(200).json({
+      success: true,
+      enderecos: enderecos || []
+    });
 
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar endereços do usuário",
-            error: error.message
-        });
-    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar endereços do usuário",
+      error: error.message
+    });
+  }
 });
+
 
 // READ POR ID
 router.get("/enderecos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
+  try {
+    const id = Number(req.params.id);
 
-        const enderecos = await getEnderecos();
-        const endereco = enderecos.find(e => e.id === id);
+    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const endereco = enderecos.find(e => e.id === id);
 
-        if (!endereco) {
-            return res.status(404).json({
-                success: false,
-                message: "Endereço não encontrado"
-            });
-        }
-
-        return res.status(200).json(endereco);
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar endereço",
-            error: error.message
-        });
+    if (!endereco) {
+      return res.status(404).json({
+        success: false,
+        message: "Endereço não encontrado"
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      endereco
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar endereço",
+      error: error.message
+    });
+  }
 });
+
 
 // CREATE
 router.post("/enderecos", async (req, res) => {
-    try {
-        const {
-            usuarioId,
-            cep,
-            rua,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            estado,
-            apelido,
-            principal
-        } = req.body;
+  try {
+    const usuarioId = req.usuario.userId;
 
-        if (!usuarioId || !cep || !rua || !numero || !cidade || !estado) {
-            return res.status(400).json({
-                success: false,
-                message: "Campos obrigatórios não informados"
-            });
-        }
+    const {
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      apelido,
+      principal
+    } = req.body;
 
-        const result = await insertEndereco(
-            usuarioId,
-            cep,
-            rua,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            estado,
-            apelido,
-            principal
-        );
-
-        return res.status(201).json({
-            success: true,
-            message: "Endereço cadastrado com sucesso!",
-            id_endereco: result
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao cadastrar endereço",
-            error: error.message
-        });
+    if (!cep || !rua || !numero || !cidade || !estado) {
+      return res.status(400).json({
+        success: false,
+        message: "Campos obrigatórios não informados"
+      });
     }
+
+    const enderecoId = await insertEndereco(
+      usuarioId,
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      apelido,
+      principal
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Endereço cadastrado com sucesso",
+      enderecoId
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao cadastrar endereço",
+      error: error.message
+    });
+  }
 });
 
 
 // UPDATE
 router.put("/enderecos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-        const {
-            cep,
-            rua,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            estado,
-            apelido,
-            principal
-        } = req.body;
+  try {
+    const id = Number(req.params.id);
 
-        const enderecos = await getEnderecos();
-        const endereco = enderecos.find(e => e.id === id);
+    const {
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      apelido,
+      principal
+    } = req.body;
 
-        if (!endereco) {
-            return res.status(404).json({
-                success: false,
-                message: "Endereço não encontrado"
-            });
-        }
+    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const endereco = enderecos.find(e => e.id === id);
 
-        await editEndereco(
-            id,
-            cep,
-            rua,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            estado,
-            apelido,
-            principal
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "Endereço editado com sucesso!",
-            id_endereco: id
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao editar endereço",
-            error: error.message
-        });
+    if (!endereco) {
+      return res.status(404).json({
+        success: false,
+        message: "Endereço não encontrado ou acesso negado"
+      });
     }
+
+    await editEndereco(
+      id,
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      apelido,
+      principal
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Endereço atualizado com sucesso"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao editar endereço",
+      error: error.message
+    });
+  }
 });
 
 
 // DELETE
 router.delete("/enderecos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-        const result = await deleteEndereco(id);
+  try {
+    const id = Number(req.params.id);
 
-        if (!result) {
-            return res.status(404).json({
-                success: false,
-                message: "Endereço não encontrado"
-            });
-        }
+    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const endereco = enderecos.find(e => e.id === id);
 
-        return res.status(200).json({
-            success: true,
-            message: "Endereço excluído com sucesso!"
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Endereço não pode ser excluído",
-            error: error.message
-        });
+    if (!endereco) {
+      return res.status(404).json({
+        success: false,
+        message: "Endereço não encontrado ou acesso negado"
+      });
     }
+
+    await deleteEndereco(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Endereço removido com sucesso"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao excluir endereço",
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

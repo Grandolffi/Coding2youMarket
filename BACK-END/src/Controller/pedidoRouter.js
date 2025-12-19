@@ -1,19 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, deletePedido, cancelarPedido
-} = require("../Model/DAO/pedidoDao");
+const {insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos,
+  updateStatusPedido, updateDatasPedido, deletePedido, cancelarPedido} 
+  = require("../Model/DAO/pedidoDao");
 
+const auth = require("../Middleware/authJWTMid");
 
-//READ POR PEDIDOS ATIVOS
+router.use(auth);
+
+// READ TODOS ATIVOS
 router.get("/pedidos/ativos", async (req, res) => {
   try {
     const pedidos = await getPedidosAtivos();
-
-    return res.status(200).json({
-      success: true,
-      pedidos
-    });
+    return res.status(200).json({ success: true, pedidos });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -24,25 +24,21 @@ router.get("/pedidos/ativos", async (req, res) => {
 });
 
 
-//READ - PEDIDOS POR USUÁRIO
-
-router.get("/pedidos/usuario/:usuarioId", async (req, res) => {
+// READ POR PEDIDO DO USUARIO
+router.get("/pedidos/meus", async (req, res) => {
   try {
-    const { usuarioId } = req.params;
+    const usuarioId = req.usuario.id;
 
     const pedidos = await getPedidosPorUsuario(usuarioId);
 
     if (!pedidos || pedidos.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Nenhum pedido encontrado para este usuário"
+        message: "Nenhum pedido encontrado"
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      pedidos
-    });
+    return res.status(200).json({ success: true, pedidos });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -52,15 +48,12 @@ router.get("/pedidos/usuario/:usuarioId", async (req, res) => {
   }
 });
 
-// READ 
+
+// READ TODOS
 router.get("/pedidos", async (req, res) => {
   try {
     const pedidos = await getPedidos();
-
-    return res.status(200).json({
-      success: true,
-      pedidos
-    });
+    return res.status(200).json({ success: true, pedidos });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -71,31 +64,22 @@ router.get("/pedidos", async (req, res) => {
 });
 
 
-// READ POR PEDIDO ID 
+// READ POR ID
 router.get("/pedidos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "ID do pedido inválido"
-      });
-    }
+    const usuarioId = req.usuario.id;
 
     const pedido = await getPedidoPorId(id);
 
-    if (!pedido) {
+    if (!pedido || pedido.usuarioId !== usuarioId) {
       return res.status(404).json({
         success: false,
         message: "Pedido não encontrado"
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      pedido
-    });
+    return res.status(200).json({ success: true, pedido });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -106,11 +90,12 @@ router.get("/pedidos/:id", async (req, res) => {
 });
 
 
-// CREATE
+// CREATE 
 router.post("/pedidos", async (req, res) => {
   try {
+    const usuarioId = req.usuario.id;
+
     const {
-      usuarioId,
       enderecoId,
       frequencia,
       diaEntrega,
@@ -120,7 +105,7 @@ router.post("/pedidos", async (req, res) => {
       dataProximaCobranca
     } = req.body;
 
-    if (!usuarioId || !enderecoId || !frequencia || valorTotal == null || valorFinal == null) {
+    if (!enderecoId || !frequencia || valorTotal == null || valorFinal == null) {
       return res.status(400).json({
         success: false,
         message: "Campos obrigatórios não informados"
@@ -153,18 +138,18 @@ router.post("/pedidos", async (req, res) => {
 });
 
 
-//UPDATE STATUS
+// UPDATE STATUS
 router.put("/pedidos/:id/status", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { status } = req.body;
 
-    const statusPermitidos = ['ativa', 'pausada', 'cancelada', 'pendente_estoque'];
+    const statusPermitidos = ["ativa", "pausada", "cancelada", "pendente_estoque"];
 
-    if (!id || !statusPermitidos.includes(status)) {
+    if (!statusPermitidos.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "ID ou status inválido"
+        message: "Status inválido"
       });
     }
 
@@ -179,31 +164,24 @@ router.put("/pedidos/:id/status", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Status do pedido atualizado com sucesso",
+      message: "Status atualizado",
       pedido: pedidoAtualizado
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Erro ao atualizar status do pedido",
+      message: "Erro ao atualizar status",
       error: error.message
     });
   }
 });
 
 
-//UPDATE DATAS
+// UPDATE DATAS
 router.put("/pedidos/:id/datas", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { dataProximaEntrega, dataProximaCobranca } = req.body;
-
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "ID inválido"
-      });
-    }
 
     const pedidoAtualizado = await updateDatasPedido(
       id,
@@ -220,30 +198,23 @@ router.put("/pedidos/:id/datas", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Datas do pedido atualizadas com sucesso",
+      message: "Datas atualizadas",
       pedido: pedidoAtualizado
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Erro ao atualizar datas do pedido",
+      message: "Erro ao atualizar datas",
       error: error.message
     });
   }
 });
 
 
-//SOFT DELETE
+// SOFT DELETE 
 router.patch("/pedidos/:id/cancelar", async (req, res) => {
   try {
     const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "ID do pedido inválido"
-      });
-    }
 
     const pedidoCancelado = await cancelarPedido(id);
 
@@ -256,7 +227,7 @@ router.patch("/pedidos/:id/cancelar", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Pedido cancelado com sucesso",
+      message: "Pedido cancelado",
       pedido: pedidoCancelado
     });
   } catch (error) {
@@ -269,17 +240,10 @@ router.patch("/pedidos/:id/cancelar", async (req, res) => {
 });
 
 
-//HARD DELETE 
+// HARD DELETE
 router.delete("/pedidos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "ID inválido"
-      });
-    }
 
     const deletado = await deletePedido(id);
 

@@ -1,20 +1,30 @@
 const express = require("express");
 const router = express.Router();
 
-const auth = require("../middlewares/authJwt.middleware");
+const auth = require("../Middleware/authJWTMid");
 
-const {
-  insertCarrinho,
-  getCarrinhoPorUsuario,
-  limparCarrinho,
-  editCarrinho,
-  deleteCarrinho
-} = require("../Model/DAO/carrinhoDAO");
+const {insertCarrinho, getCarrinhoPorUsuario,getCarrinho, limparCarrinho, editCarrinho, deleteCarrinho} = require("../Model/DAO/carrinhoDAO");
 
-// 🔐 TODAS as rotas abaixo exigem login
 router.use(auth);
 
-// READ 
+// READ TODOS
+router.get("/carrinhos", async (req, res) => {
+  try {
+    const cartoes = await getCarrinho();
+    return res.status(200).json({
+      success: true,
+      cartoes
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar carrinhos",
+      error: error.message
+    });
+  }
+});
+
+// READ POR USER 
 router.get("/carrinho", async (req, res) => {
   try {
     const usuarioId = req.usuario.userId;

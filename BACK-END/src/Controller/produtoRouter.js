@@ -1,200 +1,80 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto, getCategorias} = require("../Model/DAO/produtoDAO");
+const {insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto, getCategorias
+} = require("../Model/DAO/produtoDAO");
 
+const auth = require("../Middleware/authJWTMid");
 
-// READ - TODOS
+// ROTAS PÚBLICAS
 router.get("/produtos", async (req, res) => {
-    try {
-        const produtos = await getProdutos();
-        return res.status(200).json(produtos);
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar produtos",
-            error: error.message
-        });
-    }
-});
-
-
-// READ POR CATEGORIA 
-router.get("/produtos/categoria/:categoria", async (req, res) => {
-    try {
-        const { categoria } = req.params;
-
-        const produtos = await getProdutosByCategoria(categoria);
-
-        if (!produtos || produtos.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Nenhum produto encontrado para esta categoria"
-            });
-        }
-
-        return res.status(200).json(produtos);
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar produtos por categoria",
-            error: error.message
-        });
-    }
-});
-
-
-// READ POR ID
-router.get("/produtos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-
-        const produtos = await getProdutos();
-        const produto = produtos.find(p => p.id === id);
-
-        if (!produto) {
-            return res.status(404).json({
-                success: false,
-                message: "Produto não encontrado"
-            });
-        }
-
-        return res.status(200).json(produto);
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao buscar produto",
-            error: error.message
-        });
-    }
-});
-
-//GET CATEGORIAS
-router.get("/categorias", async (req, res) => {
   try {
-    const categorias = await getCategorias();
-
-    if (!categorias || categorias.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Nenhuma categoria encontrada"
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      categorias
-    });
+    const produtos = await getProdutos();
+    return res.status(200).json(produtos);
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Erro ao buscar categorias",
-      error: error.message
-    });
+    return res.status(500).json({ message: "Erro ao buscar produtos" });
   }
 });
 
-
-// CREATE
-router.post("/produtos", async (req, res) => {
-    try {
-        const { nome, descricao, categoria, preco, unidade, imagem } = req.body;
-
-        if (!nome || !categoria || !preco) {
-            return res.status(400).json({
-                success: false,
-                message: "Campos obrigatórios não informados"
-            });
-        }
-
-        const result = await insertProduto(
-            nome,
-            descricao,
-            categoria,
-            preco,
-            unidade,
-            imagem
-        );
-
-        return res.status(201).json({
-            success: true,
-            message: "Produto cadastrado com sucesso!",
-            id_produto: result
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro ao cadastrar produto",
-            error: error.message
-        });
-    }
+router.get("/produtos/categoria/:categoria", async (req, res) => {
+  const produtos = await getProdutosByCategoria(req.params.categoria);
+  return res.json(produtos);
 });
 
+router.get("/produtos/:id", async (req, res) => {
+  const produtos = await getProdutos();
+  const produto = produtos.find(p => p.id === Number(req.params.id));
 
-// UPDATE
-router.put("/produtos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-        const { nome, descricao, categoria, preco, unidade, imagem, ativo } = req.body;
+  if (!produto) {
+    return res.status(404).json({ message: "Produto não encontrado" });
+  }
 
-        const produtos = await getProdutos();
-        const produto = produtos.find(p => p.id === id);
-
-        if (!produto) {
-            return res.status(404).json({
-                success: false,
-                message: "Produto não encontrado"
-            });
-        }
-
-        await editProduto(
-            id, nome, descricao, categoria, preco, unidade, imagem, ativo
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "Produto editado com sucesso!",
-            id_produto: id
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Erro interno ao editar produto",
-            error: error.message
-        });
-    }
+  res.json(produto);
 });
 
+router.get("/categorias", async (req, res) => {
+  const categorias = await getCategorias();
+  res.json(categorias);
+});
 
-// DELETE
-router.delete("/produtos/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-        const result = await deleteProduto(id);
+// ROTAS PROTEGIDAS
+router.post("/produtos", auth, async (req, res) => {
+  const { nome, categoria, preco } = req.body;
 
-        if (!result) {
-            return res.status(404).json({
-                success: false,
-                message: "Produto não encontrado"
-            });
-        }
+  if (!nome || !categoria || preco == null) {
+    return res.status(400).json({ message: "Campos obrigatórios" });
+  }
 
-        return res.status(200).json({
-            success: true,
-            message: "Produto excluído com sucesso!"
-        });
+  const id = await insertProduto(
+    nome,
+    req.body.descricao,
+    categoria,
+    preco,
+    req.body.unidade,
+    req.body.imagem
+  );
 
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Produto não pode ser excluído",
-            error: error.message
-        });
-    }
+  res.status(201).json({ message: "Produto criado", id });
+});
+
+router.put("/produtos/:id", auth, async (req, res) => {
+  await editProduto(
+    req.params.id,
+    req.body.nome,
+    req.body.descricao,
+    req.body.categoria,
+    req.body.preco,
+    req.body.unidade,
+    req.body.imagem,
+    req.body.ativo
+  );
+
+  res.json({ message: "Produto atualizado" });
+});
+
+router.delete("/produtos/:id", auth, async (req, res) => {
+  await deleteProduto(req.params.id);
+  res.json({ message: "Produto deletado" });
 });
 
 module.exports = router;

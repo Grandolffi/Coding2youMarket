@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const { insertClubMarket, getClubMarkets, getClubMarketPorUsuario, getClubMarketPorId, updateStatusClubMarket, deleteClubMarket } = require('../Model/DAO/clubMarketDao');
+const {insertClubMarket, getClubMarkets, getClubMarketPorUsuario, getClubMarketPorId, updateStatusClubMarket,
+  deleteClubMarket} = require('../Model/DAO/clubMarketDao');
+  
+const auth = require('../Middleware/authJWTMid');
 
-//READ TODOS
+router.use(auth);
+
+// READ TODOS 
 router.get('/club-market', async (req, res) => {
   try {
     const clubes = await getClubMarkets();
@@ -21,17 +26,11 @@ router.get('/club-market', async (req, res) => {
   }
 });
 
-// READ POR USER
-router.get('/club-market/usuario/:usuarioId', async (req, res) => {
-  try {
-    const usuarioId = Number(req.params.usuarioId);
 
-    if (!usuarioId) {
-      return res.status(400).json({
-        success: false,
-        message: 'usuarioId inválido'
-      });
-    }
+// READ DO USUÁRIO LOGADO
+router.get('/club-market/meu', async (req, res) => {
+  try {
+    const usuarioId = req.usuario.userId;
 
     const clube = await getClubMarketPorUsuario(usuarioId);
 
@@ -55,7 +54,8 @@ router.get('/club-market/usuario/:usuarioId', async (req, res) => {
   }
 });
 
-//READ POR ID
+
+// READ POR ID 
 router.get('/club-market/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -89,17 +89,12 @@ router.get('/club-market/:id', async (req, res) => {
   }
 });
 
-//CREATE
+
+// CREATE 
 router.post('/club-market', async (req, res) => {
   try {
-    const { usuarioId, valorMensal } = req.body;
-
-    if (!usuarioId) {
-      return res.status(400).json({
-        success: false,
-        message: 'usuarioId é obrigatório'
-      });
-    }
+    const usuarioId = req.usuario.userId;
+    const { valorMensal } = req.body;
 
     const clube = await insertClubMarket({
       usuarioId,
@@ -127,7 +122,8 @@ router.post('/club-market', async (req, res) => {
   }
 });
 
-//UPDATE STATUS
+
+// UPDATE STATUS 
 router.put('/club-market/:id/status', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -165,43 +161,8 @@ router.put('/club-market/:id/status', async (req, res) => {
   }
 });
 
-//UPDATE VALOR MENSAL
-router.put('/club-market/:id/valor', async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    const { valorMensal } = req.body;
 
-    if (!id || valorMensal == null) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID ou valorMensal inválido'
-      });
-    }
-
-    const clubeAtualizado = await updateValorMensal(id, valorMensal);
-
-    if (!clubeAtualizado) {
-      return res.status(404).json({
-        success: false,
-        message: 'Assinatura não encontrada'
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Valor mensal atualizado com sucesso',
-      clube: clubeAtualizado
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Erro ao atualizar valor',
-      error: error.message
-    });
-  }
-});
-
-//DELETE
+// DELETE 
 router.delete('/club-market/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -235,10 +196,35 @@ router.delete('/club-market/:id', async (req, res) => {
   }
 });
 
-// Atalho para cancelar 
-router.patch('/club-market/:id/cancelar', async (req, res) => {
-  const clube = await updateStatusClubMarket(id, 'cancelada');
-  return res.json({ success: true, clube });
+
+// ATALHO PARA CANCELAR 
+router.patch('/club-market/cancelar', async (req, res) => {
+  try {
+    const usuarioId = req.usuario.userId;
+
+    const clube = await getClubMarketPorUsuario(usuarioId);
+
+    if (!clube) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assinatura não encontrada'
+      });
+    }
+
+    const atualizado = await updateStatusClubMarket(clube.id, 'cancelada');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Assinatura cancelada com sucesso',
+      clube: atualizado
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao cancelar assinatura',
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

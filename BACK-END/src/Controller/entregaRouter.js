@@ -1,28 +1,108 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const { insertEntrega, getEntregas, getEntregaPorId, getEntregasPorPedido, editStatusEntrega, confirmarEntrega,
-  registrarProblemaEstoque, deleteEntrega
-} = require('../Model/DAO/entregaDao');
+const {insertEntrega, getEntregas, getEntregaPorId, getEntregasPorPedido, editStatusEntrega, confirmarEntrega,
+  registrarProblemaEstoque, deleteEntrega} = require("../Model/DAO/entregaDao");
+
+const auth = require("../Middleware/authJWTMid");
+
+router.use(auth);
 
 
-// READ - POR PEDIDO
-router.get('/entregas/pedido/:pedidoId', async (req, res) => {
+// READ TODAS 
+router.get("/entregas", async (req, res) => {
   try {
-    const entregas = await getEntregasPorPedido(req.params.pedidoId);
+    const entregas = await getEntregas();
 
-    if (!entregas) {
-      return res.status(404).json({ message: 'Nenhuma entrega encontrada' });
-    }
+    return res.status(200).json({
+      success: true,
+      entregas
+    });
 
-    res.json(entregas);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar entregas do pedido' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar entregas",
+      error: error.message
+    });
   }
 });
 
-// CREATE
-router.post('/entregas', async (req, res) => {
+
+// READ POR PEDIDO
+router.get("/entregas/pedido/:pedidoId", async (req, res) => {
+  try {
+    const pedidoId = Number(req.params.pedidoId);
+
+    if (!pedidoId) {
+      return res.status(400).json({
+        success: false,
+        message: "pedidoId inválido"
+      });
+    }
+
+    const entregas = await getEntregasPorPedido(pedidoId);
+
+    if (!entregas || entregas.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhuma entrega encontrada para este pedido"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      entregas
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar entregas do pedido",
+      error: error.message
+    });
+  }
+});
+
+
+// READ POR ID
+router.get("/entregas/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "ID inválido"
+      });
+    }
+
+    const entrega = await getEntregaPorId(id);
+
+    if (!entrega) {
+      return res.status(404).json({
+        success: false,
+        message: "Entrega não encontrada"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      entrega
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar entrega",
+      error: error.message
+    });
+  }
+});
+
+
+// CREATE 
+router.post("/entregas", async (req, res) => {
   try {
     const {
       pedidoId,
@@ -32,6 +112,13 @@ router.post('/entregas', async (req, res) => {
       problemaEstoque,
       observacoes
     } = req.body;
+
+    if (!pedidoId || !enderecoId || !dataEntrega) {
+      return res.status(400).json({
+        success: false,
+        message: "Campos obrigatórios não informados"
+      });
+    }
 
     const entrega = await insertEntrega(
       pedidoId,
@@ -43,106 +130,152 @@ router.post('/entregas', async (req, res) => {
     );
 
     if (!entrega) {
-      return res.status(400).json({ message: 'Erro ao criar entrega' });
+      return res.status(400).json({
+        success: false,
+        message: "Erro ao criar entrega"
+      });
     }
 
-    res.status(201).json({ success: true, message: 'Criado!', entrega });
+    return res.status(201).json({
+      success: true,
+      message: "Entrega criada com sucesso",
+      entrega
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao criar entrega",
+      error: error.message
+    });
   }
 });
 
-// READ - TODAS
-router.get('/entregas', async (req, res) => {
+
+// UPDATE STATUS
+router.put("/entregas/:id/status", async (req, res) => {
   try {
-    const entregas = await getEntregas();
-    res.json(entregas);
-  } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar entregas' });
-  }
-});
-
-
-// READ - POR ID
-router.get('/entregas/:id', async (req, res) => {
-  try {
-    const entrega = await getEntregaPorId(req.params.id);
-
-    if (!entrega) {
-      return res.status(404).json({ message: 'Entrega não encontrada' });
-    }
-
-    res.json(entrega);
-  } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar entrega' });
-  }
-});
-
-// UPDATE - STATUS
-router.put('/entregas/:id/status', async (req, res) => {
-  try {
+    const id = Number(req.params.id);
     const { status } = req.body;
 
-    const entrega = await editStatusEntrega(req.params.id, status);
-
-    if (!entrega) {
-      return res.status(400).json({ message: 'Erro ao atualizar status' });
+    if (!id || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "ID ou status inválido"
+      });
     }
 
-    res.json(entrega);
+    const entrega = await editStatusEntrega(id, status);
+
+    if (!entrega) {
+      return res.status(404).json({
+        success: false,
+        message: "Entrega não encontrada"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Status atualizado com sucesso",
+      entrega
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao atualizar status da entrega' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao atualizar status",
+      error: error.message
+    });
   }
 });
 
-// UPDATE - CONFIRMAR ENTREGA
-router.put('/entregas/:id/confirmar', async (req, res) => {
+
+// UPDATE CONFIRMAR ENTREGA
+router.put("/entregas/:id/confirmar", async (req, res) => {
   try {
-    const entrega = await confirmarEntrega(req.params.id);
+    const id = Number(req.params.id);
+
+    const entrega = await confirmarEntrega(id);
 
     if (!entrega) {
-      return res.status(400).json({ message: 'Erro ao confirmar entrega' });
+      return res.status(404).json({
+        success: false,
+        message: "Entrega não encontrada"
+      });
     }
 
-    res.json(entrega);
+    return res.status(200).json({
+      success: true,
+      message: "Entrega confirmada com sucesso",
+      entrega
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao confirmar entrega' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao confirmar entrega",
+      error: error.message
+    });
   }
 });
 
-// UPDATE - PROBLEMA DE ESTOQUE
-router.put('/entregas/:id/problema-estoque', async (req, res) => {
+
+// UPDATE PROBLEMA DE ESTOQUE
+router.put("/entregas/:id/problema-estoque", async (req, res) => {
   try {
+    const id = Number(req.params.id);
     const { observacoes } = req.body;
 
-    const entrega = await registrarProblemaEstoque(
-      req.params.id,
-      observacoes
-    );
+    const entrega = await registrarProblemaEstoque(id, observacoes);
 
     if (!entrega) {
-      return res.status(400).json({ message: 'Erro ao registrar problema' });
+      return res.status(404).json({
+        success: false,
+        message: "Entrega não encontrada"
+      });
     }
 
-    res.json(entrega);
+    return res.status(200).json({
+      success: true,
+      message: "Problema de estoque registrado",
+      entrega
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao registrar problema de estoque' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao registrar problema de estoque",
+      error: error.message
+    });
   }
 });
 
+
 // DELETE
-router.delete('/entregas/:id', async (req, res) => {
+router.delete("/entregas/:id", async (req, res) => {
   try {
-    const sucesso = await deleteEntrega(req.params.id);
+    const id = Number(req.params.id);
+
+    const sucesso = await deleteEntrega(id);
 
     if (!sucesso) {
-      return res.status(404).json({ message: 'Entrega não encontrada' });
+      return res.status(404).json({
+        success: false,
+        message: "Entrega não encontrada"
+      });
     }
 
-    res.json({ message: 'Entrega removida com sucesso' });
+    return res.status(200).json({
+      success: true,
+      message: "Entrega removida com sucesso"
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao remover entrega' });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao remover entrega",
+      error: error.message
+    });
   }
 });
 

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const {insertClienteEndereco,getClientesEnderecos, getEnderecosPorUsuario, getClienteEnderecoPorId,
-  setEnderecoPrincipal, desvincularEndereco, deleteClienteEndereco
-} = require('../Model/DAO/clienteEnderecoDao');
+const { insertClienteEndereco, getClientesEnderecos, getEnderecosPorUsuario, getClienteEnderecoPorId,
+  setEnderecoPrincipal, desvincularEndereco, deleteClienteEndereco} = require('../Model/DAO/clienteEnderecoDao');
 
-//READ
-router.get('/cliente-enderecos', async (req, res) => {
+const auth = require('../Middleware/authJWTMid');
+
+// READ TODOS
+router.get('/cliente-enderecos', auth, async (req, res) => {
   try {
     const vinculos = await getClientesEnderecos();
 
@@ -23,30 +24,17 @@ router.get('/cliente-enderecos', async (req, res) => {
   }
 });
 
-//READ POR USER
-router.get('/cliente-enderecos/usuario/:usuarioId', async (req, res) => {
-  try {
-    const usuarioId = Number(req.params.usuarioId);
 
-    if (!usuarioId) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID do usuário inválido'
-      });
-    }
+// READ POR USER
+router.get('/cliente-enderecos/meus', auth, async (req, res) => {
+  try {
+    const usuarioId = req.usuario.userId;
 
     const enderecos = await getEnderecosPorUsuario(usuarioId);
 
-    if (!enderecos || enderecos.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Nenhum endereço ativo encontrado para este usuário'
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      enderecos
+      enderecos: enderecos || []
     });
   } catch (error) {
     return res.status(500).json({
@@ -57,24 +45,25 @@ router.get('/cliente-enderecos/usuario/:usuarioId', async (req, res) => {
   }
 });
 
-//READ POR ID
-router.get('/cliente-enderecos/:id', async (req, res) => {
+
+// READ POR ID 
+router.get('/cliente-enderecos/:id', auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: 'ID do vínculo inválido'
+        message: 'ID inválido'
       });
     }
 
     const vinculo = await getClienteEnderecoPorId(id);
 
-    if (!vinculo) {
+    if (!vinculo || vinculo.usuarioid !== req.usuario.userId) {
       return res.status(404).json({
         success: false,
-        message: 'Vínculo não encontrado'
+        message: 'Endereço não encontrado'
       });
     }
 
@@ -91,15 +80,17 @@ router.get('/cliente-enderecos/:id', async (req, res) => {
   }
 });
 
-//CREATE
-router.post('/cliente-enderecos', async (req, res) => {
-  try {
-    const { usuarioId, enderecoId, principal } = req.body;
 
-    if (!usuarioId || !enderecoId) {
+// CREATE
+router.post('/cliente-enderecos', auth, async (req, res) => {
+  try {
+    const { enderecoId, principal } = req.body;
+    const usuarioId = req.usuario.userId;
+
+    if (!enderecoId) {
       return res.status(400).json({
         success: false,
-        message: 'Campos obrigatórios não informados'
+        message: 'enderecoId é obrigatório'
       });
     }
 
@@ -111,7 +102,7 @@ router.post('/cliente-enderecos', async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Endereço vinculado ao usuário com sucesso',
+      message: 'Endereço vinculado com sucesso',
       vinculo
     });
   } catch (error) {
@@ -123,16 +114,18 @@ router.post('/cliente-enderecos', async (req, res) => {
   }
 });
 
-// UPDATE DEFINIR PRINCIPAL
-router.put('/cliente-enderecos/:id/principal', async (req, res) => {
+
+// DEFINIR ENDEREÇO PRINCIPAL
+
+router.put('/cliente-enderecos/:id/principal', auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { usuarioId } = req.body;
+    const usuarioId = req.usuario.userId;
 
-    if (!id || !usuarioId) {
+    if (!id) {
       return res.status(400).json({
         success: false,
-        message: 'ID do vínculo ou usuário inválido'
+        message: 'ID inválido'
       });
     }
 
@@ -141,7 +134,7 @@ router.put('/cliente-enderecos/:id/principal', async (req, res) => {
     if (!atualizado) {
       return res.status(404).json({
         success: false,
-        message: 'Endereço não encontrado ou inativo'
+        message: 'Endereço não encontrado'
       });
     }
 
@@ -159,15 +152,16 @@ router.put('/cliente-enderecos/:id/principal', async (req, res) => {
   }
 });
 
+
 // SOFT DELETE
-router.patch('/cliente-enderecos/:id/desvincular', async (req, res) => {
+router.patch('/cliente-enderecos/:id/desvincular', auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: 'ID do vínculo inválido'
+        message: 'ID inválido'
       });
     }
 
@@ -176,14 +170,13 @@ router.patch('/cliente-enderecos/:id/desvincular', async (req, res) => {
     if (!desvinculado) {
       return res.status(404).json({
         success: false,
-        message: 'Endereço não encontrado ou já desvinculado'
+        message: 'Endereço não encontrado'
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Endereço desvinculado com sucesso',
-      endereco: desvinculado
+      message: 'Endereço desvinculado com sucesso'
     });
   } catch (error) {
     return res.status(500).json({
@@ -194,8 +187,9 @@ router.patch('/cliente-enderecos/:id/desvincular', async (req, res) => {
   }
 });
 
+
 // HARD DELETE
-router.delete('/cliente-enderecos/:id', async (req, res) => {
+router.delete('/cliente-enderecos/:id', auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
