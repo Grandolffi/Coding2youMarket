@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const { insertPagamento, getPagamentos, getPagamentoPorId, getPagamentosPorUsuario, 
- updateStatusPagamento} = require("../Model/DAO/pagamentoDAO");
+const { insertPagamento, getPagamentos, getPagamentoPorId, getPagamentosPorUsuario,
+  updateStatusPagamento } = require("../Model/DAO/pagamentoDAO");
 
 const auth = require("../Middleware/authJWTMid");
 
@@ -21,7 +21,7 @@ router.get("/pagamentos", async (req, res) => {
 // READ MEUS
 router.get("/pagamentos/meus", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const pagamentos = await getPagamentosPorUsuario(usuarioId);
 
     return res.json({ success: true, pagamentos: pagamentos || [] });
@@ -39,7 +39,7 @@ router.get("/pagamentos/:id", async (req, res) => {
       return res.status(404).json({ message: "Pagamento não encontrado" });
     }
 
-    if (pagamento.usuarioid !== req.usuario.userId) {
+    if (pagamento.usuarioid !== req.usuario.id) {
       return res.status(403).json({ message: "Acesso negado" });
     }
 
@@ -52,7 +52,7 @@ router.get("/pagamentos/:id", async (req, res) => {
 // CREATE
 router.post("/pagamentos", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const { cartaoId, valor } = req.body;
 
     const pagamento = await insertPagamento(usuarioId, cartaoId, valor);

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertCliente, getClientes, editCliente, deleteCliente} = require("../Model/DAO/clienteDAO");
+const { insertCliente, getClientes, editCliente, deleteCliente } = require("../Model/DAO/clienteDAO");
 
 const auth = require("../Middleware/authJWTMid");
 
@@ -10,7 +10,6 @@ router.use(auth);
 //READ TODOS
 router.get("/clientes", async (req, res) => {
   try {
-    // 👉 aqui futuramente você pode checar role admin
     const clientes = await getClientes();
 
     return res.status(200).json({
@@ -29,7 +28,7 @@ router.get("/clientes", async (req, res) => {
 //READ MEUS DADOS
 router.get("/clientes/me", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const clientes = await getClientes();
     const cliente = clientes.find(c => c.id === usuarioId);
@@ -102,7 +101,7 @@ router.post("/clientes", async (req, res) => {
 //UPDATE
 router.put("/clientes/me", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const { nome, email, cpf, telefone, senha, clubMember, ativo } = req.body;
 
     const clientes = await getClientes();
@@ -150,7 +149,7 @@ router.put("/clientes/me", async (req, res) => {
 //DELETE
 router.delete("/clientes/me", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const deletado = await deleteCliente(usuarioId);
 

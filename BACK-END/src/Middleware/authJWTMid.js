@@ -1,5 +1,9 @@
+require('dotenv').config();
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
+
+
+console.log("🔑 [authJWTMid] JWT_SECRET:", JWT_SECRET);
 
 async function auth(req, res, next) {
   const header = req.headers.authorization || "";
@@ -22,7 +26,7 @@ async function auth(req, res, next) {
       });
     }
 
-    req.usuario = decoded; 
+    req.usuario = decoded;
     return next();
 
   } catch (error) {

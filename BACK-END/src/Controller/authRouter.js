@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const generateToken = require("../utils/generateToken");
+const geraToken = require('../Utils/geraToken')
 
 const { insertCliente, getClientes } = require("../Model/DAO/clienteDAO");
 
@@ -72,7 +72,7 @@ router.post("/auth/login", async (req, res) => {
     }
 
     //GERA TOKEN COM FUNÇÃO PADRÃO
-    const token = generateToken(usuario);
+    const token = geraToken(usuario);
 
     const { senha: _, ...usuarioSemSenha } = usuario;
 

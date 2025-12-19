@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertCartaoCredito, getCartoesCredito, getCartoesPorUsuario, getCartaoById, editCartaoCredito,
-  deleteCartaoCredito} = require("../Model/DAO/cartaoDAO");
+const { insertCartaoCredito, getCartoesCredito, getCartoesPorUsuario, getCartaoById, editCartaoCredito,
+  deleteCartaoCredito } = require("../Model/DAO/cartaoDAO");
 
 const auth = require("../Middleware/authJWTMid");
 
@@ -30,7 +30,7 @@ router.get("/cartoes", async (req, res) => {
 // READ CARTÕES POR USER
 router.get("/cartoes/meus", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const cartoes = await getCartoesPorUsuario(usuarioId);
 
@@ -70,7 +70,7 @@ router.get("/cartoes/:id", async (req, res) => {
     }
 
     // CHECANDO ID PARA SO O USER VER O PROPRIO CARTAO
-    if (cartao.usuarioid !== req.usuario.userId) {
+    if (cartao.usuarioid !== req.usuario.id) {
       return res.status(403).json({
         success: false,
         message: "Acesso negado"
@@ -94,7 +94,7 @@ router.get("/cartoes/:id", async (req, res) => {
 // CREATE
 router.post("/cartoes", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const {
       tokenCartao,
       bandeira,
@@ -151,7 +151,7 @@ router.put("/cartoes/:id", async (req, res) => {
       });
     }
 
-    if (cartao.usuarioid !== req.usuario.userId) {
+    if (cartao.usuarioid !== req.usuario.id) {
       return res.status(403).json({
         success: false,
         message: "Acesso negado"
@@ -189,7 +189,7 @@ router.delete("/cartoes/:id", async (req, res) => {
       });
     }
 
-    if (cartao.usuarioid !== req.usuario.userId) {
+    if (cartao.usuarioid !== req.usuario.id) {
       return res.status(403).json({
         success: false,
         message: "Acesso negado"

@@ -24,7 +24,7 @@ const cartaoRouter = require('./Controller/CartaoRouter');
 const clubMarketRouter = require('./Controller/ClubMarketRouter');
 const pagamentoRouter = require('./Controller/pagamentoRouter');
 const entregaRouter = require('./Controller/entregaRouter');
-const clienteEnderecoRouter = require('./Controller/clienteEnderecoRouter');
+
 
 // REGISTRAR ROTAS
 app.use('/api', authRouter);
@@ -37,7 +37,7 @@ app.use('/api', cartaoRouter);
 app.use('/api', clubMarketRouter);
 app.use('/api', pagamentoRouter);
 app.use('/api', entregaRouter);
-app.use('/api', clienteEnderecoRouter);
+
 
 
 // ROTA RAIZ (Health Check)

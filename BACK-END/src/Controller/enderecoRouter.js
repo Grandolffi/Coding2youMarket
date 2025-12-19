@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco} 
-= require("../Model/DAO/enderecoDAO");
+const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco }
+  = require("../Model/DAO/enderecoDAO");
 
 const auth = require("../Middleware/authJWTMid");
 
@@ -32,7 +32,7 @@ router.get("/enderecos", async (req, res) => {
 // READ MEUS 
 router.get("/enderecos/meus", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const enderecos = await getEnderecosPorUsuario(usuarioId);
 
@@ -56,7 +56,7 @@ router.get("/enderecos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const enderecos = await getEnderecosPorUsuario(req.usuario.id);
     const endereco = enderecos.find(e => e.id === id);
 
     if (!endereco) {
@@ -84,7 +84,7 @@ router.get("/enderecos/:id", async (req, res) => {
 // CREATE
 router.post("/enderecos", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const {
       cep,
@@ -151,7 +151,7 @@ router.put("/enderecos/:id", async (req, res) => {
       principal
     } = req.body;
 
-    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const enderecos = await getEnderecosPorUsuario(req.usuario.id);
     const endereco = enderecos.find(e => e.id === id);
 
     if (!endereco) {
@@ -194,7 +194,7 @@ router.delete("/enderecos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const enderecos = await getEnderecosPorUsuario(req.usuario.userId);
+    const enderecos = await getEnderecosPorUsuario(req.usuario.id);
     const endereco = enderecos.find(e => e.id === id);
 
     if (!endereco) {

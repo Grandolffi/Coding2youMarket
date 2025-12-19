@@ -3,7 +3,7 @@ const router = express.Router();
 
 const auth = require("../Middleware/authJWTMid");
 
-const {insertCarrinho, getCarrinhoPorUsuario,getCarrinho, limparCarrinho, editCarrinho, deleteCarrinho} = require("../Model/DAO/carrinhoDAO");
+const { insertCarrinho, getCarrinhoPorUsuario, getCarrinho, limparCarrinho, editCarrinho, deleteCarrinho } = require("../Model/DAO/carrinhoDAO");
 
 router.use(auth);
 
@@ -27,7 +27,7 @@ router.get("/carrinhos", async (req, res) => {
 // READ POR USER 
 router.get("/carrinho", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const carrinho = await getCarrinhoPorUsuario(usuarioId);
 
@@ -44,7 +44,7 @@ router.get("/carrinho", async (req, res) => {
 // CREATE 
 router.post("/carrinho", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const { produtoId, quantidade, observacao } = req.body;
 
     if (!produtoId || quantidade == null) {
@@ -143,7 +143,7 @@ router.delete("/carrinho/:id", async (req, res) => {
 // DELETE
 router.delete("/carrinho/limpar", async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const result = await limparCarrinho(usuarioId);
 

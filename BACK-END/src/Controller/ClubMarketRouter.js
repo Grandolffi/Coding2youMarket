@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const {insertClubMarket, getClubMarkets, getClubMarketPorUsuario, getClubMarketPorId, updateStatusClubMarket,
-  deleteClubMarket} = require('../Model/DAO/clubMarketDao');
-  
+const { insertClubMarket, getClubMarkets, getClubMarketPorUsuario, getClubMarketPorId, updateStatusClubMarket,
+  deleteClubMarket } = require('../Model/DAO/clubMarketDao');
+
 const auth = require('../Middleware/authJWTMid');
 
 router.use(auth);
@@ -30,7 +30,7 @@ router.get('/club-market', async (req, res) => {
 // READ DO USUÁRIO LOGADO
 router.get('/club-market/meu', async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const clube = await getClubMarketPorUsuario(usuarioId);
 
@@ -93,7 +93,7 @@ router.get('/club-market/:id', async (req, res) => {
 // CREATE 
 router.post('/club-market', async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
     const { valorMensal } = req.body;
 
     const clube = await insertClubMarket({
@@ -200,7 +200,7 @@ router.delete('/club-market/:id', async (req, res) => {
 // ATALHO PARA CANCELAR 
 router.patch('/club-market/cancelar', async (req, res) => {
   try {
-    const usuarioId = req.usuario.userId;
+    const usuarioId = req.usuario.id;
 
     const clube = await getClubMarketPorUsuario(usuarioId);
 

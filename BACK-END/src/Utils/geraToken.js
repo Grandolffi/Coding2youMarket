@@ -1,4 +1,7 @@
+require('dotenv').config();
 const jwt = require("jsonwebtoken");
+
+console.log("🔑 [geraToken] JWT_SECRET:", process.env.JWT_SECRET);
 
 function geraToken(cliente) {
   return jwt.sign(
