@@ -22,7 +22,7 @@ transporter.verify((error, success) => {
 
 const enviarEmailCodigo = async (emailDestino, codigo) => {
   const mailOptions = {
-    from: '"Subscrivery ☕" <seu-email@gmail.com>',
+    from: '"Subscrivery ☕" <brunofujisao2018@gmail.com>',
     to: emailDestino,
     subject: "Seu código de verificação - Subscrivery",
     html: `
