@@ -111,6 +111,15 @@ async function editCliente(id, nome, email, cpf, telefone, senha, clubMember, at
     return false;
 }
 
+// Adicionar no clienteDAO.js
+async function updateClubMember(usuarioId, clubMember) {
+    const { rows } = await pool.query(
+        'UPDATE usuarios SET clubMember = $1 WHERE id = $2 RETURNING *',
+        [clubMember, usuarioId]
+    );
+    return rows[0];
+}
+
 //delete Cliente
 async function deleteCliente(id) {
     if (id) {
@@ -127,4 +136,4 @@ async function deleteCliente(id) {
     return false;
 }
 
-module.exports = { Cliente, getClientes, insertCliente, editCliente, deleteCliente };
+module.exports = { Cliente, getClientes, insertCliente, editCliente, updateClubMember, deleteCliente };

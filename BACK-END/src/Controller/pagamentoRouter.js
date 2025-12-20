@@ -150,6 +150,7 @@ router.post("/pagamentos/processar", async (req, res) => {
         }
       }
     });
+
     const pagamentoSalvo = await insertPagamentoMercadoPago({
       usuarioId,
       cartaoId: null,
@@ -157,6 +158,7 @@ router.post("/pagamentos/processar", async (req, res) => {
       status: payment.status,
       transacaoId: payment.id.toString()
     });
+
     return res.status(201).json({
       success: true,
       message: "Pagamento processado",
@@ -182,6 +184,7 @@ router.post("/pagamentos/criar-assinatura", async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { email, autoRecurringAmount, frequency, frequencyType, reason, backUrl } = req.body;
+
     if (!email || !autoRecurringAmount || !frequency || !frequencyType) {
       return res.status(400).json({
         success: false,
@@ -203,6 +206,7 @@ router.post("/pagamentos/criar-assinatura", async (req, res) => {
         status: "pending"
       }
     });
+
     return res.status(201).json({
       success: true,
       message: "Assinatura criada com sucesso",
