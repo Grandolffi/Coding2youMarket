@@ -1,26 +1,28 @@
+import { Link } from "react-router-dom"; // Import necessário para o Vite
 import BotaoVerde from "../components/botaoVerde";
 import { FcGoogle } from "react-icons/fc";
-import { LuEye } from "react-icons/lu"; // Ícone de olho para senha
+import { LuEye } from "react-icons/lu"; 
 
-export default function Cadastro() {
+export default function Login() {
   return (
     <div style={styles.container}>
+      {/* LADO ESQUERDO: FORMULÁRIO */}
       <div style={styles.left}>
         <div style={styles.form}>
           <span style={styles.logo}>☕ Subscrivery</span>
 
-          <h1 style={styles.title}>Cadastre-se</h1>
+          <h1 style={styles.title}>Faça Login</h1>
 
           <p style={styles.subtitle}>
-            Já possui uma conta?{" "}
-            <a href="#" style={styles.link}>Fazer Login</a>
+            Ainda não possui uma conta?{" "}
+            {/* O 'to' deve bater com o path definido no seu App.jsx */}
+            <Link to="/register" style={styles.link}>
+              Criar Conta
+            </Link>
           </p>
 
           <label style={styles.label}>E-mail</label>
           <input type="email" placeholder="example@gmail.com" style={styles.input} />
-
-          <label style={styles.label}>Celular</label>
-          <input type="text" placeholder="(99) 99999-9999" style={styles.input} />
 
           <label style={styles.label}>Senha</label>
           <div style={styles.passwordWrapper}>
@@ -28,14 +30,20 @@ export default function Cadastro() {
             <LuEye style={styles.eyeIcon} />
           </div>
 
-          <label style={styles.label}>Confirme a Senha</label>
-          <div style={styles.passwordWrapper}>
-            <input type="password" placeholder="********" style={styles.inputPassword} />
-            <LuEye style={styles.eyeIcon} />
-          </div>
+          <div style={styles.row}>
+            <label style={styles.checkboxContainer}>
+              <input type="checkbox" style={styles.checkboxInput} />
+              <span style={{ fontSize: "13px", color: "#666" }}>Lembre-se de mim</span>
+            </label>
 
+            
+            <Link to="/confirmacaoEmail" style={styles.linkSmall}>
+              Esqueceu a senha?
+            </Link>
+          </div>
+          
           <div style={{ marginTop: "10px" }}>
-            <BotaoVerde mensagem="Fazer Cadastro" />
+            <BotaoVerde mensagem="Fazer Login" />
           </div>
 
           <div style={styles.divider}>
@@ -46,11 +54,12 @@ export default function Cadastro() {
 
           <button style={styles.googleBtn}>
             <FcGoogle size={18} />
-            Cadastrar com o Google
+            Continuar com o Google
           </button>
         </div>
       </div>
 
+      {/* LADO DIREITO: HERO SECTION */}
       <div style={styles.right}>
         <div style={styles.blob}></div>
         <div style={styles.support}>
@@ -106,7 +115,15 @@ const styles = {
   link: {
     color: "#2F6B4F",
     textDecoration: "underline",
-    fontWeight: "600"
+    fontWeight: "600",
+    cursor: "pointer"
+  },
+  linkSmall: {
+    color: "#2F6B4F",
+    textDecoration: "none",
+    fontWeight: "600",
+    fontSize: "12px",
+    cursor: "pointer"
   },
   label: {
     fontSize: "13px",
@@ -145,6 +162,25 @@ const styles = {
     right: "12px",
     color: "#94A3B8",
     cursor: "pointer"
+  },
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    margin: "12px 0"
+  },
+  checkboxContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "13px",
+    color: "#666",
+    cursor: "pointer"
+  },
+  checkboxInput: {
+    accentColor: "#2F6B4F",
+    width: "16px",
+    height: "16px"
   },
   divider: {
     display: "flex",

@@ -26,3 +26,24 @@ const styles = {
     fontWeight: "500"
   }
 };
+
+//COMO CHAMAR ESSE CODIGO 
+
+// 1. Importe o componente (verifique se o caminho do arquivo está correto)
+import FooterVerde from "../components/FooterVerde"; 
+import BotaoVerde from "../components/botaoVerde";
+// ... outros imports
+
+export default function Login() {
+  return (
+    // Fragmento ou Div pai para envolver o conteúdo e o footer
+    <> 
+      <div style={styles.container}>
+        {/* ... todo o seu código da esquerda e direita ... */}
+      </div>
+
+      {/* 2. Chame o componente aqui */}
+      <FooterVerde />
+    </>
+  );
+}
