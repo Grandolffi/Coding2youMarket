@@ -70,12 +70,11 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`
-╔═══════════════════════════════════════╗
-║   🚀 Servidor Subscrivery rodando!   ║
-║   📍 Porta: ${PORT}                      ║
-║   🌐 URL: http://localhost:${PORT}      ║
-║   📅 ${new Date().toLocaleString('pt-BR')}  ║
-╚═══════════════════════════════════════╝
+
+   Servidor Subscrivery rodando!   
+   Porta: ${PORT}                      
+   URL: http://localhost:${PORT}      
+   Data: ${new Date().toLocaleString('pt-BR')}  
   `);
 });
 

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos,
-  updateStatusPedido, updateDatasPedido, deletePedido, cancelarPedido} 
+const { insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos,
+  updateStatusPedido, updateDatasPedido, updatePedido, deletePedido, cancelarPedido }
   = require("../Model/DAO/pedidoDao");
 
 const auth = require("../Middleware/authJWTMid");
@@ -262,6 +262,173 @@ router.delete("/pedidos/:id", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Erro ao deletar pedido",
+      error: error.message
+    });
+  }
+});
+
+// PAUSAR ASSINATURA
+router.patch("/pedidos/:id/pausar", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const usuarioId = req.usuario.id;
+    const pedido = await getPedidoPorId(id);
+
+    if (!pedido) {
+      return res.status(404).json({
+        success: false,
+        message: "Pedido não encontrado"
+      });
+    }
+
+    if (pedido.usuarioid !== usuarioId) {
+      return res.status(403).json({
+        success: false,
+        message: "Acesso negado"
+      });
+    }
+
+    if (pedido.status === "pausada") {
+      return res.status(400).json({
+        success: false,
+        message: "Pedido já está pausado"
+      });
+    }
+
+    if (pedido.status === "cancelada") {
+      return res.status(400).json({
+        success: false,
+        message: "Não é possível pausar pedido cancelado"
+      });
+    }
+
+    const pedidoAtualizado = await updateStatusPedido(id, "pausada");
+
+    return res.status(200).json({
+      success: true,
+      message: "Pedido pausado com sucesso",
+      pedido: pedidoAtualizado
+    });
+
+  } catch (error) {
+    console.error("Erro ao pausar pedido:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao pausar pedido",
+      error: error.message
+    });
+  }
+});
+
+// REATIVAR ASSINATURA
+router.patch("/pedidos/:id/reativar", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const usuarioId = req.usuario.id;
+    const pedido = await getPedidoPorId(id);
+
+    if (!pedido) {
+      return res.status(404).json({
+        success: false,
+        message: "Pedido não encontrado"
+      });
+    }
+
+    if (pedido.usuarioid !== usuarioId) {
+      return res.status(403).json({
+        success: false,
+        message: "Acesso negado"
+      });
+    }
+
+    if (pedido.status === "ativa") {
+      return res.status(400).json({
+        success: false,
+        message: "Pedido já está ativo"
+      });
+    }
+
+    if (pedido.status === "cancelada") {
+      return res.status(400).json({
+        success: false,
+        message: "Não é possível reativar pedido cancelado"
+      });
+    }
+
+    const pedidoAtualizado = await updateStatusPedido(id, "ativa");
+
+    return res.status(200).json({
+      success: true,
+      message: "Pedido reativado com sucesso",
+      pedido: pedidoAtualizado
+    });
+
+  } catch (error) {
+    console.error("Erro ao reativar pedido:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao reativar pedido",
+      error: error.message
+    });
+  }
+});
+
+// EDITAR ASSINATURA
+router.patch("/pedidos/:id/editar", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const usuarioId = req.usuario.id;
+    const pedido = await getPedidoPorId(id);
+
+    if (!pedido) {
+      return res.status(404).json({
+        success: false,
+        message: "Pedido não encontrado"
+      });
+    }
+    if (pedido.usuarioid !== usuarioId) {
+      return res.status(403).json({
+        success: false,
+        message: "Acesso negado"
+      });
+    }
+
+    if (pedido.status === "cancelada") {
+      return res.status(400).json({
+        success: false,
+        message: "Não é possível editar, pedido cancelado"
+      });
+    }
+
+    const { frequencia, diaEntrega, enderecoId, valorTotal, valorFinal, descontoClub } = req.body;
+
+    if (!frequencia && !diaEntrega && !enderecoId && valorTotal == null && valorFinal == null && descontoClub == null) {
+      return res.status(400).json({
+        success: false,
+        message: "Nenhum campo para atualizar"
+      });
+    }
+
+    const pedidoAtualizado = await updatePedido(id, {
+      frequencia: frequencia || pedido.frequencia,
+      diaEntrega: diaEntrega || pedido.diaentrega,
+      enderecoId: enderecoId || pedido.enderecoid,
+      valorTotal: valorTotal !== undefined ? valorTotal : pedido.valortotal,
+      valorFinal: valorFinal !== undefined ? valorFinal : pedido.valorfinal,
+      descontoClub: descontoClub !== undefined ? descontoClub : pedido.descontoclub
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Pedido editado com sucesso",
+      pedido: pedidoAtualizado
+    });
+
+  } catch (error) {
+    console.error("Erro ao editar pedido:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao editar pedido",
       error: error.message
     });
   }

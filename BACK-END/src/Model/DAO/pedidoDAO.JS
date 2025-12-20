@@ -157,6 +157,26 @@ async function updateDatasPedido(
   return rows[0];
 }
 
+// UPDATE PEDIDO COMPLETO
+async function updatePedido(id, { frequencia, diaEntrega, enderecoId, valorTotal, valorFinal, descontoClub }) {
+  if (!id) return false;
+  const { rows } = await pool.query(
+    `
+    UPDATE pedidos
+    SET frequencia = $1,
+        diaentrega = $2,
+        enderecoid = $3,
+        valortotal = $4,
+        valorfinal = $5,
+        descontoclub = $6
+    WHERE id = $7
+    RETURNING *
+    `,
+    [frequencia, diaEntrega, enderecoId, valorTotal, valorFinal, descontoClub, id]
+  );
+  return rows[0];
+}
+
 //DELETE HARD DELETE 
 async function deletePedido(id) {
   if (!id) return false;
@@ -192,6 +212,8 @@ async function cancelarPedido(id) {
   return rows[0] || false;
 }
 
+
+
 module.exports = {
-  Pedido, insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, deletePedido, cancelarPedido
+  Pedido, insertPedido, getPedidos, getPedidoPorId, getPedidosPorUsuario, getPedidosAtivos, updateStatusPedido, updateDatasPedido, updatePedido, deletePedido, cancelarPedido
 };
