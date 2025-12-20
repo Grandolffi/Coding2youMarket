@@ -111,6 +111,26 @@ async function editCliente(id, nome, email, cpf, telefone, senha, clubMember, at
     return false;
 }
 
+// Buscar cliente por email específico
+async function getClienteByEmail(email) {
+    if (!email) return null;
+    
+    try {
+        const { rows } = await pool.query(
+            "SELECT * FROM usuarios WHERE email = $1", 
+            [email]
+        );
+
+        if (rows.length > 0) {
+            return rows[0]; // Retorna o objeto do cliente encontrado
+        }
+        return null; // Retorna null se não encontrar nada
+    } catch (error) {
+        console.error("Erro ao buscar cliente por email:", error);
+        throw error;
+    }
+}
+
 // Adicionar no clienteDAO.js
 async function updateClubMember(usuarioId, clubMember) {
     const { rows } = await pool.query(
@@ -136,4 +156,4 @@ async function deleteCliente(id) {
     return false;
 }
 
-module.exports = { Cliente, getClientes, insertCliente, editCliente, updateClubMember, deleteCliente };
+module.exports = { Cliente,getClienteByEmail, getClientes, insertCliente, editCliente, updateClubMember, deleteCliente };
