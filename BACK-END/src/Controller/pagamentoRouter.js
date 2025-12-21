@@ -14,6 +14,7 @@ const client = new MercadoPagoConfig({
 });
 
 console.log("Webhook endpoint registrado SEM autenticação!");
+console.log("DEBUG: pagamentoRouter.js carregado - VERSÃO: 2025-12-21-14:30");
 router.post("/pagamentos/webhook", async (req, res) => {
   try {
     console.log("Webhook recebido do Mercado Pago:", JSON.stringify(req.body, null, 2));
