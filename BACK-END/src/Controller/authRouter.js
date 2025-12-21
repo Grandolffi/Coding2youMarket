@@ -52,6 +52,7 @@ router.post("/register", async (req, res) => {
   } catch (error) {
     console.error("ERRO NO REGISTER:", error);
 
+    console.error("Erro ao cadastrar:", error);
     return res.status(500).json({
       success: false,
       message: "Erro interno ao cadastrar",
@@ -104,6 +105,7 @@ router.post("/login", async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Erro ao fazer login:", error);
     return res.status(500).json({
       success: false,
       message: "Erro ao fazer login"
