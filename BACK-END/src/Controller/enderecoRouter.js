@@ -10,10 +10,9 @@ router.use(auth);
 
 
 // READ TODOS
-
 router.get("/enderecos", async (req, res) => {
   try {
-    // 👉 se quiser depois, aqui pode validar se é admin
+   
     const enderecos = await getEnderecos();
     return res.status(200).json({
       success: true,
@@ -84,28 +83,23 @@ router.get("/enderecos/:id", async (req, res) => {
 // CREATE
 router.post("/enderecos", async (req, res) => {
   try {
-    const usuarioId = req.usuario.id;
+    const usuarioId = req.usuario.id; // Vem do Middleware de autenticação
 
-    const {
-      cep,
-      rua,
-      numero,
-      complemento,
-      bairro,
-      cidade,
-      estado,
-      apelido,
-      principal
+    // Desestruturação do body (Certifique-se que o Front envia 'estado')
+    const { 
+      cep, 
+      rua, 
+      numero, 
+      complemento, 
+      bairro, 
+      cidade, 
+      estado, 
+      apelido, 
+      principal 
     } = req.body;
 
-    if (!cep || !rua || !numero || !cidade || !estado) {
-      return res.status(400).json({
-        success: false,
-        message: "Campos obrigatórios não informados"
-      });
-    }
-
-    const enderecoId = await insertEndereco(
+    // CHAMADA DA DAO: Passamos um único objeto com todas as propriedades
+    const novoEndereco = await insertEndereco({
       usuarioId,
       cep,
       rua,
@@ -116,15 +110,16 @@ router.post("/enderecos", async (req, res) => {
       estado,
       apelido,
       principal
-    );
+    });
 
     return res.status(201).json({
       success: true,
       message: "Endereço cadastrado com sucesso",
-      enderecoId
+      endereco: novoEndereco
     });
 
   } catch (error) {
+    console.error("Erro na Router ao chamar DAO:", error.message);
     return res.status(500).json({
       success: false,
       message: "Erro ao cadastrar endereço",
@@ -132,7 +127,6 @@ router.post("/enderecos", async (req, res) => {
     });
   }
 });
-
 
 // UPDATE
 router.put("/enderecos/:id", async (req, res) => {

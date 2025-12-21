@@ -17,32 +17,41 @@ class Endereco {
 }
 
 //CREATE 
-async function insertEndereco(usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal) {
+async function insertEndereco(dados) {
+  const { 
+    usuarioId, 
+    cep, 
+    rua, 
+    numero, 
+    complemento, 
+    bairro, 
+    cidade, 
+    estado, 
+    apelido, 
+    principal = false 
+  } = dados;
 
-  if (!usuarioId || !cep || !rua || !numero || !bairro || !cidade || !estado) {
-    console.error("Falha ao inserir endereço: campos obrigatórios ausentes.");
-    return false;
+  try {
+    const result = await pool.query(
+      `
+      INSERT INTO enderecos (
+        usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+      `,
+      [usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal]
+    );
+
+    return result.rows[0]; 
+  } catch (error) {
+    console.error("Erro na DAO insertEndereco:", error.message);
+    throw error; 
   }
-
-  const result = await pool.query(
-    `
-    INSERT INTO enderecos (
-      usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal
-    )
-
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-    RETURNING *
-    `,
-    [
-      usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal
-    ]
-  );
-
-  return result.rows[0];
 }
 
-// READ TODOS
 
+// READ TODOS
 async function getEnderecos() {
   const { rows } = await pool.query("SELECT * FROM enderecos");
   return rows;

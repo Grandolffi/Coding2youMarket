@@ -1,72 +1,218 @@
-import React from 'react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { buscarCep, criarEndereco } from '../api/enderecoAPI';
+import { getUsuarioId } from '../api/auth';
+
+// 1. Importe a imagem usando o caminho relativo correto (saindo de pages para assets)
+import fotoFundo from '../assets/01.png';
 
 export default function NovoEnderecoModal() {
+  const [cep, setCep] = useState("");
+  const [rua, setRua] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [apelido, setApelido] = useState("");
+  
+  const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCepChange = (e) => setCep(e.target.value.replace(/\D/g, ""));
+
+  const fetchCep = async () => {
+    if (cep.length !== 8) {
+      setErro("Digite um CEP válido com 8 dígitos.");
+      return;
+    }
+
+    try {
+      setErro("");
+      setBuscandoCep(true);
+      const dados = await buscarCep(cep);
+
+      if (dados && !dados.erro) {
+        setRua(dados.logradouro || "");
+        setBairro(dados.bairro || "");
+        setCidade(dados.localidade || "");
+        setEstado(dados.uf || "");
+      } else {
+        setErro("CEP não encontrado.");
+      }
+    } catch {
+      setErro("Erro ao buscar o CEP. Tente novamente.");
+    } finally {
+      setBuscandoCep(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setErro("");
+    if (!cep || !rua || !numero || !bairro || !cidade || !estado) {
+      setErro("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const usuarioId = getUsuarioId();
+      if (!usuarioId) {
+        setErro("Não foi possível identificar o usuário.");
+        return;
+      }
+
+      const novoEndereco = {
+        usuarioId,
+        cep,
+        rua,
+        numero,
+        bairro,
+        complemento,
+        cidade,
+        estado,
+        apelido,
+        principal: true
+      };
+
+      const resultado = await criarEndereco(novoEndereco);
+      if (!resultado.success) {
+        setErro(resultado.message || "Erro ao salvar endereço.");
+        return;
+      }
+
+      navigate("/home");
+    } catch (error) {
+      setErro(error?.message || "Erro ao salvar endereço.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2. Criamos o estilo do overlay dinâmico para incluir a URL da imagem processada pelo React
+  const estiloOverlayComFundo = {
+    ...styles.overlay,
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${fotoFundo})`,
+  };
+
   return (
-    <div style={styles.overlay}>
+    <div style={estiloOverlayComFundo}>
       <div style={styles.modal}>
-    
         <div style={styles.header}>
-          <button style={styles.backButton}>
+          <button onClick={() => navigate(-1)} style={styles.backButton}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" /> /
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
           <h2 style={styles.headerTitle}>Novo endereço</h2>
-          <div style={{ width: 20 }}></div> 
+          <div style={{ width: 20 }}></div>
         </div>
 
         <div style={styles.formContent}>
-          
+          {erro && <p style={styles.errorText}>{erro}</p>}
+
           <div style={styles.inputGroup}>
             <label style={styles.label}>CEP</label>
-            <input style={styles.input} type="text" placeholder="222.222-000" />
+            <div style={styles.row}>
+              <input 
+                style={{ ...styles.input, flex: 1, marginRight: '10px' }} 
+                type="text" 
+                placeholder="00000000"
+                value={cep}
+                onChange={handleCepChange}
+                maxLength={8}
+              />
+              <button 
+                onClick={fetchCep} 
+                disabled={buscandoCep}
+                style={styles.searchButton}
+              >
+                {buscandoCep ? "..." : "Buscar"}
+              </button>
+            </div>
           </div>
 
-         
           <div style={styles.inputGroup}>
             <label style={styles.label}>Rua</label>
-            <input style={styles.input} type="text" placeholder="Rua São José" />
+            <input 
+              style={styles.input} 
+              type="text" 
+              value={rua}
+              onChange={(e) => setRua(e.target.value)}
+            />
           </div>
 
-         
           <div style={styles.row}>
             <div style={{ ...styles.inputGroup, flex: 1, marginRight: '10px' }}>
               <label style={styles.label}>Número</label>
-              <input style={styles.input} type="text" placeholder="1911" />
+              <input 
+                style={styles.input} 
+                type="text" 
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+              />
             </div>
             <div style={{ ...styles.inputGroup, flex: 2 }}>
               <label style={styles.label}>Bairro</label>
-              <input style={styles.input} type="text" placeholder="Centro" />
+              <input 
+                style={styles.input} 
+                type="text" 
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+              />
             </div>
           </div>
 
-          
           <div style={styles.inputGroup}>
             <label style={styles.label}>Complemento</label>
-            <input style={styles.input} type="text" placeholder="Perto do mercado Floripa" />
+            <input 
+              style={styles.input} 
+              type="text" 
+              value={complemento}
+              onChange={(e) => setComplemento(e.target.value)}
+            />
           </div>
 
-         
           <div style={styles.inputGroup}>
             <label style={styles.label}>Cidade</label>
-            <input style={styles.input} type="text" placeholder="Florianópolis" />
+            <input 
+              style={styles.input} 
+              type="text" 
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+            />
           </div>
 
-         
           <div style={styles.row}>
             <div style={{ ...styles.inputGroup, flex: 1, marginRight: '10px' }}>
               <label style={styles.label}>UF</label>
-              <input style={styles.input} type="text" placeholder="SC" />
+              <input 
+                style={styles.input} 
+                type="text" 
+                value={estado}
+                onChange={(e) => setEstado(e.target.value)}
+              />
             </div>
             <div style={{ ...styles.inputGroup, flex: 3 }}>
               <label style={styles.label}>Apelido</label>
-              <input style={styles.input} type="text" placeholder="Casa, Trabalho..." />
+              <input 
+                style={styles.input} 
+                type="text" 
+                placeholder="Casa, Trabalho..." 
+                value={apelido}
+                onChange={(e) => setApelido(e.target.value)}
+              />
             </div>
           </div>
 
-          
-          <button style={styles.submitButton}>
-            Adicionar endereço
+          <button 
+            style={{...styles.submitButton, opacity: loading ? 0.7 : 1}} 
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Salvando..." : "Adicionar endereço"}
           </button>
         </div>
       </div>
@@ -74,12 +220,14 @@ export default function NovoEnderecoModal() {
   );
 }
 
-// Estilos abaixo do return
+// Estilos padronizados
 const styles = {
   overlay: {
     width: '100%',
     minHeight: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Simula o fundo escurecido da imagem
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -113,6 +261,8 @@ const styles = {
     cursor: 'pointer',
     color: '#333',
     padding: '5px',
+    display: 'flex',
+    alignItems: 'center',
   },
   formContent: {
     padding: '24px',
@@ -133,19 +283,32 @@ const styles = {
   input: {
     padding: '12px 16px',
     borderRadius: '10px',
-    border: '1px solid #FFF', // Borda branca conforme a imagem
+    border: '1px solid #FFF',
     backgroundColor: '#FFF',
     fontSize: '14px',
     color: '#666',
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
     outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   row: {
     display: 'flex',
     width: '100%',
+    alignItems: 'flex-end',
+  },
+  searchButton: {
+    backgroundColor: '#2F6B4F',
+    color: '#FFF',
+    border: 'none',
+    borderRadius: '10px',
+    padding: '12px 20px',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
   },
   submitButton: {
-    backgroundColor: '#2D3337',
+    backgroundColor: '#2F6B4F',
     color: '#FFF',
     border: 'none',
     padding: '16px',
@@ -154,6 +317,15 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
     marginTop: '10px',
-    transition: 'background-color 0.2s',
+  },
+  errorText: {
+    color: '#D9534F',
+    fontSize: '13px',
+    fontWeight: '500',
+    backgroundColor: '#FADBD8',
+    padding: '10px',
+    borderRadius: '8px',
+    textAlign: 'center',
+    border: '1px solid #EBCCD1',
   },
 };

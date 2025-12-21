@@ -1,7 +1,26 @@
 import { getToken } from './auth';
-const BASE_URL = "http://localhost:3000/";
+const BASE_URL = "http://localhost:3000/api"; // ajustado
 
-// Headers com autenticação
+export const buscarCep = async (cep) => {
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await response.json();
+
+    if (data.erro) return null;
+
+    return {
+      cep: data.cep,
+      logradouro: data.logradouro,
+      bairro: data.bairro,
+      cidade: data.localidade,
+      uf: data.uf
+    };
+  } catch (error) {
+    console.error("Erro ao buscar CEP:", error);
+    return null;
+  }
+};
+
 const getAuthHeaders = () => {
     const token = getToken();
     return {
@@ -13,73 +32,64 @@ const getAuthHeaders = () => {
 // Listar todos os endereços (Admin)
 export const listarEnderecos = async () => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos`, {
+        const response = await fetch(`${BASE_URL}/enderecos`, {
             method: "GET",
             headers: getAuthHeaders()
         });
-
         if (!response.ok) throw new Error('Erro ao carregar endereços');
-        const json = await response.json();
-        return json;
-
+        return await response.json();
     } catch (error) {
         console.error("Erro ao buscar endereços:", error);
         return [];
     }
 };
 
-//Buscar endereço por ID
+// Buscar endereço por ID
 export const buscarEnderecoPorId = async (id) => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos/${id}`, {
+        const response = await fetch(`${BASE_URL}/enderecos/${id}`, {
             method: "GET",
             headers: getAuthHeaders()
         });
-
         if (!response.ok) throw new Error('Endereço não encontrado');
-        const json = await response.json();
-        return json;
-
+        return await response.json();
     } catch (error) {
         console.error("Erro ao buscar endereço:", error);
         return null;
     }
 };
 
-//Meus endereços (do usuário logado)
+// Meus endereços (usuário logado)
 export const meusEnderecos = async (usuarioId) => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos/usuario/${usuarioId}`, {
+        const response = await fetch(`${BASE_URL}/enderecos/usuario/${usuarioId}`, {
             method: "GET",
             headers: getAuthHeaders()
         });
 
         if (!response.ok) {
-            if (response.status === 404) return []; // Sem endereços
+            if (response.status === 404) return [];
             throw new Error('Erro ao carregar endereços');
         }
 
-        const json = await response.json();
-
-        return json;
+        return await response.json();
     } catch (error) {
         console.error("Erro ao buscar meus endereços:", error);
         return [];
     }
 };
 
-// POST - Criar novo endereço
+// Criar endereço
 export const criarEndereco = async (dadosEndereco) => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos`, {
+        const response = await fetch(`${BASE_URL}/enderecos`, {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(dadosEndereco)
         });
 
         if (!response.ok) throw new Error(await response.text());
-        const json = await response.json();
-        return json;
+        return await response.json();
 
     } catch (error) {
         console.error("Erro ao criar endereço:", error);
@@ -87,10 +97,10 @@ export const criarEndereco = async (dadosEndereco) => {
     }
 };
 
-// PUT - Editar endereço
+// Editar endereço
 export const editarEndereco = async (id, dadosEndereco) => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos/${id}`, {
+        const response = await fetch(`${BASE_URL}/enderecos/${id}`, {
             method: "PUT",
             headers: getAuthHeaders(),
             body: JSON.stringify(dadosEndereco)
@@ -98,31 +108,27 @@ export const editarEndereco = async (id, dadosEndereco) => {
 
         const json = await response.json();
 
-        if (!response.ok) {
-            return { success: false, message: json?.message || "Erro ao editar" };
-        }
-
+        if (!response.ok) return { success: false, message: json?.message || "Erro ao editar" };
         return { success: true, message: json?.message || "Endereço editado!" };
+
     } catch (error) {
         console.error("Erro ao editar endereço:", error);
         return { success: false, message: "Erro interno ao editar." };
     }
 };
 
-// DELETE - Deletar endereço
+// Deletar endereço
 export const deletarEndereco = async (id) => {
     try {
-        const response = await fetch(`${BASE_URL}enderecos/${id}`, {
+        const response = await fetch(`${BASE_URL}/enderecos/${id}`, {
             method: "DELETE",
             headers: getAuthHeaders()
         });
 
         const json = await response.json();
-        if (!response.ok) {
-            return { success: false, message: json.message };
-        }
-
+        if (!response.ok) return { success: false, message: json.message };
         return json;
+
     } catch (error) {
         console.error("Erro ao deletar endereço:", error);
         return { success: false, message: "Erro interno ao deletar." };

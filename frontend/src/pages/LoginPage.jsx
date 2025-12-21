@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import BotaoVerde from "../components/botaoVerde";
 import { FcGoogle } from "react-icons/fc";
 import { LuEye, LuEyeOff } from "react-icons/lu";
-import { login } from "../api/auth";
+import { login, getUsuarioId } from "../api/auth";
 import { meusEnderecos } from "../api/enderecoAPI";
 
 export default function Login() {
@@ -25,12 +25,15 @@ export default function Login() {
       setLoading(true);
       setErro("");
 
-      
-      const user = await login(email, senha); 
-      localStorage.setItem("token", user.token);
+      await login(email, senha);
 
-      
-      const enderecos = await meusEnderecos(user.id);
+      const usuarioId = getUsuarioId();
+      if (!usuarioId) {
+        setErro("Não foi possível identificar o usuário.");
+        return;
+      }
+
+      const enderecos = await meusEnderecos(usuarioId);
 
       if (enderecos && enderecos.length > 0) {
         navigate("/home");

@@ -9,14 +9,13 @@ export const login = async (email, senha) => {
       body: JSON.stringify({ email, senha })
     });
 
+    const data = await response.json(); 
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao fazer login');
+      throw new Error(data.message || 'Erro ao fazer login');
     }
 
-    const data = await response.json();
-
-    // Salvar token no localStorage
+    // Salvar token e usuário
     localStorage.setItem('token', data.data.token);
     localStorage.setItem('user', JSON.stringify(data.data.usuario));
 
@@ -27,6 +26,8 @@ export const login = async (email, senha) => {
     throw error;
   }
 };
+
+
 
 // CADASTRO 
 export const cadastrar = async (nome, email, cpf, telefone, senha) => {
@@ -63,16 +64,23 @@ export const isAutenticado = () => {
   return !!localStorage.getItem('token');
 };
 
+// Pegar token
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
+
 // Pegar usuário logado
 export const getUsuarioLogado = () => {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
 };
 
-// Pegar token
-export const getToken = () => {
-  return localStorage.getItem('token');
+// Pegar o ID do usuário logado
+export const getUsuarioId = () => {
+  const usuario = getUsuarioLogado();
+  return usuario ? usuario.id : null;
 };
+
 
 //MANDAR EMAIL 
 export const solicitarCodigoVerificacao = async (email) => {
