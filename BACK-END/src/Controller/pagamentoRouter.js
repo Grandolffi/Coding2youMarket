@@ -16,58 +16,54 @@ const client = new MercadoPagoConfig({
 console.log("Webhook endpoint registrado SEM autenticação!");
 console.log("DEBUG: pagamentoRouter.js carregado - VERSÃO: 2025-12-21-14:30");
 router.post("/pagamentos/webhook", async (req, res) => {
-  try {
-    console.log("Webhook recebido do Mercado Pago:", JSON.stringify(req.body, null, 2));
-    const { type, data } = req.body;
 
-    res.status(200).send("OK");
+  res.status(200).send("OK");
+  try {
+    const { type, data } = req.body;
+    console.log("Webhook recebido:", type, data);
 
     if (type === "payment") {
-      // Notificação de pagamento
+      try {
+        const paymentClient = new Payment(client);
+        const payment = await paymentClient.get({ id: data.id });
 
-      const paymentId = data.id;
-      console.log(`Pagamento recebido: ${paymentId}`);
+        console.log(`Status do pagamento ${payment.id}: ${payment.status}`);
 
-      // Busca detalhes do pagamento no Mercado Pago
-      const paymentClient = new Payment(client);
-      const payment = await paymentClient.get({ id: paymentId });
+        if (payment.status === "approved") {
+          console.log("Pagamento aprovado!");
+        }
 
-      console.log(`Status do pagamento ${paymentId}: ${payment.status}`);
-
-      if (payment.status === "approved") {
-        console.log(" Pagamento aprovado!");
-        console.log("Email de confirmação seria enviado aqui");
+      } catch (error) {
+        console.warn("Pagamento ainda não disponível:", data.id);
       }
-
     } else if (type === "subscription_preapproval" || type === "subscription_authorized_payment") {
-      // Notificação de assinatura
-      const preapprovalId = data.id;
-      console.log(`Assinatura recebida: ${preapprovalId}`);
+      try {
+        const preApprovalClient = new PreApproval(client);
+        const preapproval = await preApprovalClient.get({ id: data.id });
 
-      // Busca detalhes da assinatura no Mercado Pago
-      const preApprovalClient = new PreApproval(client);
-      const preapproval = await preApprovalClient.get({ id: preapprovalId });
+        console.log(`Status da assinatura ${data.id}: ${preapproval.status}`);
+        if (preapproval.status === "authorized") {
+          console.log("Assinatura aprovada!");
 
-      console.log(`Status da assinatura ${preapprovalId}: ${preapproval.status}`);
-      if (preapproval.status === "authorized") {
-        console.log("Assinatura aprovada!");
+          if (preapproval.external_reference) {
+            const usuarioId = parseInt(preapproval.external_reference.replace("club_", ""));
 
-        if (preapproval.external_reference) {
-          const usuarioId = parseInt(preapproval.external_reference.replace("club_", ""));
+            if (!isNaN(usuarioId)) {
+              // Buscar assinatura Club Market do usuário
+              const clube = await getClubMarketPorUsuario(usuarioId);
 
-          if (!isNaN(usuarioId)) {
-            // Buscar assinatura Club Market do usuário
-            const clube = await getClubMarketPorUsuario(usuarioId);
+              if (clube) {
+                // Atualizar status para ativa
+                await updateStatusClubMarket(clube.id, "ativa");
+                await updateClubMember(usuarioId, true);
 
-            if (clube) {
-              // Atualizar status para ativa
-              await updateStatusClubMarket(clube.id, "ativa");
-              await updateClubMember(usuarioId, true);
-
-              console.log(`Club Market ativado para usuário ${usuarioId}`);
+                console.log(`Club Market ativado para usuário ${usuarioId}`);
+              }
             }
           }
         }
+      } catch (error) {
+        console.warn("Assinatura ainda não disponível:", data.id);
       }
     } else {
       console.log(`Tipo de notificação não tratado: ${type}`);
