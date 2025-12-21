@@ -20,10 +20,8 @@ export default function ConfirmacaoEmailPage() {
       setLoading(true);
       setErro("");
 
-      //CHAMANDO A FUNÇÃO PARA MANDAR EMAIL
       await solicitarCodigoVerificacao(email);
 
-      
       navigate("/confirmacaoEmailCode", {
         state: { email }
       });
