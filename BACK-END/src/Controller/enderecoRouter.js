@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco }
-  = require("../Model/DAO/enderecoDAO");
+  = require("../Model/DAO/enderecoDao");
 
 const auth = require("../Middleware/authJWTMid");
 

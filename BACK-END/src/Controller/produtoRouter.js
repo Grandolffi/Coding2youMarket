@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const {insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto, getCategorias
-} = require("../Model/DAO/produtoDAO");
+const { insertProduto, getProdutos, getProdutosByCategoria, editProduto, deleteProduto, getCategorias
+} = require("../Model/DAO/produtoDao");
 
 const auth = require("../Middleware/authJWTMid");
 

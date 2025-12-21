@@ -3,7 +3,7 @@ const router = express.Router();
 
 const auth = require("../Middleware/authJWTMid");
 
-const { insertCarrinho, getCarrinhoPorUsuario, getCarrinho, limparCarrinho, editCarrinho, deleteCarrinho } = require("../Model/DAO/carrinhoDAO");
+const { insertCarrinho, getCarrinhoPorUsuario, getCarrinho, limparCarrinho, editCarrinho, deleteCarrinho } = require("../Model/DAO/carrinhoDao");
 
 router.use(auth);
 

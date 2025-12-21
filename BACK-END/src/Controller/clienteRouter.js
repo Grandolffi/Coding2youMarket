@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { insertCliente, getClientes, editCliente, deleteCliente } = require("../Model/DAO/clienteDAO");
+const { insertCliente, getClientes, editCliente, deleteCliente } = require("../Model/DAO/clienteDao");
 const auth = require("../Middleware/authJWTMid");
 
 router.use(auth);
