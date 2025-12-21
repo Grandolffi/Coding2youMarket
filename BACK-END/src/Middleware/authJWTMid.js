@@ -5,6 +5,11 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function auth(req, res, next) {
+
+  if (req.originalUrl === '/api/pagamentos/webhook') {
+    return next();
+  }
+
   const header = req.headers.authorization || "";
   const [type, token] = header.split(" ");
 
