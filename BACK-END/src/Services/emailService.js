@@ -1,10 +1,12 @@
-require('dotenv').config({ path: './Utils/.env' });
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, 
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -42,7 +44,7 @@ const enviarEmailCodigo = async (emailDestino, codigo) => {
   };
 
   return transporter.sendMail(mailOptions);
-  
+
 };
 
 module.exports = { enviarEmailCodigo };
