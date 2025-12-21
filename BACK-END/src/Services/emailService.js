@@ -1,6 +1,3 @@
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
