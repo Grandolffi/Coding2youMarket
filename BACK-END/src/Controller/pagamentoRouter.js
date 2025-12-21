@@ -77,10 +77,9 @@ router.post("/pagamentos/webhook", async (req, res) => {
   }
 });
 
-router.use(auth);
 
 // READ TODOS
-router.get("/pagamentos", async (req, res) => {
+router.get("/pagamentos", auth, async (req, res) => {
   try {
     const pagamentos = await getPagamentos();
     return res.json({ success: true, pagamentos });
@@ -90,7 +89,7 @@ router.get("/pagamentos", async (req, res) => {
 });
 
 // READ MEUS
-router.get("/pagamentos/meus", async (req, res) => {
+router.get("/pagamentos/meus", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const pagamentos = await getPagamentosPorUsuario(usuarioId);
@@ -102,7 +101,7 @@ router.get("/pagamentos/meus", async (req, res) => {
 });
 
 // READ POR ID
-router.get("/pagamentos/:id", async (req, res) => {
+router.get("/pagamentos/:id", auth, async (req, res) => {
   try {
     const pagamento = await getPagamentoPorId(req.params.id);
 
@@ -121,7 +120,7 @@ router.get("/pagamentos/:id", async (req, res) => {
 });
 
 // CREATE
-router.post("/pagamentos", async (req, res) => {
+router.post("/pagamentos", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { cartaoId, valor } = req.body;
@@ -139,14 +138,14 @@ router.post("/pagamentos", async (req, res) => {
 });
 
 // UPDATE STATUS
-router.put("/pagamentos/:id/status", async (req, res) => {
+router.put("/pagamentos/:id/status", auth, async (req, res) => {
   const { status } = req.body;
   const pagamento = await updateStatusPagamento(req.params.id, status);
 
   return res.json({ success: true, pagamento });
 });
 
-router.post("/pagamentos/salvar-cartao", async (req, res) => {
+router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { token, bandeira, ultimos4digitos, nomeImpresso, principal } = req.body;
@@ -183,7 +182,7 @@ router.post("/pagamentos/salvar-cartao", async (req, res) => {
   }
 });
 
-router.post("/pagamentos/processar", async (req, res) => {
+router.post("/pagamentos/processar", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const {
@@ -246,7 +245,7 @@ router.post("/pagamentos/processar", async (req, res) => {
   }
 });
 
-router.post("/pagamentos/criar-assinatura", async (req, res) => {
+router.post("/pagamentos/criar-assinatura", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { email, autoRecurringAmount, frequency, frequencyType, reason, backUrl } = req.body;
