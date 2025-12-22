@@ -7,28 +7,35 @@ export default function ConfirmacaoEmailPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState("");
+  const [mensagem, setMensagem] = useState({ tipo: "", texto: "" });
 
   const handleEnviarCodigo = async () => {
     if (!email) {
-      setErro("Informe um e-mail válido.");
+      setMensagem({ tipo: "erro", texto: "Campo de email vazio." });
       return;
     }
 
     try {
       setLoading(true);
-      setErro("");
+      setMensagem({ tipo: "", texto: "" });
+
       const res = await solicitarCodigoVerificacao(email);
 
       if (res.success) {
-        
-        localStorage.setItem('email_recuperacao', email);
-        navigate("/confirmacaoEmailCode", { state: { email } });
+        localStorage.setItem("email_recuperacao", email);
+        setMensagem({ tipo: "sucesso", texto: "Email enviado com sucesso." });
+
+        setTimeout(() => {
+          navigate("/confirmacaoEmailCode", { state: { email } });
+        }, 800);
       } else {
-        setErro(res.message || "Erro ao enviar código.");
+        setMensagem({ tipo: "erro", texto: "Erro ao enviar o código." });
       }
     } catch (error) {
-      setErro("Erro de conexão com o servidor.");
+      setMensagem({
+        tipo: "erro",
+        texto: "E-mail não encontrado. Digite novamente.",
+      });
     } finally {
       setLoading(false);
     }
@@ -40,22 +47,43 @@ export default function ConfirmacaoEmailPage() {
         <div style={styles.form}>
           <span style={styles.logo}>☕ Subscrivery</span>
           <h1 style={styles.title}>Recuperar Senha</h1>
-          <p style={styles.subtitle}>Enviaremos um código para validar seu acesso.</p>
+          <p style={styles.subtitle}>
+            Enviaremos um código para validar seu acesso.
+          </p>
 
           <label style={styles.label}>E-mail cadastrado</label>
-          <input 
-            type="email" 
-            style={styles.input} 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
+          <input
+            type="email"
+            style={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          {erro && <p style={{ color: "red", fontSize: "13px" }}>{erro}</p>}
+
+          {mensagem.texto && (
+            <p
+              style={{
+                fontSize: "13px",
+                marginTop: "6px",
+                color:
+                  mensagem.tipo === "sucesso" ? "#2F6B4F" : "#DC2626",
+              }}
+            >
+              {mensagem.texto}
+            </p>
+          )}
 
           <div style={{ marginTop: "16px" }}>
-            <BotaoVerde mensagem={loading ? "Enviando..." : "Enviar Código"} onClick={handleEnviarCodigo} disabled={loading} />
+            <BotaoVerde
+              mensagem={loading ? "Enviando..." : "Enviar Código"}
+              onClick={handleEnviarCodigo}
+              disabled={loading}
+            />
           </div>
+
           <div style={styles.backToLogin}>
-            <Link to="/" style={styles.linkSmall}>← Voltar para o Login</Link>
+            <Link to="/" style={styles.linkSmall}>
+              ← Voltar para o Login
+            </Link>
           </div>
         </div>
       </div>
@@ -89,25 +117,25 @@ const styles = {
     fontWeight: "600",
     marginBottom: "20px",
     color: "#2F6B4F",
-    fontSize: "18px"
+    fontSize: "18px",
   },
   title: {
     fontSize: "32px",
     fontWeight: "700",
     marginBottom: "8px",
-    color: "#1A1A1A"
+    color: "#1A1A1A",
   },
   subtitle: {
     fontSize: "14px",
     color: "#666",
     marginBottom: "24px",
-    lineHeight: "1.5"
+    lineHeight: "1.5",
   },
   label: {
     fontSize: "13px",
     marginTop: "8px",
     color: "#444",
-    fontWeight: "500"
+    fontWeight: "500",
   },
   input: {
     height: "45px",
@@ -124,47 +152,10 @@ const styles = {
     textDecoration: "none",
     fontWeight: "500",
     fontSize: "13px",
-    cursor: "pointer"
+    cursor: "pointer",
   },
   backToLogin: {
     marginTop: "40px",
-    textAlign: "center"
+    textAlign: "center",
   },
-  right: {
-    flex: 1,
-    position: "relative",
-    backgroundColor: "#2F6B4F",
-    display: "flex",
-    alignItems: "center",
-    padding: "80px"
-  },
-  support: {
-    position: "absolute",
-    top: "40px",
-    right: "40px",
-    color: "#FFFFFF",
-    fontSize: "14px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    opacity: 0.9
-  },
-  blob: {
-    position: "absolute",
-    top: "-10%",
-    right: "-10%",
-    width: "500px",
-    height: "500px",
-    background: "rgba(255, 255, 255, 0.08)",
-    borderRadius: "50%",
-    filter: "blur(60px)"
-  },
-  heroText: {
-    fontSize: "64px",
-    fontWeight: "800",
-    lineHeight: "1.1",
-    color: "#FFFFFF",
-    maxWidth: "450px",
-    zIndex: 1
-  }
 };

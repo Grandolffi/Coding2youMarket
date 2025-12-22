@@ -114,6 +114,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+/*
 //UPDATE SENHA DO USUÁRIO
 router.put("/:id/senha", async (req, res) => {
   try {
@@ -149,6 +150,55 @@ router.put("/:id/senha", async (req, res) => {
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     await updateSenha(id, senhaCriptografada);
+
+    return res.status(200).json({
+      success: true,
+      message: "Senha atualizada com sucesso"
+    });
+
+  } catch (error) {
+    console.error("Erro ao atualizar senha:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
+    });
+  }
+});*/
+
+// ROTA: atualizar senha
+router.put("/senha", async (req, res) => {
+  try {
+    console.log("BODY RECEBIDO NA ROTA /senha:", req.body);
+
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({
+        success: false,
+        message: "E-mail e nova senha são obrigatórios"
+      });
+    }
+
+    const cliente = await getClienteByEmail(email);
+
+    if (!cliente) {
+      return res.status(404).json({
+        success: false,
+        message: "E-mail não encontrado"
+      });
+    }
+
+    const senhaIgual = await bcrypt.compare(senha, cliente.senha);
+    if (senhaIgual) {
+      return res.status(400).json({
+        success: false,
+        message: "A nova senha não pode ser igual à senha anterior"
+      });
+    }
+
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    await updateSenha(email, senhaCriptografada);
 
     return res.status(200).json({
       success: true,

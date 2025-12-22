@@ -18,6 +18,14 @@ export default function RedefinirSenhaPage() {
   const handleRedefinir = async (e) => {
     e.preventDefault();
 
+    if (!emailUsuario) {
+      setMensagem({
+        tipo: "erro",
+        texto: "Sessão expirada. Refaça a recuperação de senha.",
+      });
+      return;
+    }
+
     if (novaSenha !== confirmarSenha) {
       setMensagem({
         tipo: "erro",
@@ -34,23 +42,13 @@ export default function RedefinirSenhaPage() {
       return;
     }
 
-    setLoading(true);
-    setMensagem({ tipo: "", texto: "" });
-
     try {
-      const usuarioId = getUsuarioId();
+      setLoading(true);
+      setMensagem({ tipo: "", texto: "" });
 
-      if (!usuarioId) {
-        setMensagem({
-          tipo: "erro",
-          texto: "Não foi possível identificar o usuário.",
-        });
-        return;
-      }
+      console.log("Email usado na redefinição:", emailUsuario);
 
-      
-
-      const resultado = await atualizarSenha(usuarioId, novaSenha);
+      const resultado = await atualizarSenha(emailUsuario, novaSenha);
 
       if (resultado.success) {
         setMensagem({
@@ -59,8 +57,6 @@ export default function RedefinirSenhaPage() {
         });
 
         localStorage.removeItem("email_recuperacao");
-
-        console.log("Senha Atualizanda com sucesso senha:", usuarioId);
 
         setTimeout(() => navigate("/login"), 2500);
       } else {
@@ -78,7 +74,6 @@ export default function RedefinirSenhaPage() {
       setLoading(false);
     }
   };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 font-sans">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-sm">

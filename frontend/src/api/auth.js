@@ -29,43 +29,40 @@ export const login = async (email, senha) => {
 
 
 //UPDATE SENHA
-export const atualizarSenha = async (usuarioId, novaSenha) => {
+export const atualizarSenha = async (email, novaSenha) => {
   try {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(
-      `${API_URL}/api/${usuarioId}/senha`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ senha: novaSenha }),
-      }
-    );
+    const response = await fetch(`${API_URL}/api/senha`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        senha: novaSenha
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
       return {
         success: false,
-        message: data.message || "Erro ao atualizar senha",
+        message: data.message || "Erro ao atualizar senha"
       };
     }
 
     return {
       success: true,
-      message: "Senha atualizada com sucesso!",
+      message: "Senha atualizada com sucesso!"
     };
+
   } catch (error) {
     return {
       success: false,
-      message: error.message || "Erro ao conectar com o servidor",
+      message: "Erro ao conectar com o servidor"
     };
   }
 };
-
 
 // CADASTRO 
 export const cadastrar = async (nome, email, cpf, telefone, senha) => {

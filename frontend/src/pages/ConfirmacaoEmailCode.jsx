@@ -32,14 +32,21 @@ export default function ConfirmacaoEmailCode() {
       const resultado = await validarCodigoVerificacao(emailUsuario, codigo);
 
       if (resultado.success) {
-        setMensagem({ tipo: 'sucesso', texto: resultado.message });
-        localStorage.removeItem('email_recuperacao'); 
-        navigate('/redefinir-senha');
+       setMensagem({
+          tipo: "sucesso",
+          texto: "Validação aprovada! Redirecionando..."
+        });
+
+          setTimeout(() => {
+            navigate("/redefinir-senha", {
+              state: { email: emailUsuario }
+            });
+            }, 800);
       } else {
-        setMensagem({ tipo: 'erro', texto: resultado.message });
+        setMensagem({ tipo: 'erro', texto: 'Código não validado' });
       }
     } catch (error) {
-      setMensagem({ tipo: 'erro', texto: 'Erro ao conectar com o servidor.' });
+      setMensagem({ tipo: 'erro', texto: 'Código não validado' });
     } finally {
       setLoading(false);
     }

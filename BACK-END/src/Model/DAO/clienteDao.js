@@ -239,10 +239,10 @@ async function updateClubMember(usuarioId, clubMember) {
 }
 
 //REDEFINIR SENHA
-async function updateSenha(usuarioId, senha) {
+async function updateSenha(email, senha) {
   const { rows } = await pool.query(
-    'UPDATE usuarios SET senha = $1 WHERE id = $2 RETURNING *',
-    [senha, usuarioId]
+    'UPDATE usuarios SET senha = $1 WHERE email = $2 RETURNING *',
+    [senha, email]
   );
   return rows[0];
 }
