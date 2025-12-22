@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://coding2youmarket-production.up.railway.app';
+ 
 
 // LOGIN 
 export const login = async (email, senha) => {
