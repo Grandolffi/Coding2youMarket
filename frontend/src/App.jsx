@@ -8,6 +8,8 @@ import RedefinirSenhaPage from "./pages/RedefinirSenhaPage";
 import NovoEnderecoModal from "./pages/NovoEndereco";
 // Nova Página Principal
 import HomePage from "./pages/HomePage";
+// Página de Perfil
+import PerfilPage from "./pages/PerfilPage";
 function App() {
   return (
     <Router>
@@ -23,6 +25,7 @@ function App() {
         <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
         {/* Rotas de Funcionalidades */}
         <Route path="/novoEndereco" element={<NovoEnderecoModal />} />
+        <Route path="/perfil" element={<PerfilPage />} />
 
         {/* Fallback 404 (Opcional, mas recomendado) */}
         <Route path="*" element={
