@@ -8,8 +8,11 @@ import RedefinirSenhaPage from "./pages/RedefinirSenhaPage";
 import NovoEnderecoModal from "./pages/NovoEndereco";
 // Nova Página Principal
 import HomePage from "./pages/HomePage";
+<<<<<<< Updated upstream
 // Página de Perfil
 import PerfilPage from "./pages/PerfilPage";
+=======
+>>>>>>> Stashed changes
 import CarrinhoPage from "./pages/CarrinhoPage";
 import PagamentoPage from './pages/PagamentoPage';
 function App() {
