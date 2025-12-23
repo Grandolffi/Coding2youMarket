@@ -83,9 +83,9 @@ router.get("/enderecos/:id", async (req, res) => {
 // CREATE
 router.post("/enderecos", async (req, res) => {
   try {
-    const usuarioId = req.usuario.id; // Vem do Middleware de autenticação
+    const usuarioId = req.usuario.id; 
 
-    // Desestruturação do body (Certifique-se que o Front envia 'estado')
+    
     const { 
       cep, 
       rua, 
@@ -98,7 +98,7 @@ router.post("/enderecos", async (req, res) => {
       principal 
     } = req.body;
 
-    // CHAMADA DA DAO: Passamos um único objeto com todas as propriedades
+    
     const novoEndereco = await insertEndereco({
       usuarioId,
       cep,

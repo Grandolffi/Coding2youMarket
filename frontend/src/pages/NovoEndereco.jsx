@@ -77,7 +77,7 @@ export default function NovoEnderecoModal() {
       }
 
       setMensagem({ tipo: "sucesso", texto: "Endereço cadastrado com sucesso" });
-      setTimeout(() => navigate("/home"), 1500); // Delay curto para o usuário ler a mensagem de sucesso
+      setTimeout(() => navigate("/home"), 1500); 
     } catch (error) {
       setMensagem({ tipo: "erro", texto: error?.message || "Erro ao salvar endereço." });
     } finally {

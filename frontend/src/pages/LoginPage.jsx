@@ -12,37 +12,56 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [verSenha, setVerSenha] = useState(false);
+  const [mensagem, setMensagem] = useState({ tipo: "", texto: "" });
 
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    
+    setErro("");
+    setMensagem({ tipo: "", texto: "" });
+
     if (!email || !senha) {
-      setErro("Informe e-mail e senha.");
+      setMensagem({
+        tipo: "erro",
+        texto: "Informe e-mail e senha.",
+      });
       return;
     }
 
     try {
       setLoading(true);
-      setErro("");
 
-      await login(email, senha);
+      const res = await login(email, senha);
+
+      if (res && res.token) {
+        localStorage.setItem("token", res.token);
+        
+      }
 
       const usuarioId = getUsuarioId();
+      
       if (!usuarioId) {
-        setErro("Não foi possível identificar o usuário.");
+        setMensagem({ tipo: "erro", texto: "Não foi possível identificar o usuário." });
         return;
       }
 
       const enderecos = await meusEnderecos(usuarioId);
 
+
       if (enderecos && enderecos.length > 0) {
-        navigate("/home");
+        setTimeout(() => navigate("/home"), 1500); 
+        
       } else {
-        navigate("/novoEndereco");
+        setTimeout(() => navigate("/novoEndereco"), 1500); 
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
-      setErro(error.message || "Erro ao fazer login.");
+
+      setMensagem({ 
+        tipo: "erro", 
+        texto: error.message || "E-mail ou senha incorretos." 
+      });
     } finally {
       setLoading(false);
     }
@@ -59,7 +78,20 @@ export default function Login() {
             <Link to="/register" style={styles.link}>Criar Conta</Link>
           </p>
 
-          {erro && <p style={{ color: "red", fontSize: "12px" }}>{erro}</p>}
+          {(mensagem.texto || erro) && (
+            <p style={{ 
+              color: mensagem.tipo === "sucesso" ? "#2F6B4F" : "#dc3545", 
+              fontSize: "13px",
+              fontWeight: "600",
+              textAlign: "center",
+              backgroundColor: mensagem.tipo === "sucesso" ? "#E6FFFA" : "#FFF5F5",
+              padding: "10px",
+              borderRadius: "8px",
+              marginBottom: "10px"
+            }}>
+              {mensagem.texto || erro}
+            </p>
+          )}
 
           <label style={styles.label}>E-mail</label>
           <input

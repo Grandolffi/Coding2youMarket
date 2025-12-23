@@ -60,11 +60,12 @@ export const buscarEnderecoPorId = async (id) => {
 };
 
 // Meus endereços (usuário logado)
-export const meusEnderecos = async (usuarioId) => {
+export const meusEnderecos = async () => { 
     try {
-        const response = await fetch(`${BASE_URL}/enderecos/usuario/${usuarioId}`, {
+        
+        const response = await fetch(`${BASE_URL}/enderecos/meus`, {
             method: "GET",
-            headers: getAuthHeaders()
+            headers: getAuthHeaders() 
         });
 
         if (!response.ok) {
@@ -72,7 +73,10 @@ export const meusEnderecos = async (usuarioId) => {
             throw new Error('Erro ao carregar endereços');
         }
 
-        return await response.json();
+        const dados = await response.json();
+
+        return dados.enderecos || []; 
+
     } catch (error) {
         console.error("Erro ao buscar meus endereços:", error);
         return [];
