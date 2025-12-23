@@ -13,6 +13,9 @@ import PerfilPage from "./pages/PerfilPage";
 import CarrinhoPage from "./pages/CarrinhoPage";
 import PagamentoPage from './pages/PagamentoPage';
 import MeusCartoesPage from './pages/meusCartoesPage';
+import DadosPessoaisPage from './pages/DadosPessoaisPage';
+import SuportePage from './pages/SuportePage';
+import ConfiguracoesPage from './pages/ConfiguracoesPage';
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
         {/* Rotas de Funcionalidades */}
         <Route path="/novoEndereco" element={<NovoEnderecoModal />} />
         <Route path="/perfil" element={<PerfilPage />} />
+        <Route path="/dados-pessoais" element={<DadosPessoaisPage />} />
+        <Route path="/suporte" element={<SuportePage />} />
+        <Route path="/configuracoes" element={<ConfiguracoesPage />} />
         <Route path="/meus-cartoes" element={<MeusCartoesPage />} />
 
         {/* Fallback 404 - pagina não encontrada */}

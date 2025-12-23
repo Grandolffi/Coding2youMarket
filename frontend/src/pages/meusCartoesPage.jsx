@@ -56,7 +56,7 @@ export default function MeusCartoesPage() {
                 bandeira: 'Mastercard'
             });
             setAdicionandoCartao(false);
-            setCartaoAtivo(cartoes.length); // Ir para o novo cartão
+            setCartaoAtivo(cartoes.length); 
         }
     };
 

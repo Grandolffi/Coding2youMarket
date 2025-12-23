@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import BottomNavigation from "../components/BottomNavigation";
+import Header from "../components/Header";
 
 export default function PerfilPage() {
     const navigate = useNavigate();
@@ -7,141 +7,67 @@ export default function PerfilPage() {
     const menuItems = [
         { label: "Dados Pessoais", path: "/dados-pessoais" },
         { label: "Segurança e Privacidade", path: "/seguranca" },
-        { label: "Formas de Pagamento", path: "/pagamento" },
+        { label: "Formas de Pagamento", path: "/meus-cartoes" },
         { label: "Suporte", path: "/suporte" },
         { label: "Configurações", path: "/configuracoes" },
     ];
 
     return (
-        <div style={styles.container}>
-            {/* Header com foto de perfil */}
-            <div style={styles.header}>
-                <div style={styles.profileImageContainer}>
-                    <img
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face"
-                        alt="Foto de perfil"
-                        style={styles.profileImage}
-                    />
+        <div className="min-h-screen bg-gray-50 pb-24">
+            {/* Header Glass */}
+            <Header />
+
+            {/* Banner com foto de perfil */}
+            <div className="relative h-80 md:h-96 w-full mb-8 overflow-hidden">
+                <img
+                    src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1200"
+                    alt="Perfil Background"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-green-900/60 to-green-800/40" />
+
+                {/* Conteúdo do Header */}
+                <div className="relative z-10 h-full flex flex-col items-center justify-center pt-16">
+                    <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl mb-4">
+                        <img
+                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face"
+                            alt="Foto de perfil"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <h1 className="text-2xl font-bold text-white drop-shadow-lg">Perfil</h1>
+                    <p className="text-white/80 text-sm mt-1">Olá, Mariana!</p>
                 </div>
-                <h1 style={styles.title}>Perfil</h1>
-                <p style={styles.greeting}>Olá, Mariana!</p>
+
+                {/* Curva inferior */}
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
             </div>
 
             {/* Menu de opções */}
-            <div style={styles.menuContainer}>
-                {menuItems.map((item, index) => (
-                    <div
-                        key={index}
-                        style={styles.menuItem}
-                        onClick={() => navigate(item.path)}
-                    >
-                        <span style={styles.menuLabel}>{item.label}</span>
-                        <span style={styles.arrow}>›</span>
-                    </div>
-                ))}
+            <main className="container mx-auto px-4 md:px-8 max-w-3xl -mt-4">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    {menuItems.map((item, index) => (
+                        <div
+                            key={index}
+                            className={`flex justify-between items-center px-5 py-4 cursor-pointer hover:bg-gray-50 transition-all ${index !== menuItems.length - 1 ? "border-b border-gray-100" : ""
+                                }`}
+                            onClick={() => navigate(item.path)}
+                        >
+                            <span className="text-gray-800 font-medium">{item.label}</span>
+                            <span className="text-gray-400 text-xl">›</span>
+                        </div>
+                    ))}
+                </div>
 
                 {/* Deletar Conta */}
-                <div style={styles.deleteItem}>
-                    <span style={styles.deleteLabel}>Deletar Conta</span>
-                    <span style={styles.deleteArrow}>›</span>
+                <div
+                    className="mt-4 bg-white rounded-2xl shadow-lg px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-red-50 transition-all"
+                    onClick={() => console.log('Deletar conta')}
+                >
+                    <span className="text-red-600 font-medium">Deletar Conta</span>
+                    <span className="text-red-400 text-xl">›</span>
                 </div>
-            </div>
-
-            {/* Bottom Navigation */}
-            <BottomNavigation />
+            </main>
         </div>
     );
 }
-
-const styles = {
-    container: {
-        minHeight: "100vh",
-        backgroundColor: "#F0F0F5",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: "'Inter', sans-serif",
-        paddingBottom: "100px",
-    },
-    header: {
-        position: "relative",
-        height: "280px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    profileImageContainer: {
-        width: "120px",
-        height: "120px",
-        borderRadius: "60px",
-        overflow: "hidden",
-        marginBottom: "16px",
-    },
-    profileImage: {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-    },
-    title: {
-        fontSize: "24px",
-        fontWeight: "700",
-        margin: 0,
-        color: "#1A1A1A",
-    },
-    greeting: {
-        fontSize: "14px",
-        margin: "4px 0 0 0",
-        color: "#666666",
-    },
-    menuContainer: {
-        flex: 1,
-        marginTop: "-20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        padding: "0 16px",
-    },
-    menuItem: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "14px 16px",
-        backgroundColor: "#FFFFFF",
-        borderRadius: "12px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        cursor: "pointer",
-    },
-    menuLabel: {
-        fontSize: "14px",
-        fontWeight: "500",
-        color: "#1A1A1A",
-        maxWidth: "75%",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    },
-    deleteItem: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "14px 16px",
-        backgroundColor: "#FFFFFF",
-        borderRadius: "12px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        cursor: "pointer",
-    },
-    deleteLabel: {
-        fontSize: "14px",
-        fontWeight: "500",
-        color: "#C0392B",
-    },
-    arrow: {
-        fontSize: "18px",
-        color: "#B0B0B0",
-    },
-    deleteArrow: {
-        fontSize: "18px",
-        color: "#C0392B",
-    },
-};
-
