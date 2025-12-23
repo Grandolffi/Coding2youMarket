@@ -1,5 +1,5 @@
 import { getToken } from './auth';
-const BASE_URL = "http://localhost:3000/";
+const BASE_URL = "https://coding2youmarket-production.up.railway.app/api/";
 
 // Autenticação
 const getAuthHeaders = () => {
@@ -13,7 +13,7 @@ const getAuthHeaders = () => {
 //Ver carrinho do usuário logado
 export const verMeuCarrinho = async () => {
     try {
-        const response = await fetch(`${BASE_URL}carrinho/meu`, {
+        const response = await fetch(`${BASE_URL}carrinho`, {
             method: "GET",
             headers: getAuthHeaders()
         });

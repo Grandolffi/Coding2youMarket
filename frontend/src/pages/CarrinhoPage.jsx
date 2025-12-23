@@ -6,34 +6,8 @@ import ItemCarrinho from '../components/ItemCarrinho';
 import SumarioOrdem from '../components/SumarioOrdem';
 import FrequenciaModal from '../components/FrequenciaModal';
 import EnderecoModal from '../components/EnderecoModal';
-const API_URL = 'https://coding2youmarket-production.up.railway.app/api';
-// Mock Data (remover quando API estiver integrada)
-const MOCK_CARRINHO = [
-    {
-        id: 1,
-        produtoId: 1,
-        quantidade: 2,
-        produto: {
-            id: 1,
-            nome: 'Amaciante Comfort',
-            preco: 18.65,
-            imagemUrl: 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=300',
-            estoque: 50
-        }
-    },
-    {
-        id: 2,
-        produtoId: 2,
-        quantidade: 1,
-        produto: {
-            id: 2,
-            nome: 'Detergente Ypê',
-            preco: 2.99,
-            imagemUrl: 'https://images.unsplash.com/photo-1563232352-0998aaa6d60b?w=300',
-            estoque: 30
-        }
-    }
-];
+import { verMeuCarrinho, atualizarQuantidade, removerItem, limparCarrinho } from '../api/carrinhoAPI';
+
 export default function CarrinhoPage() {
     const navigate = useNavigate();
     const [itensCarrinho, setItensCarrinho] = useState([]);
@@ -48,35 +22,20 @@ export default function CarrinhoPage() {
     }, []);
     const carregarCarrinho = async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // Modo demo sem autenticação
-                setItensCarrinho(MOCK_CARRINHO);
-                calcularResumo(MOCK_CARRINHO);
-                setUsandoMock(true);
-                setLoading(false);
-                return;
-            }
-            const response = await fetch(`${API_URL}/carrinho`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (data.success && data.itens?.length > 0) {
-                setItensCarrinho(data.itens);
-                // TODO: Chamar endpoint de cálculo do backend
-                // const resumoResponse = await fetch(`${API_URL}/carrinho/resumo`, ...);
-                // setResumo(resumoResponse.data);
-                calcularResumo(data.itens);
+            setLoading(true);
+            const carrinho = await verMeuCarrinho();
+            if (carrinho && carrinho.length > 0) {
+                setItensCarrinho(carrinho);
+                calcularResumo(carrinho);
             } else {
-                setItensCarrinho(MOCK_CARRINHO);
-                calcularResumo(MOCK_CARRINHO);
-                setUsandoMock(true);
+
+                setItensCarrinho([]);
+                setResumo({ subtotal: 0, descontoClub: 0, frete: 0, total: 0 });
             }
         } catch (error) {
             console.error('Erro ao carregar carrinho:', error);
-            setItensCarrinho(MOCK_CARRINHO);
-            calcularResumo(MOCK_CARRINHO);
-            setUsandoMock(true);
+            setItensCarrinho([]);
+            setResumo({ subtotal: 0, descontoClub: 0, frete: 0, total: 0 });
         } finally {
             setLoading(false);
         }
@@ -114,22 +73,7 @@ export default function CarrinhoPage() {
     };
     const handleAtualizarQuantidade = async (itemId, novaQuantidade) => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // Modo demo - atualiza localmente
-                const novosItens = itensCarrinho.map(item =>
-                    item.id === itemId ? { ...item, quantidade: novaQuantidade } : item
-                );
-                setItensCarrinho(novosItens);
-                calcularResumo(novosItens);
-                return;
-            }
-            // TODO: Chamar API real
-            // await fetch(`${API_URL}/carrinho/${itemId}`, {
-            //   method: 'PATCH',
-            //   headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ quantidade: novaQuantidade })
-            // });
+            await atualizarQuantidade(itemId, novaQuantidade);
             const novosItens = itensCarrinho.map(item =>
                 item.id === itemId ? { ...item, quantidade: novaQuantidade } : item
             );
@@ -137,28 +81,18 @@ export default function CarrinhoPage() {
             calcularResumo(novosItens);
         } catch (error) {
             console.error('Erro ao atualizar quantidade:', error);
+            alert('Erro ao atualizar quantidade. Tente novamente.');
         }
     };
     const handleRemoverItem = async (itemId) => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // Modo demo
-                const novosItens = itensCarrinho.filter(item => item.id !== itemId);
-                setItensCarrinho(novosItens);
-                calcularResumo(novosItens);
-                return;
-            }
-            // TODO: Chamar API real
-            // await fetch(`${API_URL}/carrinho/${itemId}`, {
-            //   method: 'DELETE',
-            //   headers: { 'Authorization': `Bearer ${token}` }
-            // });
+            await removerItem(itemId);
             const novosItens = itensCarrinho.filter(item => item.id !== itemId);
             setItensCarrinho(novosItens);
             calcularResumo(novosItens);
         } catch (error) {
             console.error('Erro ao remover item:', error);
+            alert('Erro ao remover item. Tente novamente.');
         }
     };
     const handleCriarAssinatura = () => {

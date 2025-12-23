@@ -3,9 +3,9 @@ const pool = require('../../Config/Db/db');
 class Carrinho {
   constructor(id, usuarioId, produtoId, quantidade, observacao) {
     this.id = id;
-    this.usuarioId = usuarioId;
-    this.produtoId = produtoId;
-    this.quantidade = quantidade;
+    this.usuarioId = usuarioId; 9
+    this.produtoId = produtoId; 26
+    this.quantidade = quantidade; 3
     this.observacao = observacao;
   }
 }
@@ -53,11 +53,42 @@ async function getCarrinhoPorUsuario(usuarioId) {
   }
 
   const { rows } = await pool.query(
-    "SELECT * FROM carrinho_itens WHERE usuarioId = $1",
+    `
+    SELECT 
+      ci.id,
+      ci.quantidade,
+      ci.observacao,
+      p.id as "produtoId",
+      p.nome as "produtoNome",
+      p.descricao as "produtoDescricao",
+      p.preco as "produtoPreco",
+      p.imagemUrl as "produtoImagemUrl",
+      p.estoque as "produtoEstoque",
+      p.descontoClub as "produtoDescontoClub"
+    FROM carrinho_itens ci
+    INNER JOIN produtos p ON ci.produtoId = p.id
+    WHERE ci.usuarioId = $1
+    `,
     [usuarioId]
   );
 
-  return rows;
+  // Formatar os dados para o frontend
+  const carrinhoFormatado = rows.map(row => ({
+    id: row.id,
+    quantidade: row.quantidade,
+    observacao: row.observacao,
+    produto: {
+      id: row.produtoId,
+      nome: row.produtoNome,
+      descricao: row.produtoDescricao,
+      preco: parseFloat(row.produtoPreco),
+      imagemUrl: row.produtoImagemUrl,
+      estoque: row.produtoEstoque,
+      descontoClub: row.produtoDescontoClub
+    }
+  }));
+
+  return carrinhoFormatado;
 }
 
 // UPDATE
