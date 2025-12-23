@@ -1,24 +1,24 @@
 import { getToken } from './auth';
-const BASE_URL = "http://localhost:3000/api"; // ajustado
+const BASE_URL = "https://coding2youmarket-production.up.railway.app/api"; // ajustado
 
 export const buscarCep = async (cep) => {
-  try {
-    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const data = await response.json();
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
 
-    if (data.erro) return null;
+        if (data.erro) return null;
 
-    return {
-      cep: data.cep,
-      logradouro: data.logradouro,
-      bairro: data.bairro,
-      cidade: data.localidade,
-      uf: data.uf
-    };
-  } catch (error) {
-    console.error("Erro ao buscar CEP:", error);
-    return null;
-  }
+        return {
+            cep: data.cep,
+            logradouro: data.logradouro,
+            bairro: data.bairro,
+            cidade: data.localidade,
+            uf: data.uf
+        };
+    } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+        return null;
+    }
 };
 
 const getAuthHeaders = () => {
@@ -60,12 +60,12 @@ export const buscarEnderecoPorId = async (id) => {
 };
 
 // Meus endereços (usuário logado)
-export const meusEnderecos = async () => { 
+export const meusEnderecos = async () => {
     try {
-        
+
         const response = await fetch(`${BASE_URL}/enderecos/meus`, {
             method: "GET",
-            headers: getAuthHeaders() 
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -75,7 +75,7 @@ export const meusEnderecos = async () => {
 
         const dados = await response.json();
 
-        return dados.enderecos || []; 
+        return dados.enderecos || [];
 
     } catch (error) {
         console.error("Erro ao buscar meus endereços:", error);

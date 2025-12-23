@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://coding2youmarket-production.up.railway.app';
 
 // LOGIN 
 export const login = async (email, senha) => {
@@ -9,7 +9,7 @@ export const login = async (email, senha) => {
       body: JSON.stringify({ email, senha })
     });
 
-    const data = await response.json(); 
+    const data = await response.json();
 
     if (!response.ok) {
       throw new Error(data.message || 'Erro ao fazer login');

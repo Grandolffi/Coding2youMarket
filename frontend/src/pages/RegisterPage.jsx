@@ -21,8 +21,7 @@ export default function Cadastro() {
 
   const handleCadastro = async () => {
     setErro("");
-    setMensagem({ tipo: "", texto: "" }); // Limpa mensagens ao tentar novamente
-
+    setMensagem({ tipo: "", texto: "" });
     if (!nome || !email || !cpf || !telefone || !senha || !confirmarSenha) {
       setMensagem({ tipo: "erro", texto: "Preencha todos os campos." });
       return;
@@ -41,15 +40,12 @@ export default function Cadastro() {
     try {
       setLoading(true);
       const res = await cadastrar(nome, email, cpf, telefone, senha);
-
       if (res.success) {
         setMensagem({ tipo: "sucesso", texto: "Usuário cadastrado com sucesso!" });
-        // Pequeno delay para o usuário ler a mensagem de sucesso
         setTimeout(() => navigate("/login"), 1500);
       } else {
         setMensagem({ tipo: "erro", texto: res.message || "Erro ao realizar cadastro." });
       }
-
     } catch (error) {
       setErro(error?.message || "Erro ao cadastrar.");
     } finally {
@@ -58,277 +54,144 @@ export default function Cadastro() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.left}>
-        <div style={styles.form}>
-          <span style={styles.logo}>☕ Subscrivery</span>
-
-          <h1 style={styles.title}>Cadastre-se</h1>
-
-          <p style={styles.subtitle}>
-            Já possui uma conta?{" "}
-            <Link to="/" style={styles.link}>Fazer Login</Link>
-          </p>
-
-          {/* EXIBIÇÃO DE MENSAGENS (ERRO OU SUCESSO) */}
-          {(mensagem.texto || erro) && (
-            <p style={{ 
-              color: mensagem.tipo === "sucesso" ? "#2F6B4F" : "red", 
-              fontSize: "13px", 
-              fontWeight: "600",
-              textAlign: "center",
-              backgroundColor: mensagem.tipo === "sucesso" ? "#E6FFFA" : "#FFF5F5",
-              padding: "10px",
-              borderRadius: "8px"
-            }}>
-              {mensagem.texto || erro}
+    <div className="flex min-h-screen font-inter">
+      {/* Lado Esquerdo - Formulário */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-8 bg-gradient-to-br from-white via-white to-green-50/30 overflow-y-auto">
+        <div className="w-full max-w-md py-8">
+          {/* Card com borda verde sutil */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-green-100">
+            {/* Logo */}
+            <div className="mb-6">
+              <span className="text-lg font-semibold text-green-700">☕ Subscrivery</span>
+            </div>
+            {/* Título */}
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Cadastre-se</h1>
+            <p className="text-sm text-gray-600 mb-6">
+              Já possui uma conta?{" "}
+              <Link to="/" className="text-green-700 font-semibold underline hover:text-green-800">
+                Fazer Login
+              </Link>
             </p>
-          )}
-
-          <label style={styles.label}>Nome</label>
-          <input
-            type="text"
-            style={styles.input}
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
-
-          <label style={styles.label}>CPF</label>
-          <input
-            type="text"
-            style={styles.input}
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-            placeholder="000.000.000-00"
-          />
-
-          <label style={styles.label}>E-mail</label>
-          <input
-            type="email"
-            style={styles.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <label style={styles.label}>Celular</label>
-          <input
-            type="text"
-            style={styles.input}
-            value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
-            placeholder="(DDD) 00000-0000"
-          />
-
-          <label style={styles.label}>Senha</label>
-          <div style={styles.passwordWrapper}>
+            {/* Mensagem de Erro/Sucesso */}
+            {(mensagem.texto || erro) && (
+              <div
+                className={`p-3 rounded-lg mb-4 text-sm font-semibold text-center ${mensagem.tipo === "sucesso"
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : "bg-red-50 text-red-600 border border-red-200"
+                  }`}
+              >
+                {mensagem.texto || erro}
+              </div>
+            )}
+            {/* Nome */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nome</label>
             <input
-              type={verSenha ? "text" : "password"}
-              style={styles.inputPassword}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              type="text"
+              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 mb-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
             />
-            <div
-              onClick={() => setVerSenha(!verSenha)}
-              style={styles.eyeIcon}
-            >
-              {verSenha ? <LuEyeOff /> : <LuEye />}
-            </div>
-          </div>
-
-          <label style={styles.label}>Confirme a Senha</label>
-          <div style={styles.passwordWrapper}>
+            {/* CPF */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
             <input
-              type={verSenha ? "text" : "password"}
-              style={styles.inputPassword}
-              value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
+              type="text"
+              placeholder="000.000.000-00"
+              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 mb-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
             />
-        
-            <div
-              onClick={() => setVerSenha(!verSenha)}
-              style={styles.eyeIcon}
-            >
-              {verSenha ? <LuEyeOff /> : <LuEye />}
+            {/* Email */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+            <input
+              type="email"
+              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 mb-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {/* Celular */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Celular</label>
+            <input
+              type="text"
+              placeholder="(DDD) 00000-0000"
+              className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 mb-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+            {/* Senha */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+            <div className="relative mb-3">
+              <input
+                type={verSenha ? "text" : "password"}
+                className="w-full h-10 rounded-lg border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+              />
+              <div
+                onClick={() => setVerSenha(!verSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer"
+              >
+                {verSenha ? <LuEyeOff size={18} /> : <LuEye size={18} />}
+              </div>
             </div>
-          </div>
-
-          <div style={{ marginTop: "10px" }}>
+            {/* Confirmar Senha */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirme a Senha</label>
+            <div className="relative mb-4">
+              <input
+                type={verSenha ? "text" : "password"}
+                className="w-full h-10 rounded-lg border border-gray-300 bg-white pl-3 pr-10 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+              />
+              <div
+                onClick={() => setVerSenha(!verSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer"
+              >
+                {verSenha ? <LuEyeOff size={18} /> : <LuEye size={18} />}
+              </div>
+            </div>
+            {/* Botão Cadastrar */}
             <BotaoVerde
               mensagem={loading ? "Cadastrando..." : "Fazer Cadastro"}
               onClick={handleCadastro}
               disabled={loading}
             />
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-5">
+              <div className="h-px flex-1 bg-gray-200"></div>
+              <span className="text-xs text-gray-500 uppercase">ou</span>
+              <div className="h-px flex-1 bg-gray-200"></div>
+            </div>
+            {/* Google Button */}
+            <button className="w-full h-12 rounded-full border border-gray-200 bg-white text-gray-700 font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
+              <FcGoogle size={18} />
+              Cadastrar com o Google
+            </button>
           </div>
-
-          <div style={styles.divider}>
-            <div style={styles.line}></div>
-            <span style={{ padding: "0 10px" }}>ou</span>
-            <div style={styles.line}></div>
+          {/* Detalhe verde sutil no rodapé */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              Ao criar uma conta, você concorda com nossos{" "}
+              <span className="text-green-700 font-semibold cursor-pointer hover:underline">
+                Termos de Uso
+              </span>
+            </p>
           </div>
-
-          <button style={styles.googleBtn}>
-            <FcGoogle size={18} />
-            Cadastrar com o Google
-          </button>
         </div>
       </div>
-
-      <div style={styles.right}>
-        <div style={styles.blob}></div>
-        <div style={styles.support}>🌐 <span>Suporte</span></div>
-        <h2 style={styles.heroText}>
-          O essencial,<br /> sempre em dia.
+      {/* Lado Direito - Hero (Escondido no mobile) */}
+      <div className="hidden md:flex flex-1 relative bg-green-700 items-center justify-center p-20 overflow-hidden">
+        {/* Blob Effect */}
+        <div className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-white/10 blur-3xl"></div>
+        {/* Suporte */}
+        <div className="absolute top-10 right-10 flex items-center gap-2 text-white/90 text-sm">
+          <span>🌐</span>
+          <span>Suporte</span>
+        </div>
+        {/* Texto Hero */}
+        <h2 className="text-6xl font-extrabold text-white leading-tight max-w-md z-10">
+          O essencial,<br />sempre em dia.
         </h2>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: "flex",
-    width: "100vw",
-    height: "100vh",
-    overflow: "hidden",
-    fontFamily: "Inter, sans-serif",
-  },
-  left: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  form: {
-    width: "100%",
-    maxWidth: "400px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  logo: {
-    fontWeight: "600",
-    marginBottom: "20px",
-    color: "#2F6B4F",
-    fontSize: "18px",
-  },
-  title: {
-    fontSize: "32px",
-    fontWeight: "700",
-    marginBottom: "4px",
-    color: "#1A1A1A",
-  },
-  subtitle: {
-    fontSize: "14px",
-    color: "#666",
-    marginBottom: "20px",
-  },
-  link: {
-    color: "#2F6B4F",
-    textDecoration: "underline",
-    fontWeight: "600",
-  },
-  label: {
-    fontSize: "11px",
-    marginTop: "8px",
-    color: "#444",
-    fontWeight: "500",
-  },
-  input: {
-    height: "40px",
-    borderRadius: "8px",
-    border: "1px solid #E2E8F0",
-    backgroundColor: "#F8FAFC",
-    padding: "0 12px",
-    outline: "none",
-    fontSize: "14px",
-    color: "#666",
-  },
-  passwordWrapper: {
-    position: "relative",
-    display: "flex",
-    alignItems: "center",
-  },
-  inputPassword: {
-    width: "100%",
-    height: "40px",
-    borderRadius: "8px",
-    border: "1px solid #E2E8F0",
-    backgroundColor: "#F8FAFC",
-    padding: "0 40px 0 12px",
-    outline: "none",
-    fontSize: "14px",
-    color: "#666",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: "12px",
-    color: "#94A3B8",
-    cursor: "pointer",
-  },
-  divider: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "20px 0",
-    fontSize: "12px",
-    color: "#94A3B8",
-    textTransform: "uppercase",
-  },
-  line: {
-    flex: 1,
-    height: "1px",
-    backgroundColor: "#E2E8F0",
-  },
-  googleBtn: {
-    height: "48px",
-    borderRadius: "24px",
-    border: "1px solid #E2E8F0",
-    background: "#F8FAFC",
-    color: "#475569",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    fontWeight: "500",
-    fontSize: "14px",
-  },
-  right: {
-    flex: 1,
-    position: "relative",
-    backgroundColor: "#2F6B4F",
-    display: "flex",
-    alignItems: "center",
-    padding: "80px",
-  },
-  support: {
-    position: "absolute",
-    top: "40px",
-    right: "40px",
-    color: "#FFFFFF",
-    fontSize: "14px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    opacity: 0.9,
-  },
-  blob: {
-    position: "absolute",
-    top: "-10%",
-    right: "-10%",
-    width: "500px",
-    height: "500px",
-    background: "rgba(255, 255, 255, 0.08)",
-    borderRadius: "50%",
-    filter: "blur(60px)",
-  },
-  heroText: {
-    fontSize: "64px",
-    fontWeight: "800",
-    lineHeight: "1.1",
-    color: "#FFFFFF",
-    maxWidth: "450px",
-    zIndex: 1,
-  },
-};

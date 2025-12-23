@@ -1,6 +1,6 @@
 import { getToken } from './auth';
 
-const BASE_URL = "http://localhost:3000/";
+const BASE_URL = "https://coding2youmarket-production.up.railway.app/api";
 
 // Headers com autenticação 
 const getAuthHeaders = () => {
@@ -17,7 +17,7 @@ export const listarProdutos = async () => {
     try {
         const response = await fetch(`${BASE_URL}produtos`, {
             method: "GET",
-            headers: getHeaders()
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Erro ao carregar produtos');
@@ -36,7 +36,7 @@ export const buscarProdutoPorId = async (id) => {
     try {
         const response = await fetch(`${BASE_URL}produtos/${id}`, {
             method: "GET",
-            headers: getHeaders()
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Produto não encontrado');
@@ -54,7 +54,7 @@ export const buscarPorCategoria = async (categoria) => {
     try {
         const response = await fetch(`${BASE_URL}produtos/categoria/${categoria}`, {
             method: "GET",
-            headers: getHeaders()
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Nenhum produto encontrado');

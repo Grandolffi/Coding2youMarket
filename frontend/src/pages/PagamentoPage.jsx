@@ -13,11 +13,13 @@ const CARTOES_MOCK = [
         cvv: '215'
     }
 ];
+const API_URL = 'https://coding2youmarket-production.up.railway.app/api';
 export default function PagamentoPage() {
     const navigate = useNavigate();
-    const [cartoes] = useState(CARTOES_MOCK);
+    const [cartoes, setCartoes] = useState(CARTOES_MOCK);
     const [cartaoAtivo, setCartaoAtivo] = useState(0);
     const [adicionandoCartao, setAdicionandoCartao] = useState(false);
+    const [salvandoCartao, setSalvandoCartao] = useState(false);
     const [novoCartao, setNovoCartao] = useState({
         numero: '',
         nome: '',
@@ -31,15 +33,61 @@ export default function PagamentoPage() {
     const handleCartaoAnterior = () => {
         setCartaoAtivo((prev) => (prev - 1 + cartoes.length) % cartoes.length);
     };
+    const handleAdicionarCartao = async () => {
+        // Validação
+        if (!novoCartao.numero || !novoCartao.nome || !novoCartao.validade || !novoCartao.cvv) {
+            alert('Preencha todos os campos do cartão');
+            return;
+        }
+        setSalvandoCartao(true);
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Você precisa estar logado para adicionar um cartão');
+                setSalvandoCartao(false);
+                return;
+            }
+            // Chamar API real do backend
+            const response = await fetch(`${API_URL}/cartoes`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    numero: novoCartao.numero.replace(/\s/g, ''),
+                    nome: novoCartao.nome,
+                    validade: novoCartao.validade,
+                    cvv: novoCartao.cvv,
+                    bandeira: novoCartao.bandeira
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Cartão adicionado com sucesso!');
+                // Adicionar cartão na lista local
+                setCartoes([...cartoes, { ...novoCartao, id: data.cartao.id }]);
+                setAdicionandoCartao(false);
+                setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', bandeira: 'Mastercard' });
+            } else {
+                alert(data.message || 'Erro ao adicionar cartão');
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar cartão:', error);
+            alert('Erro ao adicionar cartão. Tente novamente.');
+        } finally {
+            setSalvandoCartao(false);
+        }
+    };
     const handleContinuar = () => {
         console.log('Processando pagamento...');
         alert('Pagamento processado! (Demo)');
-        
+        // navigate('/confirmacao');
     };
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
             <Header />
-            
+            {/* Hero */}
             <div className="relative h-48 md:h-56 w-full mb-8 overflow-hidden">
                 <img
                     src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200"
@@ -173,6 +221,17 @@ export default function PagamentoPage() {
                                         />
                                     </div>
                                 </div>
+                                {/* Botão Salvar */}
+                                <button
+                                    onClick={handleAdicionarCartao}
+                                    disabled={salvandoCartao}
+                                    className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${salvandoCartao
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                                        }`}
+                                >
+                                    {salvandoCartao ? 'Salvando...' : 'Salvar Cartão'}
+                                </button>
                             </div>
                         )}
                     </div>

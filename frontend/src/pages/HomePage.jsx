@@ -3,15 +3,18 @@ import { Search, Filter } from "lucide-react";
 import Header from "../components/Header";
 import ProductCard from "../components/ProductCard";
 import CategoryCard from "../components/CategoryCard";
-const API_URL = 'https://coding2youmarket-production.up.railway.app/api';
+import { listarProdutos } from '../api/produtoAPI';
+
 // Dados mockados para testar (remover depois que a API funcionar)
 const MOCK_CATEGORIAS = ['Hortifruti', 'Carnes', 'Laticínios', 'Padaria', 'Bebidas', 'Mercearia'];
+
 const MOCK_PRODUTOS = [
   { id: 1, nome: 'Maçã Gala', categoria: 'Hortifruti', preco: 8.90, estoque: 50, imagemUrl: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=300' },
   { id: 2, nome: 'Banana Prata', categoria: 'Hortifruti', preco: 5.50, estoque: 30, descontoClub: true, imagemUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=300' },
   { id: 3, nome: 'Leite Integral', categoria: 'Laticínios', preco: 4.99, estoque: 20, imagemUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300' },
   { id: 4, nome: 'Pão Francês', categoria: 'Padaria', preco: 12.00, estoque: 15, imagemUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300' },
 ];
+
 export default function HomePage() {
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -22,17 +25,11 @@ export default function HomePage() {
   useEffect(() => {
     carregarDados();
   }, []);
+
   const carregarDados = async () => {
     try {
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`${API_URL}/produtos`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.produtos?.length > 0) {
+      const data = await listarProdutos();
+      if (data?.success && data.produtos?.length > 0) {
         setProdutos(data.produtos);
         const cats = [...new Set(data.produtos.map(p => p.categoria))];
         setCategorias(cats);
@@ -52,6 +49,7 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
   const produtosFiltrados = produtos.filter(p => {
     const matchNome = p.nome.toLowerCase().includes(filtro.toLowerCase());
     const matchCategoria = categoriaAtiva ? p.categoria === categoriaAtiva : true;

@@ -10,9 +10,15 @@ const auth = require("../Middleware/authJWTMid");
 router.get("/produtos", async (req, res) => {
   try {
     const produtos = await getProdutos();
-    return res.status(200).json(produtos);
+    return res.status(200).json({
+      success: true,
+      produtos: produtos
+    });
   } catch (error) {
-    return res.status(500).json({ message: "Erro ao buscar produtos" });
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao buscar produtos"
+    });
   }
 });
 
