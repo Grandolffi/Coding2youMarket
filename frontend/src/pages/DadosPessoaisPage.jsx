@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Edit2, Check, X, Camera } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, MapPin, Edit2, Check, X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { buscarClienteDados } from '../api/clienteAPI';
@@ -24,7 +24,7 @@ export default function DadosPessoaisPage() {
                         email: dados.email || '',
                         telefone: dados.telefone || '',
                         cpf: dados.cpf || '',
-                        dataNascimento: dados.datanascimento || dados.dataNascimento || '',
+
                         genero: dados.genero || 'Não informado',
                         foto: dados.foto || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face'
                     };
@@ -75,12 +75,7 @@ export default function DadosPessoaisPage() {
         return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9, 11)}`;
     };
 
-    const formatarData = (valor) => {
-        const numeros = valor.replace(/\D/g, '');
-        if (numeros.length <= 2) return numeros;
-        if (numeros.length <= 4) return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
-        return `${numeros.slice(0, 2)}/${numeros.slice(2, 4)}/${numeros.slice(4, 8)}`;
-    };
+
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
@@ -242,52 +237,6 @@ export default function DadosPessoaisPage() {
                                     )}
                                 </div>
 
-                                {/* Data de Nascimento e Gênero */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-600 mb-2">
-                                            Data de Nascimento
-                                        </label>
-                                        {editando ? (
-                                            <input
-                                                type="text"
-                                                value={dadosTemp.dataNascimento}
-                                                onChange={(e) => setDadosTemp({ ...dadosTemp, dataNascimento: formatarData(e.target.value) })}
-                                                placeholder="DD/MM/AAAA"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                                                maxLength={10}
-                                            />
-                                        ) : (
-                                            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                                <Calendar size={18} className="text-gray-400" />
-                                                <span className="text-gray-800">{usuario.dataNascimento}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-600 mb-2">
-                                            Gênero
-                                        </label>
-                                        {editando ? (
-                                            <select
-                                                value={dadosTemp.genero}
-                                                onChange={(e) => setDadosTemp({ ...dadosTemp, genero: e.target.value })}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white"
-                                            >
-                                                <option value="Masculino">Masculino</option>
-                                                <option value="Feminino">Feminino</option>
-                                                <option value="Outro">Outro</option>
-                                                <option value="Prefiro não informar">Prefiro não informar</option>
-                                            </select>
-                                        ) : (
-                                            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                                <User size={18} className="text-gray-400" />
-                                                <span className="text-gray-800">{usuario.genero}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

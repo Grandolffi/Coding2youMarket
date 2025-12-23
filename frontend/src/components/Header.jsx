@@ -1,8 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, Search, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 export default function Header() {
     const [menuAberto, setMenuAberto] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+    };
     return (
         <>
             <header className="fixed top-4 left-0 right-0 z-50 px-4 md:px-8">
@@ -53,9 +59,27 @@ export default function Header() {
                                 </span>
                             </Link>
                             {/* Perfil */}
-                            <Link to="/login" className="p-2 hover:bg-white/30 rounded-full transition-colors">
-                                <User size={20} className="text-gray-700" />
-                            </Link>
+                            <div className="relative">
+                                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="p-2 hover:bg-white/30 rounded-full transition-colors">
+                                    <User size={20} className="text-gray-700" />
+                                </button>
+                                {dropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                                        <Link to="/pedidos" className="block px-4 py-2 text-gray-800 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>
+                                            Meus Pedidos
+                                        </Link>
+                                        <Link to="/assinatura" className="block px-4 py-2 text-gray-800 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>
+                                            Minha Assinatura
+                                        </Link>
+                                        <Link to="/perfil" className="block px-4 py-2 text-gray-800 hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>
+                                            Meu Perfil
+                                        </Link>
+                                        <button onClick={() => { setDropdownOpen(false); handleLogout(); }} className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
