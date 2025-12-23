@@ -58,15 +58,15 @@ async function getCarrinhoPorUsuario(usuarioId) {
       ci.id,
       ci.quantidade,
       ci.observacao,
-      p.id as "produtoId",
+      p.id_produto as "produtoId",
       p.nome as "produtoNome",
       p.descricao as "produtoDescricao",
       p.preco as "produtoPreco",
-      p.imagemUrl as "produtoImagemUrl",
+      p.imagem as "produtoImagemUrl",
       p.estoque as "produtoEstoque",
-      p.descontoClub as "produtoDescontoClub"
+      p.ativo as "produtoAtivo"
     FROM carrinho_itens ci
-    INNER JOIN produtos p ON ci.produtoId = p.id
+    INNER JOIN produtos p ON ci.produtoId = p.id_produto
     WHERE ci.usuarioId = $1
     `,
     [usuarioId]
@@ -83,8 +83,8 @@ async function getCarrinhoPorUsuario(usuarioId) {
       descricao: row.produtoDescricao,
       preco: parseFloat(row.produtoPreco),
       imagemUrl: row.produtoImagemUrl,
-      estoque: row.produtoEstoque,
-      descontoClub: row.produtoDescontoClub
+      estoque: row.produtoEstoque || 0,
+      ativo: row.produtoAtivo
     }
   }));
 
