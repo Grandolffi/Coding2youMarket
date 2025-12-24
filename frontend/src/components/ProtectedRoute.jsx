@@ -1,29 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
-<<<<<<< HEAD
-import React from "react";
-import { Navigate } from "react-router-dom";
-
-export default function ProtectedRoute({ children }) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        // Show access denied message
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-xl font-semibold text-red-600">Acesso não permitido</p>
-            </div>
-        );
-    }
-    return children;
-}
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 import { Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 export default function ProtectedRoute({ children }) {
@@ -78,14 +52,4 @@ export default function ProtectedRoute({ children }) {
         );
     }
     return children;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> e14b41b7ef44f2f7a36322787f203cc1a95e7855
->>>>>>> Stashed changes
-=======
-}
->>>>>>> e14b41b7ef44f2f7a36322787f203cc1a95e7855
->>>>>>> Stashed changes

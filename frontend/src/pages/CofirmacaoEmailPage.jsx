@@ -18,7 +18,7 @@ export default function ConfirmacaoEmailPage() {
           setEmail(payload.email);
         }
       } catch (e) {
-        // ignore parsing errors
+        
       }
     }
   }, []);
@@ -35,6 +35,8 @@ export default function ConfirmacaoEmailPage() {
       setMensagem({ tipo: "", texto: "" });
 
       const res = await solicitarCodigoVerificacao(email);
+
+      console.log("TO aqui ", email);
 
       if (res.success) {
         localStorage.setItem("email_recuperacao", email);
