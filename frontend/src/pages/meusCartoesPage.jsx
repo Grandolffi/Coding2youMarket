@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, Plus, ChevronLeft, ChevronRight, Trash2, Edit2, Check, X } from 'lucide-react';
-import { meusCartoes } from '../api/cartaoAPI';
+import { meusCartoes, adicionarCartao } from '../api/cartaoAPI';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
@@ -54,19 +54,23 @@ export default function MeusCartoesPage() {
     }, []);
 
 
-    const handleAdicionarCartao = () => {
+    const handleAdicionarCartao = async () => {
         if (novoCartao.numero && novoCartao.nome && novoCartao.validade && novoCartao.cvv) {
-            const novoId = cartoes.length > 0 ? Math.max(...cartoes.map(c => c.id)) + 1 : 1;
-            setCartoes([...cartoes, { ...novoCartao, id: novoId }]);
-            setNovoCartao({
-                numero: '',
-                nome: '',
-                validade: '',
-                cvv: '',
-                bandeira: 'Mastercard'
-            });
-            setAdicionandoCartao(false);
-            setCartaoAtivo(cartoes.length);
+            try {
+                const response = await adicionarCartao(novoCartao);
+                if (response.success) {
+                    const novoId = response.id ?? (cartoes.length > 0 ? Math.max(...cartoes.map(c => c.id)) + 1 : 1);
+                    const novoCartaoComId = { ...novoCartao, id: novoId };
+                    setCartoes([...cartoes, novoCartaoComId]);
+                    setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', bandeira: 'Mastercard' });
+                    setAdicionandoCartao(false);
+                    setCartaoAtivo(cartoes.length);
+                } else {
+                    console.error('Erro ao adicionar cartão:', response.message);
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar cartão:', error);
+            }
         }
     };
 

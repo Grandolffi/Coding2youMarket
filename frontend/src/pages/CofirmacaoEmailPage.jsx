@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BotaoVerde from "../components/botaoVerde";
 import { Link, useNavigate } from "react-router-dom";
 import { solicitarCodigoVerificacao } from "../api/auth";
@@ -8,6 +8,21 @@ export default function ConfirmacaoEmailPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState({ tipo: "", texto: "" });
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload && payload.email) {
+          setEmail(payload.email);
+        }
+      } catch (e) {
+        // ignore parsing errors
+      }
+    }
+  }, []);
+
 
   const handleEnviarCodigo = async () => {
     if (!email) {

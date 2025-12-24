@@ -43,6 +43,63 @@ function App() {
           <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
           <Route path="/meus-cartoes" element={<ProtectedRoute><MeusCartoesPage /></ProtectedRoute>} />
 
+  return (
+    <Router>
+      <Routes>
+        {/* Rota principal agora é a Home (Catálogo) */}
+        <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/carrinho" element={<ProtectedRoute><CarrinhoPage /></ProtectedRoute>} />
+        <Route path="/pagamento" element={<ProtectedRoute><PagamentoPage /></ProtectedRoute>} />
+        {/* Rotas de Autenticação */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/confirmacaoEmail" element={<ConfirmacaoEmailPage />} />
+        <Route path="/confirmacaoEmailCode" element={<ConfirmacaoEmailCode />} />
+        <Route path="/redefinir-senha" element={<ProtectedRoute><RedefinirSenhaPage /></ProtectedRoute>} />
+        {/* Rotas de Funcionalidades */}
+        <Route path="/novoEndereco" element={<NovoEnderecoModal />} />
+        <Route path="/perfil" element={<PerfilPage />} />
+        <Route path="/dados-pessoais" element={<DadosPessoaisPage />} />
+        <Route path="/suporte" element={<SuportePage />} />
+        <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+        <Route path="/meus-cartoes" element={<MeusCartoesPage />} />
+
+        <Route path="/seguranca" element={<SegurancaPrivacidadePage />} />
+        <Route path="*" element={
+          <div className="min-h-screen flex items-center justify-center">
+            <h1 className="text-2xl font-bold text-gray-400">Página não encontrada</h1>
+          </div>
+        } />
+      </Routes>
+=======
+import ProtectedRoute from './components/ProtectedRoute';
+import { CarrinhoProvider } from './context/CarrinhoContext';
+function App() {
+  return (
+    <Router>
+      <CarrinhoProvider>
+        <Routes>
+          {/* Rota principal agora é a Home (Catálogo) */}
+          <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/carrinho" element={<ProtectedRoute><CarrinhoPage /></ProtectedRoute>} />
+          <Route path="/pagamento" element={<ProtectedRoute><PagamentoPage /></ProtectedRoute>} />
+          {/* Rotas de Autenticação */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/confirmacaoEmail" element={<ConfirmacaoEmailPage />} />
+          <Route path="/confirmacaoEmailCode" element={<ConfirmacaoEmailCode />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
+          {/* Rotas de Funcionalidades */}
+          <Route path="/novoEndereco" element={<ProtectedRoute><NovoEnderecoModal /></ProtectedRoute>} />
+          <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+          <Route path="/dados-pessoais" element={<ProtectedRoute><DadosPessoaisPage /></ProtectedRoute>} />
+          <Route path="/suporte" element={<ProtectedRoute><SuportePage /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
+          <Route path="/meus-cartoes" element={<ProtectedRoute><MeusCartoesPage /></ProtectedRoute>} />
+
+>>>>>>> Stashed changes
           <Route path="/seguranca" element={<SegurancaPage />} />
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center">
@@ -51,6 +108,10 @@ function App() {
           } />
         </Routes>
       </CarrinhoProvider>
+<<<<<<< Updated upstream
+=======
+>>>>>>> e14b41b7ef44f2f7a36322787f203cc1a95e7855
+>>>>>>> Stashed changes
     </Router>
   );
 }

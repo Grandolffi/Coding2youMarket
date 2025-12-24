@@ -119,24 +119,32 @@ export const getUsuarioId = () => {
 
 //MANDAR EMAIL 
 export const solicitarCodigoVerificacao = async (email) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+  console.time('solicitarCodigoVerificacao');
   try {
     const response = await fetch(`${API_URL}/api/verificar-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email }),
+      signal: controller.signal,
     });
-
+    clearTimeout(timeoutId);
     const data = await response.json();
-
     if (!response.ok) {
       throw new Error(data.message || 'Erro ao processar solicitação');
     }
-
+    console.timeEnd('solicitarCodigoVerificacao');
     console.log('✅ Solicitação enviada com sucesso:', data.message);
     return data;
   } catch (error) {
+    console.timeEnd('solicitarCodigoVerificacao');
+    if (error.name === 'AbortError') {
+      console.error('❌ Tempo de espera excedido ao solicitar código de verificação');
+      throw new Error('Tempo de espera excedido. Tente novamente.');
+    }
     console.error('❌ Erro ao solicitar código:', error.message);
     throw error;
   }
