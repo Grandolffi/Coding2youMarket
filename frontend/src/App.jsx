@@ -17,37 +17,40 @@ import MeusCartoesPage from './pages/meusCartoesPage';
 import DadosPessoaisPage from './pages/DadosPessoaisPage';
 import SuportePage from './pages/SuportePage';
 import ConfiguracoesPage from './pages/ConfiguracoesPage';
-
+import ProtectedRoute from './components/ProtectedRoute';
+import { CarrinhoProvider } from './context/CarrinhoContext';
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Rota principal agora é a Home (Catálogo) */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/carrinho" element={<CarrinhoPage />} />
-        <Route path="/pagamento" element={<PagamentoPage />} />
-        {/* Rotas de Autenticação */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/confirmacaoEmail" element={<ConfirmacaoEmailPage />} />
-        <Route path="/confirmacaoEmailCode" element={<ConfirmacaoEmailCode />} />
-        <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
-        {/* Rotas de Funcionalidades */}
-        <Route path="/novoEndereco" element={<NovoEnderecoModal />} />
-        <Route path="/perfil" element={<PerfilPage />} />
-        <Route path="/dados-pessoais" element={<DadosPessoaisPage />} />
-        <Route path="/suporte" element={<SuportePage />} />
-        <Route path="/configuracoes" element={<ConfiguracoesPage />} />
-        <Route path="/meus-cartoes" element={<MeusCartoesPage />} />
+      <CarrinhoProvider>
+        <Routes>
+          {/* Rota principal agora é a Home (Catálogo) */}
+          <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/carrinho" element={<ProtectedRoute><CarrinhoPage /></ProtectedRoute>} />
+          <Route path="/pagamento" element={<ProtectedRoute><PagamentoPage /></ProtectedRoute>} />
+          {/* Rotas de Autenticação */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/confirmacaoEmail" element={<ConfirmacaoEmailPage />} />
+          <Route path="/confirmacaoEmailCode" element={<ConfirmacaoEmailCode />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
+          {/* Rotas de Funcionalidades */}
+          <Route path="/novoEndereco" element={<ProtectedRoute><NovoEnderecoModal /></ProtectedRoute>} />
+          <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+          <Route path="/dados-pessoais" element={<ProtectedRoute><DadosPessoaisPage /></ProtectedRoute>} />
+          <Route path="/suporte" element={<ProtectedRoute><SuportePage /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
+          <Route path="/meus-cartoes" element={<ProtectedRoute><MeusCartoesPage /></ProtectedRoute>} />
 
-        <Route path="/seguranca" element={<SegurancaPage />} />
-        <Route path="*" element={
-          <div className="min-h-screen flex items-center justify-center">
-            <h1 className="text-2xl font-bold text-gray-400">Página não encontrada</h1>
-          </div>
-        } />
-      </Routes>
+          <Route path="/seguranca" element={<SegurancaPage />} />
+          <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center">
+              <h1 className="text-2xl font-bold text-gray-400">Página não encontrada</h1>
+            </div>
+          } />
+        </Routes>
+      </CarrinhoProvider>
     </Router>
   );
 }
