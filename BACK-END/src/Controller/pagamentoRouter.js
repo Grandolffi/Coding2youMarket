@@ -5,7 +5,7 @@ const { insertPagamento, insertPagamentoMercadoPago, getPagamentos, getPagamento
 const { getClubMarketPorUsuario, updateStatusClubMarket } = require('../Model/DAO/clubMarketDao');
 const { updateClubMember } = require('../Model/DAO/clienteDao');
 const auth = require("../Middleware/authJWTMid");
-const { MercadoPagoConfig, Payment, PreApproval, Customer } = require('mercadopago');
+const { MercadoPagoConfig, Payment, PreApproval, Customer, CustomerCard } = require('mercadopago');
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
 });
@@ -127,15 +127,13 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       });
     }
     console.log('📝 Salvando cartão para usuário:', usuarioId);
-    // ✅ CRIAR CUSTOMER CLIENT UMA VEZ
     const customerClient = new Customer(client);
     let customerId = await getCustomerIdPorUsuario(usuarioId);
-    // ✅ SE NÃO TEM NO BANCO, BUSCAR/CRIAR NO MP
+    // ✅ BUSCAR/CRIAR CUSTOMER
     if (!customerId) {
       console.log('🔍 Buscando customer no MP pelo email:', user.email);
 
       try {
-        // TENTAR BUSCAR CUSTOMER EXISTENTE
         const { results } = await customerClient.search({
           options: {
             filters: {
@@ -145,10 +143,9 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         });
         if (results && results.length > 0) {
           customerId = results[0].id;
-          console.log('♻️ Customer encontrado no MP:', customerId);
+          console.log('♻️ Customer encontrado:', customerId);
         } else {
-          // SE NÃO ENCONTROU, CRIAR NOVO
-          console.log('🆕 Criando novo customer no MP...');
+          console.log('🆕 Criando novo customer...');
           const customer = await customerClient.create({
             body: {
               email: user.email,
@@ -168,43 +165,35 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
           console.log('✅ Customer criado:', customerId);
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar/criar customer:', error.message);
-
-        // SE FALHOU POR "CUSTOMER JÁ EXISTE", BUSCAR NOVAMENTE
         if (error.cause?.[0]?.code === '101') {
-          console.log('🔄 Customer já existe, buscando novamente...');
+          console.log('🔄 Customer existe, buscando...');
           const { results } = await customerClient.search({
-            options: {
-              filters: {
-                email: user.email
-              }
-            }
+            options: { filters: { email: user.email } }
           });
           if (results && results.length > 0) {
             customerId = results[0].id;
             console.log('✅ Customer recuperado:', customerId);
-          } else {
-            throw new Error('Não foi possível criar ou encontrar customer');
           }
         } else {
           throw error;
         }
       }
     } else {
-      console.log('✅ Reutilizando customer do banco:', customerId);
+      console.log('✅ Customer do banco:', customerId);
     }
-    // ✅ SALVAR CARTÃO NO CUSTOMER
-    console.log('💳 Salvando cartão no customer:', customerId);
+    // ✅ SALVAR CARTÃO (AQUI ESTAVA O ERRO!)
+    console.log('💳 Salvando cartão...');
+    const cardClient = new CustomerCard(client);
 
-    const card = await customerClient.cards.create({
+    const card = await cardClient.create({
       customer_id: customerId,
       body: { token }
     });
-    console.log('✅ Card criado no MP:', card.id);
+    console.log('✅ Card criado:', card.id);
     // ✅ SALVAR NO BANCO
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
-      customerId: customerId,
+      customerId,
       cardId: card.id,
       tokenCartao: token,
       bandeira: bandeira || "master",
@@ -213,14 +202,14 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       principal: principal || false,
       isDebito: false
     });
-    console.log('✅ Cartão salvo no banco:', cartaoSalvo.id);
+    console.log('✅ Salvo no banco:', cartaoSalvo.id);
     return res.status(201).json({
       success: true,
       message: "Cartão salvo com sucesso",
       cartao: cartaoSalvo
     });
   } catch (error) {
-    console.error("❌ Erro ao salvar cartão:", error);
+    console.error("❌ Erro:", error);
     return res.status(500).json({
       success: false,
       message: "Erro ao salvar cartão",
