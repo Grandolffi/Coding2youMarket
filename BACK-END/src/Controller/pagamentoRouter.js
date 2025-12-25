@@ -127,6 +127,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       });
     }
     console.log('📝 Salvando cartão para usuário:', usuarioId);
+    // ✅ CRIAR CUSTOMER CLIENT UMA VEZ
     const customerClient = new Customer(client);
     let customerId = await getCustomerIdPorUsuario(usuarioId);
     // ✅ SE NÃO TEM NO BANCO, BUSCAR/CRIAR NO MP
@@ -135,23 +136,18 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
 
       try {
         // TENTAR BUSCAR CUSTOMER EXISTENTE
-        const customers = await customerClient.search({
+        const { results } = await customerClient.search({
           options: {
             filters: {
               email: user.email
             }
           }
-        }); s
-        if (customers.results && customers.results.length > 0) {
-          customerId = customers.results[0].id;
-          console.log('♻️ Customer encontrado:', customerId);
-        }
-      } catch (searchError) {
-        console.log('⚠️ Erro ao buscar customer, tentando criar...');
-      }
-      // SE NÃO ENCONTROU, CRIAR NOVO
-      if (!customerId) {
-        try {
+        });
+        if (results && results.length > 0) {
+          customerId = results[0].id;
+          console.log('♻️ Customer encontrado no MP:', customerId);
+        } else {
+          // SE NÃO ENCONTROU, CRIAR NOVO
           console.log('🆕 Criando novo customer no MP...');
           const customer = await customerClient.create({
             body: {
@@ -170,40 +166,41 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
           });
           customerId = customer.id;
           console.log('✅ Customer criado:', customerId);
-        } catch (createError) {
-          console.error('❌ Erro ao criar customer:', createError);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao buscar/criar customer:', error.message);
 
-          // SE FALHOU POR "CUSTOMER JÁ EXISTE", BUSCAR NOVAMENTE
-          if (createError.cause?.[0]?.code === '101') {
-            console.log('🔄 Tentando buscar customer novamente...');
-            const customers = await customerClient.search({
-              options: {
-                filters: {
-                  email: user.email
-                }
+        // SE FALHOU POR "CUSTOMER JÁ EXISTE", BUSCAR NOVAMENTE
+        if (error.cause?.[0]?.code === '101') {
+          console.log('🔄 Customer já existe, buscando novamente...');
+          const { results } = await customerClient.search({
+            options: {
+              filters: {
+                email: user.email
               }
-            });
-            if (customers.results && customers.results.length > 0) {
-              customerId = customers.results[0].id;
-              console.log('✅ Customer recuperado:', customerId);
-            } else {
-              throw new Error('Não foi possível criar ou encontrar customer');
             }
+          });
+          if (results && results.length > 0) {
+            customerId = results[0].id;
+            console.log('✅ Customer recuperado:', customerId);
           } else {
-            throw createError;
+            throw new Error('Não foi possível criar ou encontrar customer');
           }
+        } else {
+          throw error;
         }
       }
     } else {
       console.log('✅ Reutilizando customer do banco:', customerId);
     }
     // ✅ SALVAR CARTÃO NO CUSTOMER
-    console.log('💳 Salvando cartão no customer...');
+    console.log('💳 Salvando cartão no customer:', customerId);
+
     const card = await customerClient.cards.create({
       customer_id: customerId,
       body: { token }
     });
-    console.log('✅ Card criado:', card.id);
+    console.log('✅ Card criado no MP:', card.id);
     // ✅ SALVAR NO BANCO
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
@@ -231,6 +228,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     });
   }
 });
+
 // PROCESSAR PAGAMENTO COM SAVED CARD
 router.post("/pagamentos/processar", auth, async (req, res) => {
   try {
