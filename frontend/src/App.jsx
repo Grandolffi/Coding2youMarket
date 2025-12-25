@@ -19,6 +19,7 @@ import DadosPessoaisPage from './pages/DadosPessoaisPage';
 import SuportePage from './pages/SuportePage';
 import ConfiguracoesPage from './pages/ConfiguracoesPage';
 import MeusPedidosPage from './pages/MeusPedidosPage';
+import ClubMarketPage from './pages/ClubMarketPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { CarrinhoProvider } from './context/CarrinhoContext';
 function App() {
@@ -77,6 +78,7 @@ function App() {
           <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
           <Route path="/meus-cartoes" element={<ProtectedRoute><MeusCartoesPage /></ProtectedRoute>} />
           <Route path="/pedidos" element={<ProtectedRoute><MeusPedidosPage /></ProtectedRoute>} />
+          <Route path="/club-market" element={<ProtectedRoute><ClubMarketPage /></ProtectedRoute>} />
           <Route path="/seguranca" element={<SegurancaPage />} />
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center">
