@@ -10,6 +10,8 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
 });
 
+let card;
+
 router.post("/pagamentos/webhook", async (req, res) => {
   try {
     const { action, data } = req.body;
@@ -145,7 +147,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     if (!customerId) {
       const customers = await customerClient.search({
         options: { email: req.usuario.email }
-      });
+      }) || { results: [] };
 
       if (customers.results && customers.results.length > 0) {
         customerId = customers.results[0].id;
@@ -159,11 +161,25 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     }
 
     // Criar cartão
-    const card = await cardClient.create({
-      customer_id: customerId,
-      body: { token }
-    });
 
+    try {
+      card = await cardClient.create({
+        customer_id: customerId,
+        body: { token }
+      });
+    } catch (mpError) {
+      console.error("❌ Erro Mercado Pago - criar cartão:", {
+        message: mpError.message,
+        status: mpError.status,
+        cause: mpError.cause || mpError.error
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: "Erro ao salvar cartão no Mercado Pago",
+        details: mpError.cause || mpError.message
+      });
+    }
     // Salvar SOMENTE card_id (não salvar token)
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
