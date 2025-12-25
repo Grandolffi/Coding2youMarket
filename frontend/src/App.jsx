@@ -8,6 +8,7 @@ import ConfirmacaoEmailCode from "./pages/ConfirmacaoEmailCode";
 import SegurancaPage from "./pages/SegurancaPage";
 import RedefinirSenhaPage from "./pages/RedefinirSenhaPage";
 import NovoEnderecoModal from "./pages/NovoEndereco";
+import ConfirmacaoPage from "./pages/ConfirmacaoPage";
 // Nova Página Principal
 import HomePage from "./pages/HomePage";
 // Página de Perfil
@@ -80,6 +81,7 @@ function App() {
           <Route path="/pedidos" element={<ProtectedRoute><MeusPedidosPage /></ProtectedRoute>} />
           <Route path="/club-market" element={<ProtectedRoute><ClubMarketPage /></ProtectedRoute>} />
           <Route path="/seguranca" element={<SegurancaPage />} />
+          <Route path="/confirmacao" element={<ProtectedRoute><ConfirmacaoPage /></ProtectedRoute>} />
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center">
               <h1 className="text-2xl font-bold text-gray-400">Página não encontrada</h1>

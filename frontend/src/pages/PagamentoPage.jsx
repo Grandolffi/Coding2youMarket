@@ -3,6 +3,7 @@ import { ArrowLeft, CreditCard, Plus, ChevronLeft, ChevronRight } from 'lucide-r
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
+import CVVModal from '../components/cvvmodal';
 import { meusCartoes } from '../api/cartaoAPI';
 import { verMeuCarrinho } from '../api/carrinhoAPI';
 import { initMercadoPago, tokenizarCartao, detectarBandeira, formatarNumeroCartao, formatarValidade } from '../services/mercadoPagoService';
@@ -20,6 +21,7 @@ export default function PagamentoPage() {
     const [processandoPagamento, setProcessandoPagamento] = useState(false);
     const [loading, setLoading] = useState(true);
     const [resumo, setResumo] = useState(null);
+    const [mostrarCVVModal, setMostrarCVVModal] = useState(false);
     const [novoCartao, setNovoCartao] = useState({
         numero: '',
         nome: '',
@@ -130,7 +132,7 @@ export default function PagamentoPage() {
     };
 
 
-    const handleContinuar = async () => {
+    const handleContinuar = () => {
         if (cartoes.length === 0) {
             toast.error('Adicione um cartão para continuar');
             return;
@@ -139,31 +141,17 @@ export default function PagamentoPage() {
             toast.error('Carrinho vazio. Adicione produtos para continuar.');
             return;
         }
-        // ✅ PEDIR CVV
-        const cvv = prompt('Digite o CVV do cartão para confirmar o pagamento:');
-
-        if (!cvv || cvv.length < 3) {
-            toast.error('CVV inválido');
-            return;
-        }
+        // Abrir modal CVV
+        setMostrarCVVModal(true);
+    };
+    const handleConfirmarCVV = async (cvv) => {
+        setMostrarCVVModal(false);
         setProcessandoPagamento(true);
         const loadingToast = toast.loading('Processando pagamento...');
         try {
             const token = localStorage.getItem('token');
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const cartaoSelecionado = cartoes[cartaoAtivo];
-            // ✅ RE-TOKENIZAR CARTÃO COM CVV
-            console.log('🔐 Re-tokenizando cartão...');
-
-            const dadosCartao = {
-                numero: '****', // Não temos mais o número completo
-                nome: cartaoSelecionado.nomeimpresso,
-                validade: '12/25', // ⚠️ PRECISAMOS SALVAR A VALIDADE NO BANCO!
-                cvv: cvv,
-                cpf: user.cpf || '00000000000'
-            };
-            // Por enquanto, vamos usar o token salvo
-            // TODO: Implementar re-tokenização quando tivermos a validade salva
             const dadosPagamento = {
                 token: cartaoSelecionado.tokencartao,
                 transactionAmount: resumo.total,
@@ -172,7 +160,6 @@ export default function PagamentoPage() {
                 paymentMethodId: cartaoSelecionado.bandeira?.toLowerCase() || 'master',
                 email: user.email || user.Email
             };
-            console.log('📤 Processando pagamento...');
             const response = await fetch(`${API_URL}/pagamentos/processar`, {
                 method: 'POST',
                 headers: {
@@ -402,6 +389,11 @@ export default function PagamentoPage() {
                     </button>
                 </div>
             </main>
+            <CVVModal
+                isOpen={mostrarCVVModal}
+                onClose={() => setMostrarCVVModal(false)}
+                onConfirm={handleConfirmarCVV}
+            />
         </div>
     );
 }
