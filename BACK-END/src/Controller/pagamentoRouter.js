@@ -90,6 +90,7 @@ router.get("/pagamentos/:id", auth, async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 });
+
 // CREATE
 router.post("/pagamentos", auth, async (req, res) => {
   try {
@@ -105,12 +106,14 @@ router.post("/pagamentos", auth, async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 });
+
 // UPDATE STATUS
 router.put("/pagamentos/:id/status", auth, async (req, res) => {
   const { status } = req.body;
   const pagamento = await updateStatusPagamento(req.params.id, status);
   return res.json({ success: true, pagamento });
 });
+
 // SALVAR CARTÃO COM CUSTOMER (SAVED CARD)
 router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
   try {
@@ -130,6 +133,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     if (!customerId) {
       console.log('🆕 Criando novo customer no MP...');
       const customerClient = new Customer(client);
+
       const customer = await customerClient.create({
         body: {
           email: user.email,
@@ -153,7 +157,9 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     // ✅ SALVAR CARTÃO NO CUSTOMER
     console.log('💳 Salvando cartão no customer...');
     const customerClient = new Customer(client);
-    const card = await customerClient.card.create({
+
+    // ✅ PLURAL: cards (não card!)
+    const card = await customerClient.cards.create({
       customer_id: customerId,
       body: { token }
     });
