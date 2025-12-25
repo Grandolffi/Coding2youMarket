@@ -127,38 +127,78 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       });
     }
     console.log('📝 Salvando cartão para usuário:', usuarioId);
-    // ✅ VERIFICAR SE USUÁRIO JÁ TEM CUSTOMER
+    const customerClient = new Customer(client);
     let customerId = await getCustomerIdPorUsuario(usuarioId);
-    // ✅ SE NÃO TEM, CRIAR CUSTOMER
+    // ✅ SE NÃO TEM NO BANCO, BUSCAR/CRIAR NO MP
     if (!customerId) {
-      console.log('🆕 Criando novo customer no MP...');
-      const customerClient = new Customer(client);
+      console.log('🔍 Buscando customer no MP pelo email:', user.email);
 
-      const customer = await customerClient.create({
-        body: {
-          email: user.email,
-          first_name: user.nome?.split(' ')[0] || 'Cliente',
-          last_name: user.nome?.split(' ').slice(1).join(' ') || '',
-          phone: {
-            area_code: user.telefone?.substring(0, 2) || '00',
-            number: user.telefone?.substring(2) || '000000000'
-          },
-          identification: {
-            type: 'CPF',
-            number: user.cpf || '00000000000'
+      try {
+        // TENTAR BUSCAR CUSTOMER EXISTENTE
+        const customers = await customerClient.search({
+          options: {
+            filters: {
+              email: user.email
+            }
+          }
+        }); s
+        if (customers.results && customers.results.length > 0) {
+          customerId = customers.results[0].id;
+          console.log('♻️ Customer encontrado:', customerId);
+        }
+      } catch (searchError) {
+        console.log('⚠️ Erro ao buscar customer, tentando criar...');
+      }
+      // SE NÃO ENCONTROU, CRIAR NOVO
+      if (!customerId) {
+        try {
+          console.log('🆕 Criando novo customer no MP...');
+          const customer = await customerClient.create({
+            body: {
+              email: user.email,
+              first_name: user.nome?.split(' ')[0] || 'Cliente',
+              last_name: user.nome?.split(' ').slice(1).join(' ') || '',
+              phone: {
+                area_code: user.telefone?.substring(0, 2) || '00',
+                number: user.telefone?.substring(2) || '000000000'
+              },
+              identification: {
+                type: 'CPF',
+                number: user.cpf || '00000000000'
+              }
+            }
+          });
+          customerId = customer.id;
+          console.log('✅ Customer criado:', customerId);
+        } catch (createError) {
+          console.error('❌ Erro ao criar customer:', createError);
+
+          // SE FALHOU POR "CUSTOMER JÁ EXISTE", BUSCAR NOVAMENTE
+          if (createError.cause?.[0]?.code === '101') {
+            console.log('🔄 Tentando buscar customer novamente...');
+            const customers = await customerClient.search({
+              options: {
+                filters: {
+                  email: user.email
+                }
+              }
+            });
+            if (customers.results && customers.results.length > 0) {
+              customerId = customers.results[0].id;
+              console.log('✅ Customer recuperado:', customerId);
+            } else {
+              throw new Error('Não foi possível criar ou encontrar customer');
+            }
+          } else {
+            throw createError;
           }
         }
-      });
-      customerId = customer.id;
-      console.log('✅ Customer criado:', customerId);
+      }
     } else {
-      console.log('♻️ Reutilizando customer existente:', customerId);
+      console.log('✅ Reutilizando customer do banco:', customerId);
     }
     // ✅ SALVAR CARTÃO NO CUSTOMER
     console.log('💳 Salvando cartão no customer...');
-    const customerClient = new Customer(client);
-
-    // ✅ PLURAL: cards (não card!)
     const card = await customerClient.cards.create({
       customer_id: customerId,
       body: { token }
