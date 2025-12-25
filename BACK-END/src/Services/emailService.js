@@ -13,9 +13,9 @@ const transporter = nodemailer.createTransport({
 // Teste de conexão
 /*transporter.verify((error, success) => {
   if (error) {
-    console.error("❌ Erro na conexão: Verifique se o caminho do .env está correto.");
+    console.error("Erro na conexão: Verifique se o caminho do .env está correto.");
   } else {
-    console.log("✅ Conexão estabelecida com sucesso usando .env!");
+    console.log("Conexão estabelecida com sucesso usando .env!");
   }
 });*/
 

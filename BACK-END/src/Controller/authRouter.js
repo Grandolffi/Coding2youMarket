@@ -3,7 +3,7 @@ const router = express.Router();
 const geraToken = require("../Utils/geraToken");
 const { salvarCodigo } = require("../Utils/codigoMemoria");
 const { enviarEmailCodigo } = require("../Services/emailService");
-const { getClienteByEmail, getClienteById, insertCliente, getClientes,getClienteByCpf, updateSenha  } = require("../Model/DAO/clienteDao");
+const { getClienteByEmail, getClienteById, insertCliente, getClientes, getClienteByCpf, updateSenha } = require("../Model/DAO/clienteDao");
 const validarCPF = require("../Utils/validarCPF");
 const bcrypt = require("bcrypt");
 const { validarCodigo } = require("../Utils/codigoMemoria");
@@ -77,7 +77,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-      const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaValida) {
       return res.status(401).json({
@@ -119,8 +119,6 @@ router.post("/login", async (req, res) => {
 // ROTA: atualizar senha
 router.put("/senha", async (req, res) => {
   try {
-    console.log("BODY RECEBIDO NA ROTA /senha:", req.body);
-
     const { email, senha } = req.body;
 
     if (!email || !senha) {

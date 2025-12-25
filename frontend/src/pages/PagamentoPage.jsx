@@ -179,7 +179,7 @@ export default function PagamentoPage() {
                 });
             }
         } catch (error) {
-            console.error('💥 Erro:', error);
+            console.error('Erro ao processar pagamento:', error);
             toast.error('Erro ao processar pagamento.', { id: loadingToast });
         } finally {
             setProcessandoPagamento(false);

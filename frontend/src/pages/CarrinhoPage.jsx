@@ -104,8 +104,6 @@ export default function CarrinhoPage() {
         setModalEnderecoAberto(true); // Abre modal de endereço
     };
     const handleConfirmarEndereco = (endereco) => {
-        console.log('Frequência:', dadosFrequencia);
-        console.log('Endereço:', endereco);
         setModalEnderecoAberto(false);
         // Navega para página de pagamento
         navigate('/pagamento');

@@ -46,8 +46,6 @@ export default function RedefinirSenhaPage() {
       setLoading(true);
       setMensagem({ tipo: "", texto: "" });
 
-      console.log("Email usado na redefinição:", emailUsuario);
-
       const resultado = await atualizarSenha(emailUsuario, novaSenha);
 
       if (resultado.success) {
@@ -130,11 +128,10 @@ export default function RedefinirSenhaPage() {
 
         {mensagem.texto && (
           <p
-            className={`mt-4 text-center text-sm font-medium ${
-              mensagem.tipo === "erro"
+            className={`mt-4 text-center text-sm font-medium ${mensagem.tipo === "erro"
                 ? "text-red-500"
                 : "text-green-700"
-            }`}
+              }`}
           >
             {mensagem.texto}
           </p>

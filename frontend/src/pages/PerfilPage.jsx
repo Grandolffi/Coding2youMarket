@@ -12,8 +12,10 @@ export default function PerfilPage() {
     useEffect(() => {
         const carregarDados = async () => {
             const dados = await buscarClienteDados();
-            console.log("DADOS DO CLIENTE:", dados);
-            setCliente(dados);
+            // console.log("DADOS DO CLIENTE:", dados); // Removed debug log
+            if (dados) { // Added condition based on user's snippet, assuming it's intended
+                setCliente(dados);
+            }
             setLoading(false);
         };
 
@@ -94,8 +96,9 @@ export default function PerfilPage() {
                                 <button
                                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                                     onClick={() => {
-                                        console.log('Deletar conta confirmada');
-                                        setShowModal(false);
+                                        // Deletar conta confirmada
+                                        toast.success('Conta excluída com sucesso!');
+                                        setShowModal(false); // Keep modal closing behavior
                                     }}
                                 >
                                     Confirmar

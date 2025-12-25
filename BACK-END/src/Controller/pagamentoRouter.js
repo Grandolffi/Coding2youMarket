@@ -55,7 +55,7 @@ router.post("/pagamentos/webhook", async (req, res) => {
 
     return res.status(200).send("OK");
   } catch (error) {
-    console.error("❌ Webhook erro:", error);
+    console.error("Webhook erro:", error);
     return res.status(500).send("Erro");
   }
 });
@@ -139,8 +139,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         message: "Token do cartão é obrigatório"
       });
     }
-    console.log('📝 Salvando token do cartão...');
-    // SALVAR APENAS O TOKEN (modo antigo que funcionava)
+    // Salvar apenas o token
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
       customerId: null,
@@ -152,14 +151,13 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       principal: principal || false,
       isDebito: false
     });
-    console.log('✅ Token salvo no banco:', cartaoSalvo.id);
     return res.status(201).json({
       success: true,
       message: "Cartão salvo com sucesso",
       cartao: cartaoSalvo
     });
   } catch (error) {
-    console.error('❌ Erro:', error);
+    console.error('Erro ao salvar cartão:', error);
     return res.status(500).json({
       success: false,
       message: "Erro ao salvar cartão",
@@ -217,7 +215,7 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Erro:', error);
+    console.error('Erro ao processar pagamento:', error);
     return res.status(500).json({
       success: false,
       message: "Erro ao processar pagamento",

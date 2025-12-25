@@ -29,7 +29,6 @@ export const buscarClientePorId = async (clienteId) => {
 export const buscarClienteDados = async () => {
   try {
     const token = localStorage.getItem("token");
-    console.log("Token:", token);
 
     const response = await fetch(`${BASE_URL}/api/clientes/me`, {
       method: "GET",

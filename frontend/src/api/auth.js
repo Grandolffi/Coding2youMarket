@@ -21,7 +21,6 @@ export const login = async (email, senha) => {
     localStorage.setItem('token', data.data.token);
     localStorage.setItem('user', JSON.stringify(data.data.usuario));
 
-    console.log('Login realizado com sucesso!');
     return data.data;
   } catch (error) {
     console.error('Erro ao fazer login:', error);
@@ -81,7 +80,6 @@ export const cadastrar = async (nome, email, cpf, telefone, senha) => {
     }
 
     const json = await response.json();
-    console.log('Cadastro realizado com sucesso!');
     return json;
   } catch (error) {
     console.error('Erro ao cadastrar:', error);
@@ -93,7 +91,6 @@ export const cadastrar = async (nome, email, cpf, telefone, senha) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  console.log('Logout realizado!');
 };
 
 // Verificar se está logado
@@ -139,15 +136,19 @@ export const solicitarCodigoVerificacao = async (email) => {
       throw new Error(data.message || 'Erro ao processar solicitação');
     }
     console.timeEnd('solicitarCodigoVerificacao');
-    console.log('✅ Solicitação enviada com sucesso:', data.message);
-    return data;
+    if (data.success) {
+      return { success: true, message: data.message };
+    } else {
+      console.error('Tempo de espera excedido ao solicitar código de verificação');
+      throw new Error(data.message || 'Erro ao solicitar código de verificação');
+    }
   } catch (error) {
     console.timeEnd('solicitarCodigoVerificacao');
     if (error.name === 'AbortError') {
-      console.error('❌ Tempo de espera excedido ao solicitar código de verificação');
+      console.error('Tempo de espera excedido ao solicitar código de verificação');
       throw new Error('Tempo de espera excedido. Tente novamente.');
     }
-    console.error('❌ Erro ao solicitar código:', error.message);
+    console.error('Erro ao solicitar código:', error.message);
     throw error;
   }
 };

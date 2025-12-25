@@ -80,7 +80,6 @@ export default function ClubMarketPage() {
     const handleAssinar = () => {
         if (planoSelecionado) {
             // Aqui você pode integrar com a API de assinatura
-            console.log('Assinando plano:', planoSelecionado);
             navigate('/pagamento', { state: { plano: planoSelecionado } });
         }
     };
@@ -196,8 +195,8 @@ export default function ClubMarketPage() {
                         onClick={handleAssinar}
                         disabled={!planoSelecionado}
                         className={`px-10 py-4 rounded-full font-bold text-lg transition-all ${planoSelecionado
-                                ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:shadow-xl hover:scale-105 cursor-pointer'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:shadow-xl hover:scale-105 cursor-pointer'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
                     >
                         {planoSelecionado ? 'Assinar Agora →' : 'Selecione um plano'}

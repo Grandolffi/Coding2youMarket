@@ -177,22 +177,22 @@ export default function ConfiguracoesPage() {
 
                 <div className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6">
                     <div
-                        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 transition-all border-b border-gray-100"
-                        onClick={() => console.log('Limpar cache')}
+                        className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all border-b border-gray-100"
+                        title="Funcionalidade em desenvolvimento"
                     >
                         <span className="font-medium text-gray-800">Limpar Cache</span>
                         <ChevronRight size={20} className="text-gray-400" />
                     </div>
                     <div
-                        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 transition-all border-b border-gray-100"
-                        onClick={() => console.log('Termos de uso')}
+                        className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all border-b border-gray-100"
+                        title="Funcionalidade em desenvolvimento"
                     >
                         <span className="font-medium text-gray-800">Termos de Uso</span>
                         <ChevronRight size={20} className="text-gray-400" />
                     </div>
                     <div
-                        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 transition-all"
-                        onClick={() => console.log('Política de privacidade')}
+                        className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all"
+                        title="Funcionalidade em desenvolvimento"
                     >
                         <span className="font-medium text-gray-800">Política de Privacidade</span>
                         <ChevronRight size={20} className="text-gray-400" />

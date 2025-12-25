@@ -52,9 +52,10 @@ export default function SuportePage() {
         {
             icon: <MessageCircle size={24} />,
             titulo: "Chat ao Vivo",
-            descricao: "Fale conosco agora",
-            cor: "from-green-500 to-emerald-600",
-            acao: () => console.log("Abrir chat")
+            descricao: "Em desenvolvimento",
+            cor: "from-gray-400 to-gray-500",
+            acao: () => { },
+            desabilitado: true
         },
         {
             icon: <Phone size={24} />,

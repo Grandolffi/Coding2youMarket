@@ -16,7 +16,6 @@ export default function DadosPessoaisPage() {
         const carregarDados = async () => {
             try {
                 const dados = await buscarClienteDados();
-                console.log("Dados do cliente:", dados);
                 if (dados) {
                     const usuarioFormatado = {
                         id: dados.id,
