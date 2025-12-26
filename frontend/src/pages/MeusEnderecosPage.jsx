@@ -177,7 +177,7 @@ export default function MeusEnderecosPage() {
 
                 {/* Botão Adicionar */}
                 <button
-                    onClick={() => navigate('/novoEndereco')}
+                    onClick={() => navigate('/novoEndereco', { state: { from: 'meus-enderecos' } })}
                     className="w-full py-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-xl font-medium transition-all flex items-center justify-center gap-2 hover:border-green-500 hover:text-green-600 mb-6"
                 >
                     <Plus size={20} />

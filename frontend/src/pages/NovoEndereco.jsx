@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { buscarCep, criarEndereco } from '../api/enderecoAPI';
 import { getUsuarioId } from '../api/auth';
 import fotoFundo from '../assets/01.png';
@@ -19,6 +19,10 @@ export default function NovoEnderecoModal() {
   const [loading, setLoading] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Detecta de onde o usuário veio
+  const veioDeEnderecos = location.state?.from === 'meus-enderecos';
 
   const handleCepChange = (e) => setCep(e.target.value.replace(/\D/g, ""));
 
@@ -78,7 +82,9 @@ export default function NovoEnderecoModal() {
       }
 
       setMensagem({ tipo: "sucesso", texto: "Endereço cadastrado com sucesso" });
-      setTimeout(() => navigate("/home"), 1500);
+      // Redireciona baseado na origem
+      const destino = veioDeEnderecos ? "/meus-enderecos" : "/home";
+      setTimeout(() => navigate(destino), 1500);
     } catch (error) {
       setMensagem({ tipo: "erro", texto: error?.message || "Erro ao salvar endereço." });
     } finally {
@@ -95,7 +101,7 @@ export default function NovoEnderecoModal() {
     <div style={estiloOverlayComFundo}>
       <div style={styles.modal}>
         <div style={styles.header}>
-          <button onClick={() => navigate(-1)} style={styles.backButton}>
+          <button onClick={() => navigate(veioDeEnderecos ? "/meus-enderecos" : "/home")} style={styles.backButton}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 18l-6-6 6-6" />
             </svg>
