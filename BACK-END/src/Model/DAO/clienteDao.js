@@ -231,7 +231,7 @@ async function getClienteById(id) {
         telefone,
         clubmember,
         ativo,
-        created_at
+        dataCadastro
       FROM usuarios
       WHERE id = $1
       `,
