@@ -196,8 +196,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         }
       }
 
-      // Salvar customer_id no banco
-      await salvarCustomerId(usuarioId, customerId);
+      //⚠️ NÃO salvar customer_id ainda - só depois que o card for criado com sucesso
     }
 
     // 2️⃣ Salvar cartão no Customer
@@ -213,6 +212,11 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         body: { token }
       });
       console.log('Cartão criado com sucesso! ID:', card.id);
+
+      // ✅ Agora sim, salvar customer_id no banco (só depois que o card foi criado)
+      await salvarCustomerId(usuarioId, customerId);
+      console.log('Customer_id salvo no banco:', customerId);
+
     } catch (error) {
       console.error('Erro ao criar cartão:', {
         message: error.message,
@@ -220,13 +224,26 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         cause: error.cause
       });
 
-      // Se o customer não existe (404), significa que customer_id está inválido
+      // Se o customer não existe (404), deletar do banco e do MP
       if (error.status === 404) {
+        console.log('Customer inválido, tentando deletar...');
+
+        // Deletar customer do Mercado Pago
+        const customerClient = new Customer(client);
+        try {
+          await customerClient.remove({ customerId: customerId });
+          console.log('Customer deletado do MP');
+        } catch (delError) {
+          console.log('Não foi possível deletar customer:', delError.message);
+        }
+
+        // Limpar do banco também
+        await salvarCustomerId(usuarioId, null);
+
         return res.status(400).json({
           success: false,
-          message: 'Customer inválido. Por favor, tente adicionar o cartão novamente.',
-          error: 'invalid_customer',
-          hint: 'Limpe o cache e tente novamente'
+          message: 'Erro ao adicionar cartão. Tente novamente.',
+          error: 'customer_not_found'
         });
       } else {
         throw error;
