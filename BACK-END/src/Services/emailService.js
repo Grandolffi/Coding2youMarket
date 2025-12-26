@@ -13,14 +13,18 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Teste de conexão
-/*transporter.verify((error, success) => {
+// Teste de conexão SMTP na inicialização
+transporter.verify((error, success) => {
   if (error) {
-    console.error("Erro na conexão: Verifique se o caminho do .env está correto.");
+    console.error("❌ ERRO SMTP - Conexão falhou:");
+    console.error("   Detalhes:", error.message);
+    console.error("   EMAIL_USER configurado:", process.env.EMAIL_USER ? "Sim" : "NÃO!");
+    console.error("   EMAIL_PASS configurado:", process.env.EMAIL_PASS ? "Sim" : "NÃO!");
   } else {
-    console.log("Conexão estabelecida com sucesso usando .env!");
+    console.log("✅ SMTP conectado com sucesso! Pronto para enviar emails.");
   }
-});*/
+});
+
 
 const enviarEmailCodigo = async (emailDestino, codigo) => {
   const mailOptions = {
