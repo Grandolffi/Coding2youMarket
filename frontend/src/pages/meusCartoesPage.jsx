@@ -110,6 +110,7 @@ export default function MeusCartoesPage() {
     };
 
 
+
     const handleRemoverCartao = async (id) => {
         if (!confirm('Tem certeza que deseja remover este cartão?')) return;
 
