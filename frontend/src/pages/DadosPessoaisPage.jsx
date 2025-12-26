@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Edit2, Check, X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { buscarClienteDados } from '../api/clienteAPI';
+import { buscarClienteDados, editarCliente } from '../api/clienteAPI';
+import toast from 'react-hot-toast';
 
 export default function DadosPessoaisPage() {
     const navigate = useNavigate();
@@ -52,11 +53,31 @@ export default function DadosPessoaisPage() {
 
     const handleSalvar = async () => {
         setSalvando(true);
-        // Simula salvamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setUsuario(dadosTemp);
-        setEditando(false);
-        setSalvando(false);
+
+        try {
+            // Remove formatação do telefone e CPF antes de enviar
+            const dadosParaEnviar = {
+                nome: dadosTemp.nome,
+                email: dadosTemp.email,
+                telefone: dadosTemp.telefone.replace(/\D/g, ''),
+                cpf: dadosTemp.cpf.replace(/\D/g, '')
+            };
+
+            const resultado = await editarCliente(dadosParaEnviar);
+
+            if (resultado.success) {
+                setUsuario(dadosTemp);
+                setEditando(false);
+                toast.success('Dados atualizados com sucesso!');
+            } else {
+                toast.error(resultado.message || 'Erro ao atualizar dados');
+            }
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
+            toast.error('Erro ao salvar alterações');
+        } finally {
+            setSalvando(false);
+        }
     };
 
     const formatarTelefone = (valor) => {

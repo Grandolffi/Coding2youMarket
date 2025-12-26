@@ -77,7 +77,7 @@ export const editarEndereco = async (id, dados) => {
 // Deletar endereço
 export const deletarEndereco = async (id) => {
     try {
-        const response = await fetch(`${BASE_URL}/endereços/${id}`, {
+        const response = await fetch(`${BASE_URL}/enderecos/${id}`, {
             method: "DELETE",
             headers: getAuthHeaders()
         });

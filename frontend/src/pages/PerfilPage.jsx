@@ -26,6 +26,7 @@ export default function PerfilPage() {
         { label: "Dados Pessoais", path: "/dados-pessoais" },
         { label: "Segurança e Privacidade", path: "/seguranca" },
         { label: "Formas de Pagamento", path: "/meus-cartoes" },
+        { label: "Meus Endereços", path: "/meus-enderecos" },
         { label: "Suporte", path: "/suporte" },
         { label: "Configurações", path: "/configuracoes" },
     ];
