@@ -187,8 +187,14 @@ router.post("/verificar-email", async (req, res) => {
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
 
     salvarCodigo(email, codigo);
-    await enviarEmailCodigo(email, codigo);
 
+    // Envia e-mail de forma assíncrona (não aguarda resposta do SMTP)
+    // Isso permite resposta imediata ao usuário
+    enviarEmailCodigo(email, codigo)
+      .then(() => console.log(`Código enviado com sucesso para ${email}`))
+      .catch(err => console.error(`Erro ao enviar e-mail para ${email}:`, err));
+
+    // Responde imediatamente sem aguardar o envio do e-mail
     return res.json({
       success: true,
       message: "Código de verificação enviado para o e-mail."
