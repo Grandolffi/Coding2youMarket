@@ -201,6 +201,9 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     }
 
     // 2️⃣ Salvar cartão no Customer
+    console.log('Tentando criar cartão para customer:', customerId);
+    console.log('Token recebido:', token ? 'Presente' : 'Ausente');
+
     const cardClient = new CustomerCard(client);
     let card;
 
@@ -209,7 +212,14 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         customer_id: customerId,
         body: { token }
       });
+      console.log('Cartão criado com sucesso! ID:', card.id);
     } catch (error) {
+      console.error('Erro ao criar cartão:', {
+        message: error.message,
+        status: error.status,
+        cause: error.cause
+      });
+
       // Se o customer não existe (404), significa que customer_id está inválido
       if (error.status === 404) {
         return res.status(400).json({
