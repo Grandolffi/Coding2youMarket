@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { insertCliente,getClienteById ,getClientes, editCliente, deleteCliente} = require("../Model/DAO/clienteDao");
+const { insertCliente, getClienteById, getClientes, editCliente, deleteCliente } = require("../Model/DAO/clienteDao");
 const auth = require("../Middleware/authJWTMid");
 const bcrypt = require("bcrypt");
 
@@ -30,8 +30,7 @@ router.get("/clientes/me", async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
 
-    const clientes = await getClientes();
-    const cliente = clientes.find(c => c.id === usuarioId);
+    const cliente = await getClienteById(usuarioId);
 
     if (!cliente) {
       return res.status(404).json({
@@ -40,14 +39,13 @@ router.get("/clientes/me", async (req, res) => {
       });
     }
 
-    // remove senha da resposta
-    const { senha, ...clienteSemSenha } = cliente;
-
     return res.status(200).json({
       success: true,
-      cliente: clienteSemSenha
+      cliente
     });
+
   } catch (error) {
+    console.error("Erro ao buscar cliente:", error);
     return res.status(500).json({
       success: false,
       message: "Erro ao buscar cliente",
@@ -55,6 +53,7 @@ router.get("/clientes/me", async (req, res) => {
     });
   }
 });
+
 
 //CREATE
 router.post("/clientes", async (req, res) => {
@@ -140,7 +139,7 @@ router.get("/clientes/:id", async (req, res) => {
 router.put("/clientes/me", async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
-    const { nome, email, cpf, telefone, senha, clubMember, ativo } = req.body;
+    const { nome, email, cpf, telefone, senha, clubMember } = req.body;
 
     const clientes = await getClientes();
     const cliente = clientes.find(c => c.id === usuarioId);
@@ -152,6 +151,9 @@ router.put("/clientes/me", async (req, res) => {
       });
     }
 
+    // Usar o valor atual do clubMember se não for enviado no body
+    const clubMemberFinal = clubMember !== undefined ? clubMember : cliente.clubmember;
+
     const atualizado = await editCliente(
       usuarioId,
       nome,
@@ -159,8 +161,8 @@ router.put("/clientes/me", async (req, res) => {
       cpf,
       telefone,
       senha,
-      clubMember,
-      ativo
+      clubMemberFinal,
+      true // ativo sempre true ao atualizar dados
     );
 
     if (!atualizado) {

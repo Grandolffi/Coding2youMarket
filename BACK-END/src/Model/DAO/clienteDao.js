@@ -80,6 +80,9 @@ async function editCliente(
     return false;
   }
 
+  // Garantir que ativo seja sempre true
+  const ativoFinal = true;
+
   // Busca estado atual do clubMember
   const clienteAtual = await pool.query(
     'SELECT clubmember FROM usuarios WHERE id = $1',
@@ -116,7 +119,7 @@ async function editCliente(
         senha,
         clubMember,
         dataCadastroClub,
-        ativo,
+        ativoFinal,
         id
       ];
     } else {
@@ -134,7 +137,7 @@ async function editCliente(
         telefone,
         senha,
         clubMember,
-        ativo,
+        ativoFinal,
         id
       ];
     }
@@ -154,7 +157,7 @@ async function editCliente(
         telefone,
         clubMember,
         dataCadastroClub,
-        ativo,
+        ativoFinal,
         id
       ];
     } else {
@@ -171,7 +174,7 @@ async function editCliente(
         cpf,
         telefone,
         clubMember,
-        ativo,
+        ativoFinal,
         id
       ];
     }
@@ -219,12 +222,25 @@ async function getClienteById(id) {
 
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM usuarios WHERE id = $1',
+      `
+      SELECT 
+        id,
+        nome,
+        email,
+        cpf,
+        telefone,
+        clubmember,
+        ativo,
+        dataCadastro
+      FROM usuarios
+      WHERE id = $1
+      `,
       [id]
     );
+
     return rows.length ? rows[0] : null;
   } catch (error) {
-    console.error('Erro ao buscar cliente por id:', error);
+    console.error("Erro ao buscar cliente por id:", error);
     throw error;
   }
 }
