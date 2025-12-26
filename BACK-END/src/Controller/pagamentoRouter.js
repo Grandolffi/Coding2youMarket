@@ -205,48 +205,62 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
 
     const cardClient = new CustomerCard(client);
     let card;
+    let tentativas = 0;
+    const MAX_TENTATIVAS = 3;
 
-    try {
-      card = await cardClient.create({
-        customer_id: customerId,
-        body: { token }
-      });
-      console.log('Cartão criado com sucesso! ID:', card.id);
-
-      // ✅ Agora sim, salvar customer_id no banco (só depois que o card foi criado)
-      await salvarCustomerId(usuarioId, customerId);
-      console.log('Customer_id salvo no banco:', customerId);
-
-    } catch (error) {
-      console.error('Erro ao criar cartão:', {
-        message: error.message,
-        status: error.status,
-        cause: error.cause
-      });
-
-      // Se o customer não existe (404), deletar do banco e do MP
-      if (error.status === 404) {
-        console.log('Customer inválido, tentando deletar...');
-
-        // Deletar customer do Mercado Pago
-        const customerClient = new Customer(client);
-        try {
-          await customerClient.remove({ customerId: customerId });
-          console.log('Customer deletado do MP');
-        } catch (delError) {
-          console.log('Não foi possível deletar customer:', delError.message);
-        }
-
-        // Limpar do banco também
-        await salvarCustomerId(usuarioId, null);
-
-        return res.status(400).json({
-          success: false,
-          message: 'Erro ao adicionar cartão. Tente novamente.',
-          error: 'customer_not_found'
+    while (tentativas < MAX_TENTATIVAS) {
+      try {
+        tentativas++;
+        console.log(`⏳ Tentativa ${tentativas}/${MAX_TENTATIVAS} de criar cartão...`);
+        card = await cardClient.create({
+          customer_id: customerId,
+          body: { token }
         });
-      } else {
-        throw error;
+        console.log('✅ Cartão criado com sucesso! ID:', card.id);
+
+        // ✅ Salvar customer_id no banco
+        await salvarCustomerId(usuarioId, customerId);
+        console.log('Customer_id salvo no banco:', customerId);
+
+        break; // Sucesso, sair do loop
+
+      } catch (error) {
+        console.error(`❌ Tentativa ${tentativas} falhou:`, {
+          message: error.message,
+          status: error.status
+        });
+
+        // Se customer não existe (404)
+        if (error.status === 404) {
+          // Se é a última tentativa
+          if (tentativas >= MAX_TENTATIVAS) {
+            console.log('🚫 Todas as tentativas falharam');
+
+            const customerClient = new Customer(client);
+            try {
+              await customerClient.remove({ customerId: customerId });
+              console.log('Customer deletado do MP');
+            } catch (delError) {
+              console.log('Erro ao deletar:', delError.message);
+            }
+
+            await salvarCustomerId(usuarioId, null);
+
+            return res.status(400).json({
+              success: false,
+              message: 'Erro ao adicionar cartão. Tente novamente em alguns minutos.',
+              error: 'customer_not_found_after_retry'
+            });
+          }
+
+          // Aguardar antes de retry
+          const delay = 1000 * tentativas;
+          console.log(`⏰ Aguardando ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+        } else {
+          throw error;
+        }
       }
     }
 
