@@ -143,60 +143,72 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     // 1️⃣ Buscar ou criar Customer no Mercado Pago
     let customerId = await getCustomerIdPorUsuario(usuarioId);
 
-    if (!customerId) {
-      const customerClient = new Customer(client);
+    // Detectar se está em modo TEST
+    const isTestMode = process.env.MP_ACCESS_TOKEN && process.env.MP_ACCESS_TOKEN.startsWith('TEST-');
 
-      try {
-        // Tentar criar novo customer
-        const customer = await customerClient.create({
-          body: {
-            email: req.usuario.email || req.usuario.Email,
-            first_name: req.usuario.nome || "Cliente",
-            last_name: req.usuario.sobrenome || "Subscrivery"
-          }
-        });
-        customerId = customer.id;
-      } catch (error) {
-        // Se o customer já existe, buscar pelo email
-        if (error.cause && error.cause[0]?.code === '101') {
-          console.log('Customer já existe, buscando pelo email...');
-          const customers = await customerClient.search({
-            filters: {
-              email: req.usuario.email || req.usuario.Email
+    if (!customerId) {
+      // 🧪 MODO TEST: Usar customer_id fixo do painel
+      if (isTestMode) {
+        customerId = '3085795340'; // Customer de teste pré-criado
+        console.log('🧪 Modo TEST: Usando customer_id fixo:', customerId);
+        await salvarCustomerId(usuarioId, customerId);
+
+      } else {
+        // 🚀 MODO PRODUÇÃO: Criar customer real
+        const customerClient = new Customer(client);
+
+        try {
+          // Tentar criar novo customer
+          const customer = await customerClient.create({
+            body: {
+              email: req.usuario.email || req.usuario.Email,
+              first_name: req.usuario.nome || "Cliente",
+              last_name: req.usuario.sobrenome || "Subscrivery"
             }
           });
+          customerId = customer.id;
+        } catch (error) {
+          // Se o customer já existe, buscar pelo email
+          if (error.cause && error.cause[0]?.code === '101') {
+            console.log('Customer já existe, buscando pelo email...');
+            const customers = await customerClient.search({
+              filters: {
+                email: req.usuario.email || req.usuario.Email
+              }
+            });
 
-          if (customers.results && customers.results.length > 0) {
-            const foundCustomerId = customers.results[0].id;
-            console.log('Customer encontrado:', foundCustomerId);
+            if (customers.results && customers.results.length > 0) {
+              const foundCustomerId = customers.results[0].id;
+              console.log('Customer encontrado:', foundCustomerId);
 
-            // Verificar se o customer é válido
-            try {
-              await customerClient.get({ customerId: foundCustomerId });
-              customerId = foundCustomerId;
-              console.log('Customer válido!');
-            } catch (getError) {
-              console.log('Customer inválido (404), retornando erro...');
+              // Verificar se o customer é válido
+              try {
+                await customerClient.get({ customerId: foundCustomerId });
+                customerId = foundCustomerId;
+                console.log('Customer válido!');
+              } catch (getError) {
+                console.log('Customer inválido (404), retornando erro...');
+                return res.status(400).json({
+                  success: false,
+                  message: 'Dados de pagamento desatualizados. Limpe o cache do navegador (Ctrl+Shift+Del) e tente novamente.',
+                  error: 'invalid_customer_cached'
+                });
+              }
+            } else {
+              console.log('Customer não encontrado na busca');
               return res.status(400).json({
                 success: false,
-                message: 'Dados de pagamento desatualizados. Limpe o cache do navegador (Ctrl+Shift+Del) e tente novamente.',
-                error: 'invalid_customer_cached'
+                message: 'Erro ao configurar pagamento. Tente novamente.',
+                error: 'customer_not_found'
               });
             }
           } else {
-            console.log('Customer não encontrado na busca');
-            return res.status(400).json({
-              success: false,
-              message: 'Erro ao configurar pagamento. Tente novamente.',
-              error: 'customer_not_found'
-            });
+            throw error; // Re-throw se for outro erro
           }
-        } else {
-          throw error; // Re-throw se for outro erro
         }
-      }
 
-      //⚠️ NÃO salvar customer_id ainda - só depois que o card for criado com sucesso
+        //⚠️ NÃO salvar customer_id ainda - só depois que o card for criado com sucesso
+      }
     }
 
     // 2️⃣ Salvar cartão no Customer
@@ -205,62 +217,48 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
 
     const cardClient = new CustomerCard(client);
     let card;
-    let tentativas = 0;
-    const MAX_TENTATIVAS = 3;
 
-    while (tentativas < MAX_TENTATIVAS) {
-      try {
-        tentativas++;
-        console.log(`⏳ Tentativa ${tentativas}/${MAX_TENTATIVAS} de criar cartão...`);
-        card = await cardClient.create({
-          customer_id: customerId,
-          body: { token }
-        });
-        console.log('✅ Cartão criado com sucesso! ID:', card.id);
+    try {
+      card = await cardClient.create({
+        customer_id: customerId,
+        body: { token }
+      });
+      console.log('Cartão criado com sucesso! ID:', card.id);
 
-        // ✅ Salvar customer_id no banco
-        await salvarCustomerId(usuarioId, customerId);
-        console.log('Customer_id salvo no banco:', customerId);
+      // ✅ Agora sim, salvar customer_id no banco (só depois que o card foi criado)
+      await salvarCustomerId(usuarioId, customerId);
+      console.log('Customer_id salvo no banco:', customerId);
 
-        break; // Sucesso, sair do loop
+    } catch (error) {
+      console.error('Erro ao criar cartão:', {
+        message: error.message,
+        status: error.status,
+        cause: error.cause
+      });
 
-      } catch (error) {
-        console.error(`❌ Tentativa ${tentativas} falhou:`, {
-          message: error.message,
-          status: error.status
-        });
+      // Se o customer não existe (404), deletar do banco e do MP
+      if (error.status === 404) {
+        console.log('Customer inválido, tentando deletar...');
 
-        // Se customer não existe (404)
-        if (error.status === 404) {
-          // Se é a última tentativa
-          if (tentativas >= MAX_TENTATIVAS) {
-            console.log('🚫 Todas as tentativas falharam');
-
-            const customerClient = new Customer(client);
-            try {
-              await customerClient.remove({ customerId: customerId });
-              console.log('Customer deletado do MP');
-            } catch (delError) {
-              console.log('Erro ao deletar:', delError.message);
-            }
-
-            await salvarCustomerId(usuarioId, null);
-
-            return res.status(400).json({
-              success: false,
-              message: 'Erro ao adicionar cartão. Tente novamente em alguns minutos.',
-              error: 'customer_not_found_after_retry'
-            });
-          }
-
-          // Aguardar antes de retry
-          const delay = 1000 * tentativas;
-          console.log(`⏰ Aguardando ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-
-        } else {
-          throw error;
+        // Deletar customer do Mercado Pago
+        const customerClient = new Customer(client);
+        try {
+          await customerClient.remove({ customerId: customerId });
+          console.log('Customer deletado do MP');
+        } catch (delError) {
+          console.log('Não foi possível deletar customer:', delError.message);
         }
+
+        // Limpar do banco também
+        await salvarCustomerId(usuarioId, null);
+
+        return res.status(400).json({
+          success: false,
+          message: 'Erro ao adicionar cartão. Tente novamente.',
+          error: 'customer_not_found'
+        });
+      } else {
+        throw error;
       }
     }
 
