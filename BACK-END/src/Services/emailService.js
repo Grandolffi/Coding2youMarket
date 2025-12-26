@@ -2,16 +2,17 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  pool: true,           // Reutiliza conexões SMTP (evita novo handshake TLS a cada email)
-  maxConnections: 5,    // Máximo de conexões simultâneas
-  maxMessages: 100,     // Máximo de mensagens por conexão antes de reconectar
+  port: 587,              // Porta 587 com STARTTLS (geralmente não bloqueada)
+  secure: false,          // false para porta 587 (usa STARTTLS)
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false  // Permite certificados auto-assinados
   }
 });
+
 
 // Teste de conexão SMTP na inicialização
 transporter.verify((error, success) => {

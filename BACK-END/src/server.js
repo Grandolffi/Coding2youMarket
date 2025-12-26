@@ -27,6 +27,8 @@ const clubMarketRouter = require('./Controller/ClubMarketRouter');
 const pagamentoRouter = require('./Controller/pagamentoRouter');
 const entregaRouter = require('./Controller/entregaRouter');
 
+// Carregar emailService para testar conexão SMTP na inicialização
+require('./Services/emailService');
 
 // REGISTRAR ROTAS
 app.use('/api', authRouter);
