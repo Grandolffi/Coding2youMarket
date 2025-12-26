@@ -1,10 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { meusPedidos } from "../api/pedidosAPI";
 import Header from "../components/Header";
+
 
 export default function ClubMarketPage() {
     const navigate = useNavigate();
     const [planoSelecionado, setPlanoSelecionado] = useState(null);
+    const [clubAtivo, setClubAtivo] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const verificarClubAtivo = async () => {
+            try {
+                const pedidos = await meusPedidos();
+                const clubExistente = pedidos.find(
+                    p => p.frequencia === 'club' &&
+                        (p.status === 'ativa' || p.status === 'pausada')
+                );
+                setClubAtivo(clubExistente);
+            } catch (error) {
+                console.error('Erro ao verificar club:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        verificarClubAtivo();
+    }, []);
 
     const planos = [
         {
@@ -245,13 +267,39 @@ export default function ClubMarketPage() {
                 </div>
 
                 {/* Botão Voltar */}
-                <div className="mt-10 text-center">
-                    <button
-                        onClick={() => navigate('/')}
-                        className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 transition-all shadow-md hover:shadow-lg"
-                    >
-                        ← Voltar ao Início
-                    </button>
+                <div className="container mx-auto px-4 md:px-8 max-w-6xl mb-8">
+                    {loading ? (
+                        <div className="text-center py-8">
+                            <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
+                        </div>
+                    ) : clubAtivo ? (
+                        <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-6 text-center">
+                            <div className="text-5xl mb-4">⭐</div>
+                            <h3 className="text-2xl font-bold text-purple-900 mb-2">
+                                Você já é membro do Club Market!
+                            </h3>
+                            <p className="text-purple-700 mb-6">
+                                Plano atual: <strong>R$ {Number(clubAtivo.valorfinal || 0).toFixed(2).replace('.', ',')}/mês</strong>
+                            </p>
+                            <button
+                                onClick={() => navigate('/pedidos')}
+                                className="px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-full hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                            >
+                                Gerenciar Minha Assinatura
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleAssinar}
+                            disabled={!planoSelecionado}
+                            className={`w-full md:w-auto px-12 py-5 font-bold text-xl rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95 ${planoSelecionado
+                                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                        >
+                            {planoSelecionado ? '🎉 Assinar Agora' : 'Selecione um Plano'}
+                        </button>
+                    )}
                 </div>
             </main>
         </div>

@@ -49,8 +49,8 @@ async function salvarCartaoTokenizado({
   principal,
   isDebito
 }) {
-  if (!usuarioId || !tokenCartao) {
-    console.error("Falha ao salvar token: usuarioId ou tokenCartao ausentes.");
+  if (!usuarioId) {
+    console.error("Falha ao salvar token: usuarioId ausente.");
     return false;
   }
   const result = await pool.query(
@@ -154,6 +154,23 @@ async function deleteCartaoCredito(id) {
   );
   return result.rows.length > 0;
 }
+
+async function salvarCustomerId(usuarioId, customerId) {
+  const { rows } = await pool.query(
+    `UPDATE usuarios SET mercadopago_customer_id = $1 WHERE id = $2 RETURNING *`,
+    [customerId, usuarioId]
+  );
+  return rows[0];
+}
+async function getCustomerIdPorUsuario(usuarioId) {
+  const { rows } = await pool.query(
+    `SELECT mercadopago_customer_id FROM usuarios WHERE id = $1`,
+    [usuarioId]
+  );
+  return rows[0]?.mercadopago_customer_id || null;
+}
+
+
 // EXPORTS 
 module.exports = {
   CartaoCredito,
@@ -162,7 +179,8 @@ module.exports = {
   getCartoesCredito,
   getCartoesPorUsuario,
   getCartaoById,
-  getCustomerIdPorUsuario,
   editCartaoCredito,
-  deleteCartaoCredito
+  deleteCartaoCredito,
+  salvarCustomerId,
+  getCustomerIdPorUsuario
 };

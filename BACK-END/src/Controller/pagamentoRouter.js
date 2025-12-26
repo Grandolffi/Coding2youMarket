@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { salvarCartaoTokenizado, getCustomerIdPorUsuario } = require("../Model/DAO/cartaoDao");
+const { salvarCartaoTokenizado, salvarCustomerId, getCustomerIdPorUsuario } = require("../Model/DAO/cartaoDao");
 const { insertPagamento, insertPagamentoMercadoPago, getPagamentos, getPagamentoPorId, getPagamentosPorUsuario, updateStatusPagamento } = require("../Model/DAO/pagamentoDao");
 const { getClubMarketPorUsuario, updateStatusClubMarket } = require('../Model/DAO/clubMarketDao');
 const { updateClubMember } = require('../Model/DAO/clienteDao');
@@ -133,24 +133,51 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { token, bandeira, ultimos4digitos, nomeImpresso, principal } = req.body;
+
     if (!token) {
       return res.status(400).json({
         success: false,
         message: "Token do cartão é obrigatório"
       });
     }
-    // Salvar apenas o token
+    // 1️⃣ Buscar ou criar Customer no Mercado Pago
+    let customerId = await getCustomerIdPorUsuario(usuarioId);
+
+    if (!customerId) {
+      const customerClient = new Customer(client);
+      const customer = await customerClient.create({
+        body: {
+          email: req.usuario.email || req.usuario.Email,
+          first_name: req.usuario.nome,
+          last_name: req.usuario.sobrenome || ""
+        }
+      });
+      customerId = customer.id;
+
+      // Salvar customer_id no banco
+      await salvarCustomerId(usuarioId, customerId);
+    }
+
+    // 2️⃣ Salvar cartão no Customer
+    const cardClient = new CustomerCard(client);
+    const card = await cardClient.create({
+      customer_id: customerId,
+      body: { token }
+    });
+
+    // 3️⃣ Salvar card_id e customer_id no banco
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
-      customerId: null,
-      cardId: null,
-      tokenCartao: token,
-      bandeira: bandeira || "master",
-      ultimos4Digitos: ultimos4digitos || "****",
-      nomeImpresso: nomeImpresso || "",
+      customerId: customerId,
+      cardId: card.id,
+      tokenCartao: null, // Não armazenar mais o token
+      bandeira: card.payment_method.id,
+      ultimos4Digitos: card.last_four_digits,
+      nomeImpresso: card.cardholder.name,
       principal: principal || false,
       isDebito: false
     });
+
     return res.status(201).json({
       success: true,
       message: "Cartão salvo com sucesso",
@@ -171,32 +198,38 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const {
-      token,
+      customerId,      // ✅ NOVO
+      cardId,          // ✅ NOVO
+      securityCode,    // ✅ NOVO (CVV)
       transactionAmount,
       installments,
       description,
-      paymentMethodId,
       email
     } = req.body;
-    if (!token || !transactionAmount || !email) {
+
+    if (!customerId || !cardId || !securityCode || !transactionAmount || !email) {
       return res.status(400).json({
         success: false,
         message: "Dados incompletos"
       });
     }
+
     const paymentClient = new Payment(client);
     const payment = await paymentClient.create({
       body: {
         transaction_amount: parseFloat(transactionAmount),
-        token: token,
-        description: description || "Pedido Subscrivery",
         installments: parseInt(installments) || 1,
-        payment_method_id: paymentMethodId || "master",
+        description: description || "Pedido Subscrivery",
         payer: {
+          id: customerId,  // ✅ ID do customer
           email: email
-        }
+        },
+        payment_method_id: "credit_card",
+        token: cardId,         // ✅ Usar card_id como token
+        security_code: securityCode  // ✅ CVV
       }
     });
+
     const pagamentoSalvo = await insertPagamentoMercadoPago({
       usuarioId,
       cartaoId: null,
@@ -204,6 +237,7 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
       status: payment.status,
       transacaoId: payment.id.toString()
     });
+
     return res.status(201).json({
       success: true,
       message: "Pagamento processado",
@@ -219,7 +253,8 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Erro ao processar pagamento",
-      error: error.message
+      error: error.message,
+      details: error.cause?.[0]?.description || ""
     });
   }
 });

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Package, Calendar, DollarSign, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import Header from "../components/Header";
 import { meusPedidos, cancelarPedido, pausarPedido } from "../api/pedidosAPI";
@@ -7,6 +9,7 @@ import { getUsuarioId } from "../api/auth";
 
 export default function MeusPedidosPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [pedidos, setPedidos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processando, setProcessando] = useState(false);
@@ -39,17 +42,18 @@ export default function MeusPedidosPage() {
 
     const getStatusLabel = (status) => {
         const labels = {
-            'ativa': 'Ativa',
-            'pausada': 'Pausada',
-            'cancelada': 'Cancelada',
-            'entregue': 'Entregue',
-            'pendente': 'Pendente',
+            'ativa': t('orders.statusActive') || 'Ativa',
+            'pausada': t('orders.statusPaused') || 'Pausada',
+            'cancelada': t('orders.statusCancelled') || 'Cancelada',
+            'entregue': t('orders.statusDelivered') || 'Entregue',
+            'pendente': t('orders.statusPending') || 'Pendente',
         };
-        return labels[status?.toLowerCase()] || status || 'Desconhecido';
+        return labels[status?.toLowerCase()] || status || t('orders.statusUnknown') || 'Desconhecido';
     };
 
-    const pedidosClub = pedidos.filter(p => p.frequencia === 'club');
-    const pedidosNormais = pedidos.filter(p => p.frequencia !== 'club');
+    // Separar pedidos Club Market dos normais
+    const pedidosClub = pedidos.filter(p => p.frequencia === 'club' && p.status !== 'cancelada');
+    const pedidosNormais = pedidos.filter(p => p.frequencia !== 'club' && p.status !== 'cancelada');
 
     const formatDate = (dateString) => {
         if (!dateString) return '—';
@@ -112,9 +116,9 @@ export default function MeusPedidosPage() {
                     <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 shadow-xl">
                         <span className="text-4xl">📦</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-white drop-shadow-lg">Meus Pedidos</h1>
+                    <h1 className="text-3xl font-bold text-white drop-shadow-lg">{t('orders.title')}</h1>
                     <p className="text-white/80 text-sm mt-2">
-                        {loading ? "Carregando..." : `${pedidos.length} pedido(s) encontrado(s)`}
+                        {loading ? t('common.loading') : `${pedidos.length} ${pedidos.length === 1 ? t('orders.orderSingular') || 'pedido' : t('orders.ordersPlural') || 'pedidos'}`}
                     </p>
                 </div>
 
@@ -133,13 +137,13 @@ export default function MeusPedidosPage() {
                         <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="text-5xl">🛒</span>
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-800 mb-2">Nenhum pedido encontrado</h2>
-                        <p className="text-gray-500 mb-6">Você ainda não fez nenhum pedido.</p>
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">{t('orders.empty')}</h2>
+                        <p className="text-gray-500 mb-6">{t('orders.emptyDesc')}</p>
                         <button
                             onClick={() => navigate('/')}
                             className="px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-xl"
                         >
-                            Explorar Produtos
+                            {t('home.continueShopping') || t('cart.continueShopping')}
                         </button>
                     </div>
                 ) : (
@@ -152,30 +156,30 @@ export default function MeusPedidosPage() {
                                         <span className="text-2xl">⭐</span>
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-purple-900">Club Market</h2>
-                                        <p className="text-sm text-purple-700">Sua assinatura premium</p>
+                                        <h2 className="text-xl font-bold text-purple-900">{t('nav.clubMarket')}</h2>
+                                        <p className="text-sm text-purple-700">{t('orders.yourPremiumSubscription')}</p>
                                     </div>
                                 </div>
                                 {pedidosClub.map((club) => (
                                     <div key={club.id} className="bg-white rounded-xl p-5 mt-4">
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
-                                                <p className="text-sm text-gray-500">Plano</p>
+                                                <p className="text-sm text-gray-500">{t('orders.plan')}</p>
                                                 <p className="font-bold text-gray-900 text-lg">
-                                                    {formatCurrency(club.valorfinal)} /mês
+                                                    {formatCurrency(club.valorfinal)} {t('orders.perMonth')}
                                                 </p>
                                             </div>
-                                            <span className={`px-4 py-1.5 rounded-full text-sm font-semibold border ${getStatusColor(club.status)}`}>
+                                            <span className={`px - 4 py - 1.5 rounded - full text - sm font - semibold border ${getStatusColor(club.status)} `}>
                                                 {getStatusLabel(club.status)}
                                             </span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 mb-4">
                                             <div>
-                                                <p className="text-sm text-gray-500">Início</p>
+                                                <p className="text-sm text-gray-500">{t('orders.start')}</p>
                                                 <p className="font-medium text-gray-900">{formatDate(club.datainicio)}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500">Próxima cobrança</p>
+                                                <p className="text-sm text-gray-500">{t('orders.nextCharge')}</p>
                                                 <p className="font-medium text-gray-900">{formatDate(club.dataproximacobranca)}</p>
                                             </div>
                                         </div>
@@ -188,7 +192,7 @@ export default function MeusPedidosPage() {
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
-                                                Cancelar Club Market
+                                                {t('orders.cancelClub')}
                                             </button>
                                         )}
                                     </div>
@@ -198,7 +202,7 @@ export default function MeusPedidosPage() {
                         {/* Pedidos Normais */}
                         {pedidosNormais.length > 0 && (
                             <>
-                                <h2 className="text-xl font-bold text-gray-800">Meus Pedidos</h2>
+                                <h2 className="text-xl font-bold text-gray-800">{t('orders.title')}</h2>
                                 <div className="space-y-6">
                                     {pedidosNormais.map((pedido, index) => (
                                         <div
@@ -213,11 +217,11 @@ export default function MeusPedidosPage() {
                                                             <span className="text-lg">📋</span>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500">Pedido</p>
+                                                            <p className="text-sm text-gray-500">{t('orders.order')}</p>
                                                             <p className="font-bold text-gray-800">#{pedido.id}</p>
                                                         </div>
                                                     </div>
-                                                    <span className={`px-4 py-1.5 rounded-full text-sm font-semibold border ${getStatusColor(pedido.status)}`}>
+                                                    <span className={`px - 4 py - 1.5 rounded - full text - sm font - semibold border ${getStatusColor(pedido.status)} `}>
                                                         {getStatusLabel(pedido.status)}
                                                     </span>
                                                 </div>
@@ -227,19 +231,19 @@ export default function MeusPedidosPage() {
                                             <div className="p-5">
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Data do Pedido</p>
+                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.orderDate')}</p>
                                                         <p className="font-semibold text-gray-800">{formatDate(pedido.datainicio || pedido.createdat)}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Próxima Entrega</p>
+                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.nextDelivery')}</p>
                                                         <p className="font-semibold text-gray-800">{formatDate(pedido.dataproximaentrega)}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Próxima Cobrança</p>
+                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.nextCharge')}</p>
                                                         <p className="font-semibold text-gray-800">{formatDate(pedido.dataproximacobranca)}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Valor Total</p>
+                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.totalValue')}</p>
                                                         <p className="font-bold text-green-600 text-lg">{formatCurrency(pedido.valorfinal || pedido.valortotal || 0)}</p>
                                                     </div>
                                                 </div>
@@ -254,7 +258,7 @@ export default function MeusPedidosPage() {
                                                                     key={idx}
                                                                     className="px-3 py-1.5 bg-gray-100 rounded-lg text-sm text-gray-700"
                                                                 >
-                                                                    {item.quantidade}x {item.nome || item.produto?.nome || `Item ${idx + 1}`}
+                                                                    {item.quantidade}x {item.nome || item.produto?.nome || `Item ${idx + 1} `}
                                                                 </span>
                                                             ))}
                                                             {pedido.itens.length > 5 && (

@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
+
 export default function SumarioOrdem({ resumo, onCriarAssinatura, loading }) {
+    const { t } = useTranslation();
     // Valores vêm do backend via API (função fictícia por enquanto)
     const subtotal = resumo?.subtotal || 0;
     const descontoClub = resumo?.descontoClub || 0;
@@ -6,30 +9,30 @@ export default function SumarioOrdem({ resumo, onCriarAssinatura, loading }) {
     const total = resumo?.total || 0;
     return (
         <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Resumo</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-6">{t('cart.orderSummary') || t('payment.orderSummary')}</h2>
             {/* Detalhes do Pedido */}
             <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
+                    <span>{t('cart.subtotal')}</span>
                     <span className="font-semibold">
                         R$ {subtotal.toFixed(2).replace('.', ',')}
                     </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                    <span>Desconto Clube+</span>
+                    <span>{t('cart.discount')}</span>
                     <span className="font-semibold text-green-600">
                         - R$ {descontoClub.toFixed(2).replace('.', ',')}
                     </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                    <span>Frete</span>
+                    <span>{t('cart.shipping')}</span>
                     <span className="font-semibold">
                         R$ {frete.toFixed(2).replace('.', ',')}
                     </span>
                 </div>
                 <div className="h-px bg-gray-200"></div>
                 <div className="flex justify-between text-lg font-bold text-gray-800">
-                    <span>Total</span>
+                    <span>{t('cart.total')}</span>
                     <span className="text-green-700">
                         R$ {total.toFixed(2).replace('.', ',')}
                     </span>
@@ -47,12 +50,12 @@ export default function SumarioOrdem({ resumo, onCriarAssinatura, loading }) {
                     }
         `}
             >
-                {loading ? 'Processando...' : 'Criar Assinatura'}
+                {loading ? t('common.loading') : t('cart.checkout')}
             </button>
             {/* Nota sobre Clube+ */}
             {descontoClub > 0 && (
                 <p className="text-xs text-gray-500 mt-4 text-center">
-                    Você economizou <span className="font-bold text-green-600">R$ {descontoClub.toFixed(2)}</span> com o Clube+
+                    {t('cart.clubBenefits')} <span className="font-bold text-green-600">R$ {descontoClub.toFixed(2)}</span>
                 </p>
             )}
         </div>

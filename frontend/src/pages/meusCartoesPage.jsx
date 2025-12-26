@@ -109,6 +109,7 @@ export default function MeusCartoesPage() {
         }
     };
 
+
     const handleRemoverCartao = async (id) => {
         if (!confirm('Tem certeza que deseja remover este cartão?')) return;
 
@@ -236,13 +237,13 @@ export default function MeusCartoesPage() {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p className="text-gray-500 mb-1">Bandeira</p>
-                                    <p className="font-medium text-gray-800">{cartoes[cartaoAtivo].bandeira}</p>
+                                    <p className="font-medium text-gray-800 uppercase">{cartoes[cartaoAtivo].bandeira || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <p className="text-gray-500 mb-1">Final</p>
                                     <p className="font-medium text-gray-800">**** {cartoes[cartaoAtivo].ultimos4digitos || (cartoes[cartaoAtivo].numero ? cartoes[cartaoAtivo].numero.slice(-4) : '----')}</p>
                                 </div>
-                                <div>
+                                <div className="col-span-2">
                                     <p className="text-gray-500 mb-1">Nome no Cartão</p>
                                     <p className="font-medium text-gray-800">{getNome(cartoes[cartaoAtivo])}</p>
                                 </div>

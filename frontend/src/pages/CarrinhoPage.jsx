@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import ItemCarrinho from '../components/ItemCarrinho';
 import SumarioOrdem from '../components/SumarioOrdem';
 import FrequenciaModal from '../components/FrequenciaModal';
 import EnderecoModal from '../components/EnderecoModal';
 import { verMeuCarrinho, atualizarQuantidade, removerItem, limparCarrinho } from '../api/carrinhoAPI';
+import { meusPedidos } from '../api/pedidosAPI';
 import { useCarrinho } from '../context/CarrinhoContext';
 
 export default function CarrinhoPage() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { decrementarContador } = useCarrinho();
     const [itensCarrinho, setItensCarrinho] = useState([]);
@@ -42,36 +45,66 @@ export default function CarrinhoPage() {
             setLoading(false);
         }
     };
-    // TODO: Substituir por chamada real ao backend
-    // Endpoint: GET /api/carrinho/resumo
-    // O backend deve calcular: subtotal, desconto Club+ (baseado no usuário), frete e total
     const calcularResumo = async (itens) => {
-        // Temporário: cálculo local até integrar com backend
-        const subtotal = itens.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
-        // TODO: Buscar do backend se usuário tem Club+ ativo
-        const descontoClub = 0; // Backend calculará baseado no status do usuário
-        const frete = 10.23;
-        const total = subtotal - descontoClub + frete;
-        setResumo({
-            subtotal,
-            descontoClub,
-            frete,
-            total
-        });
-        /* Exemplo de integração futura:
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/carrinho/resumo`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setResumo(data.resumo); // { subtotal, descontoClub, frete, total }
+            const subtotal = itens.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
+
+            // Buscar Club ativo do usuário
+            const pedidos = await meusPedidos();
+
+            const valorFrete = 10.23; // Valor padrão do frete
+            let descontoClub = 0;
+            let percentualDesconto = 0;
+
+            // Verificar se tem Club ativo
+            const clubAtivo = (pedidos || []).find(
+                p => p.frequencia === 'club' &&
+                    (p.status === 'ativa' || p.status === 'pausada')
+            );
+
+            if (clubAtivo) {
+                // Desconto no FRETE (sempre R$ 10,23 para membros Club)
+                descontoClub += valorFrete;
+
+                // Aplicar desconto ADICIONAL nos produtos baseado no plano
+                const valorFinal = clubAtivo.valorfinal || clubAtivo.valortotal;
+
+                // R$ 9,90 = Entrada (só frete grátis)
+                // R$ 19,90 = Intermediário (frete grátis + 10% desconto produtos)
+                // R$ 39,90 = Premium (frete grátis + 25% desconto produtos)
+                if (valorFinal >= 39) {
+                    percentualDesconto = 0.25; // 25%
+                } else if (valorFinal >= 19) {
+                    percentualDesconto = 0.10; // 10%
+                } else {
+                    percentualDesconto = 0; // Só frete grátis
+                }
+
+                // Somar desconto dos produtos ao desconto do frete
+                descontoClub += (subtotal * percentualDesconto);
             }
+
+            const total = subtotal + valorFrete - descontoClub;
+
+            setResumo({
+                subtotal,
+                descontoClub,
+                frete: valorFrete, // SEMPRE mostra valor real
+                total,
+                temClub: !!clubAtivo,
+                percentualDesconto
+            });
         } catch (error) {
             console.error('Erro ao calcular resumo:', error);
+            // Fallback seguro
+            const subtotal = itens.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
+            setResumo({
+                subtotal,
+                descontoClub: 0,
+                frete: 10.23,
+                total: subtotal + 10.23
+            });
         }
-        */
     };
     const handleAtualizarQuantidade = async (itemId, novaQuantidade) => {
         try {
@@ -145,7 +178,7 @@ export default function CarrinhoPage() {
                         <ArrowLeft className="text-white" size={24} />
                     </button>
                     <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
-                        Meu Carrinho
+                        {t('cart.title')}
                     </h1>
                 </div>
                 {/* Cantos Arredondados Inferiores */}
@@ -162,13 +195,13 @@ export default function CarrinhoPage() {
                     // Carrinho Vazio
                     <div className="text-center py-20">
                         <ShoppingBag className="mx-auto text-gray-300 mb-4" size={80} />
-                        <h2 className="text-2xl font-bold text-gray-700 mb-2">Carrinho vazio</h2>
-                        <p className="text-gray-500 mb-6">Adicione produtos para começar sua assinatura</p>
+                        <h2 className="text-2xl font-bold text-gray-700 mb-2">{t('cart.empty')}</h2>
+                        <p className="text-gray-500 mb-6">{t('cart.emptyDesc')}</p>
                         <button
                             onClick={() => navigate('/')}
                             className="px-6 py-3 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-colors"
                         >
-                            Ir às compras
+                            {t('cart.continueShopping')}
                         </button>
                     </div>
                 ) : (
@@ -178,7 +211,7 @@ export default function CarrinhoPage() {
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-2xl shadow-md p-6">
                                 <h2 className="text-xl font-bold text-gray-800 mb-4">
-                                    Itens ({itensCarrinho.length})
+                                    {t('cart.items', { count: itensCarrinho.length })}
                                 </h2>
                                 <div className="divide-y divide-gray-100">
                                     {itensCarrinho.map((item) => (

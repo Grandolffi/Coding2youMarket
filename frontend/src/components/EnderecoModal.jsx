@@ -1,13 +1,15 @@
 import { X, MapPin, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { meusEnderecos } from '../api/enderecoAPI';
 export default function EnderecoModal({ isOpen, onClose, onConfirmar }) {
+    const { t } = useTranslation();
     const [enderecoSelecionado, setEnderecoSelecionado] = useState(null);
     const [enderecos, setEnderecos] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Carregar endereços do usuário
+    // Load user addresses
     useEffect(() => {
         if (isOpen) {
             carregarEnderecos();
@@ -33,7 +35,7 @@ export default function EnderecoModal({ isOpen, onClose, onConfirmar }) {
 
     const handleConfirmar = () => {
         if (!enderecoSelecionado) {
-            toast.error('Selecione um endereço', { duration: 2000 });
+            toast.error(t('address.selectAddress'), { duration: 2000 });
             return;
         }
         onConfirmar(enderecoSelecionado);
@@ -50,9 +52,9 @@ export default function EnderecoModal({ isOpen, onClose, onConfirmar }) {
                     <X size={20} className="text-gray-500" />
                 </button>
                 {/* Título */}
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Endereço</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('address.title')}</h2>
                 <p className="text-gray-600 text-sm mb-6">
-                    Selecione o endereço de entrega
+                    {t('address.subtitle')}
                 </p>
                 {/* Lista de Endereços */}
                 <div className="space-y-3 mb-6">
@@ -90,7 +92,7 @@ export default function EnderecoModal({ isOpen, onClose, onConfirmar }) {
                 {/* Botão Novo Endereço */}
                 <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-green-500 hover:text-green-600 transition-all flex items-center justify-center gap-2 mb-6">
                     <Plus size={20} />
-                    Novo endereço
+                    {t('address.addNew') || 'Novo endereço'}
                 </button>
                 {/* Botão Confirmar */}
                 <button
@@ -104,7 +106,7 @@ export default function EnderecoModal({ isOpen, onClose, onConfirmar }) {
                         }
           `}
                 >
-                    Ir para o pagamento
+                    {t('address.confirmButton')}
                 </button>
             </div>
         </div>

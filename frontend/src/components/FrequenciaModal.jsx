@@ -1,13 +1,15 @@
 import { X, Calendar, ShoppingBag, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
+    const { t } = useTranslation();
     const [tipoCompra, setTipoCompra] = useState('assinatura');
     const [frequenciaSelecionada, setFrequenciaSelecionada] = useState('quinzenal');
     const [diaPreferencial, setDiaPreferencial] = useState('');
     const opcoesFrequencia = [
-        { value: 'semanal', label: 'Semanal', descricao: 'Entrega toda semana' },
-        { value: 'quinzenal', label: 'Quinzenal', descricao: 'Entrega a cada 15 dias' },
-        { value: 'mensal', label: 'Mensal', descricao: 'Entrega uma vez por mês' }
+        { value: 'semanal', label: t('frequency.weekly'), descricao: t('frequency.weeklyDesc') },
+        { value: 'quinzenal', label: t('frequency.biweekly'), descricao: t('frequency.biweeklyDesc') },
+        { value: 'mensal', label: t('frequency.monthly'), descricao: t('frequency.monthlyDesc') }
     ];
     // Bloquear scroll do body quando modal aberto
     useEffect(() => {
@@ -47,9 +49,9 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                         <X size={20} className="text-gray-500" />
                     </button>
 
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-1">Finalizar Compra</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-1">{t('frequency.title')}</h2>
                     <p className="text-gray-600 text-xs md:text-sm">
-                        Escolha como você deseja receber seus produtos
+                        {t('frequency.subtitle')}
                     </p>
                 </div>
                 <div className="p-6 pt-4">
@@ -65,8 +67,8 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                             `}
                         >
                             <RefreshCw size={20} className="md:w-6 md:h-6" />
-                            <span className="font-semibold text-xs md:text-sm">Assinatura</span>
-                            <span className="text-[10px] md:text-xs opacity-75">Recorrente</span>
+                            <span className="font-semibold text-xs md:text-sm">{t('frequency.subscription')}</span>
+                            <span className="text-[10px] md:text-xs opacity-75">{t('frequency.recurring')}</span>
                         </button>
                         <button
                             onClick={() => setTipoCompra('unica')}
@@ -79,14 +81,14 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                             `}
                         >
                             <ShoppingBag size={20} className="md:w-6 md:h-6" />
-                            <span className="font-semibold text-xs md:text-sm">Compra Única</span>
-                            <span className="text-[10px] md:text-xs opacity-75">Sem recorrência</span>
+                            <span className="font-semibold text-xs md:text-sm">{t('frequency.oneTimePurchase')}</span>
+                            <span className="text-[10px] md:text-xs opacity-75">{t('frequency.noRecurring')}</span>
                         </button>
                     </div>
                     {tipoCompra === 'assinatura' && (
                         <>
                             <div className="space-y-2 md:space-y-3 mb-6">
-                                <h3 className="font-semibold text-sm md:text-base text-gray-700 mb-2">Frequência de entrega</h3>
+                                <h3 className="font-semibold text-sm md:text-base text-gray-700 mb-2">{t('frequency.deliveryFrequency')}</h3>
                                 {opcoesFrequencia.map((opcao) => (
                                     <label
                                         key={opcao.value}
@@ -116,7 +118,7 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
 
                             <div className="mb-6">
                                 <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2">
-                                    Dia preferencial <span className="text-gray-400 font-normal">(opcional)</span>
+                                    {t('frequency.preferredDay')} <span className="text-gray-400 font-normal">{t('frequency.optional')}</span>
                                 </label>
                                 <div className="relative">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -128,16 +130,14 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                                     />
                                 </div>
                                 <p className="text-[10px] md:text-xs text-gray-500 mt-2">
-                                    Selecione o dia que você prefere receber suas entregas
+                                    {t('frequency.preferredDayDesc')}
                                 </p>
                             </div>
                         </>
                     )}
                     {tipoCompra === 'unica' && (
                         <div className="mb-6 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                            <p className="text-xs md:text-sm text-blue-800">
-                                ✨ Você receberá seus produtos <strong>uma única vez</strong>. Sem cobranças recorrentes.
-                            </p>
+                            <p className="text-xs md:text-sm text-blue-800" dangerouslySetInnerHTML={{ __html: t('frequency.oneTimeInfo') }}></p>
                         </div>
                     )}
 
@@ -145,7 +145,7 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                         onClick={handleConfirmar}
                         className="w-full py-3 bg-gray-900 text-white text-sm md:text-base font-semibold rounded-full hover:bg-gray-800 transition-all shadow-lg active:scale-95"
                     >
-                        {tipoCompra === 'unica' ? 'Ir para Pagamento' : 'Continuar'}
+                        {tipoCompra === 'unica' ? t('payment.confirmPayment') : t('common.next')}
                     </button>
                 </div>
             </div>

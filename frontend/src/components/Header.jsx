@@ -1,9 +1,12 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { verMeuCarrinho } from '../api/carrinhoAPI';
 import { useCarrinho } from '../context/CarrinhoContext';
+import TrocaIdioma from './TrocaIdioma';
 export default function Header() {
+    const { t } = useTranslation();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const { contadorCarrinho, atualizarContador } = useCarrinho();
     const navigate = useNavigate();
@@ -54,6 +57,7 @@ export default function Header() {
                             Subscrivery
                         </span>
                         <div className="flex items-center gap-2">
+                            <TrocaIdioma />
                             <Link to="/carrinho" className="p-2 hover:bg-white/30 rounded-full transition-colors relative">
                                 <ShoppingCart size={20} className="text-gray-700" />
                                 {contadorCarrinho > 0 && (
@@ -70,17 +74,17 @@ export default function Header() {
                                 {dropdownOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                                         <Link to="/pedidos" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            📦 Meus Pedidos
+                                            📦 {t('nav.orders')}
                                         </Link>
                                         <Link to="/club-market" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            ⭐ Club Market
+                                            ⭐ {t('nav.clubMarket')}
                                         </Link>
                                         <Link to="/perfil" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            👤 Meu Perfil
+                                            👤 {t('nav.profile')}
                                         </Link>
                                         <hr className="border-gray-200" />
                                         <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium">
-                                            🚪 Sair
+                                            🚪 {t('nav.logout')}
                                         </button>
                                     </div>
                                 )}
@@ -99,16 +103,17 @@ export default function Header() {
                         </Link>
                         <nav className="flex items-center gap-8">
                             <Link to="/" className={`font-medium transition-colors pb-1 ${location.pathname === '/' || location.pathname === '/home' ? 'text-gray-800 font-semibold border-b-2 border-green-500' : 'text-gray-700 hover:text-green-600'}`}>
-                                Início
+                                {t('nav.home')}
                             </Link>
                             <Link to="/pedidos" className={`font-medium transition-colors pb-1 ${location.pathname === '/pedidos' ? 'text-gray-800 font-semibold border-b-2 border-green-500' : 'text-gray-700 hover:text-green-600'}`}>
-                                Meus Pedidos
+                                {t('nav.orders')}
                             </Link>
                             <Link to="/club-market" className={`font-medium transition-colors pb-1 ${location.pathname === '/club-market' ? 'text-gray-800 font-semibold border-b-2 border-green-500' : 'text-gray-700 hover:text-green-600'}`}>
-                                Club Market
+                                {t('nav.clubMarket')}
                             </Link>
                         </nav>
                         <div className="flex items-center gap-3">
+                            <TrocaIdioma />
                             <Link to="/carrinho" className="p-2 hover:bg-white/30 rounded-full transition-colors relative">
                                 <ShoppingCart size={20} className="text-gray-700" />
                                 {contadorCarrinho > 0 && (
@@ -125,17 +130,17 @@ export default function Header() {
                                 {dropdownOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                                         <Link to="/pedidos" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            Meus Pedidos
+                                            {t('nav.orders')}
                                         </Link>
                                         <Link to="/club-market" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            Club Market
+                                            {t('nav.clubMarket')}
                                         </Link>
                                         <Link to="/perfil" className="block px-4 py-3 text-gray-800 hover:bg-green-50 transition-colors" onClick={() => setDropdownOpen(false)}>
-                                            Meu Perfil
+                                            {t('nav.profile')}
                                         </Link>
                                         <hr className="border-gray-200" />
                                         <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium">
-                                            Sair
+                                            {t('nav.logout')}
                                         </button>
                                     </div>
                                 )}

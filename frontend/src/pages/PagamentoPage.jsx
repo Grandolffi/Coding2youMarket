@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import CVVModal from '../components/cvvmodal';
 import { meusCartoes, deletarCartao } from '../api/cartaoAPI';
 import { verMeuCarrinho, limparCarrinho } from '../api/carrinhoAPI';
-import { criarPedido } from '../api/pedidosAPI';
+import { criarPedido, meusPedidos } from '../api/pedidosAPI';
 import { initMercadoPago, tokenizarCartao, detectarBandeira, formatarNumeroCartao, formatarValidade } from '../services/mercadoPagoService';
 
 const API_URL = 'https://coding2youmarket-production.up.railway.app/api';
 const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
 
 export default function PagamentoPage() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const [cartoes, setCartoes] = useState([]);
@@ -32,10 +34,35 @@ export default function PagamentoPage() {
     });
     const dadosCompra = location.state || {};
     useEffect(() => {
-        initMercadoPago(MP_PUBLIC_KEY);
-        carregarCartoes();
-        calcularResumo();
+        const inicializar = async () => {
+            initMercadoPago(MP_PUBLIC_KEY);
+
+            // Verificar Club duplicado
+            if (dadosCompra.tipoCompra === 'club') {
+                try {
+                    const pedidos = await meusPedidos();
+                    const clubExistente = (pedidos || []).find(
+                        p => p.frequencia === 'club' &&
+                            (p.status === 'ativa' || p.status === 'pausada')
+                    );
+
+                    if (clubExistente) {
+                        toast.error(t('payment.clubAlreadyActive') || 'Você já possui um Club Market ativo!');
+                        setTimeout(() => navigate('/pedidos'), 2000);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar club:', error);
+                }
+            }
+
+            carregarCartoes();
+            calcularResumo();
+        };
+
+        inicializar();
     }, []);
+
     const carregarCartoes = async () => {
         try {
             const { success, cartoes: cartoesBackend } = await meusCartoes();
@@ -75,15 +102,59 @@ export default function PagamentoPage() {
                 });
                 return;
             }
+
             const subtotal = carrinho.reduce((acc, item) => {
                 const preco = item.produto?.preco || 0;
                 const quantidade = item.quantidade || 0;
                 return acc + (preco * quantidade);
             }, 0);
-            const descontoClub = 0;
-            const frete = subtotal > 0 ? 10.23 : 0;
-            const total = subtotal - descontoClub + frete;
-            setResumo({ subtotal, descontoClub, frete, total });
+
+            // Buscar Club ativo do usuário
+            const pedidos = await meusPedidos();
+
+            const valorFrete = 10.23; // Valor padrão do frete
+            let descontoClub = 0;
+            let percentualDesconto = 0;
+
+            // Verificar se tem Club ativo
+            const clubAtivo = (pedidos || []).find(
+                p => p.frequencia === 'club' &&
+                    (p.status === 'ativa' || p.status === 'pausada')
+            );
+
+            if (clubAtivo) {
+                // Desconto no FRETE (sempre R$ 10,23 para membros Club)
+                descontoClub += valorFrete;
+
+                // Aplicar desconto ADICIONAL nos produtos baseado no plano
+                const valorFinal = clubAtivo.valorfinal || clubAtivo.valortotal;
+
+                // R$ 9,90 = Entrada (só frete grátis)
+                // R$ 19,90 = Intermediário (frete grátis + 10% desconto produtos)
+                // R$ 39,90 = Premium (frete grátis + 25% desconto produtos)
+                if (valorFinal >= 39) {
+                    percentualDesconto = 0.25; // 25%
+                } else if (valorFinal >= 19) {
+                    percentualDesconto = 0.10; // 10%
+                } else {
+                    percentualDesconto = 0; // Só frete grátis
+                }
+
+                // Somar desconto dos produtos ao desconto do frete
+                descontoClub += (subtotal * percentualDesconto);
+            }
+
+            const frete = subtotal > 0 ? valorFrete : 0;
+            const total = subtotal + frete - descontoClub;
+
+            setResumo({
+                subtotal,
+                descontoClub,
+                frete,
+                total,
+                temClub: !!clubAtivo,
+                percentualDesconto
+            });
         } catch (error) {
             console.error('Erro ao calcular resumo:', error);
             setResumo({ subtotal: 0, descontoClub: 0, frete: 0, total: 0 });
@@ -99,16 +170,73 @@ export default function PagamentoPage() {
     };
 
     const handleAdicionarCartao = async () => {
+        // Validações básicas
         if (!novoCartao.numero || !novoCartao.nome || !novoCartao.validade || !novoCartao.cvv) {
-            toast.error('Preencha todos os campos do cartão');
+            toast.error(t('payment.fillAllFields') || 'Preencha todos os campos do cartão');
             return;
         }
+
+        // Validar número do cartão (13-19 dígitos)
+        const numeroLimpo = novoCartao.numero.replace(/\s/g, '');
+        if (numeroLimpo.length < 13 || numeroLimpo.length > 19) {
+            toast.error(t('payment.invalidCardNumber') || 'Número do cartão deve ter entre 13 e 19 dígitos');
+            return;
+        }
+
+        // Validar CVV (3-4 dígitos)
+        if (novoCartao.cvv.length < 3 || novoCartao.cvv.length > 4) {
+            toast.error(t('payment.invalidCVV') || 'CVV deve ter 3 ou 4 dígitos');
+            return;
+        }
+
+        // Validar validade (MM/AA)
+        if (novoCartao.validade.length !== 5) {
+            toast.error(t('payment.invalidExpiry') || 'Validade inválida. Use o formato MM/AA');
+            return;
+        }
+
+        const [mes, ano] = novoCartao.validade.split('/');
+        const mesNum = parseInt(mes, 10);
+        const anoNum = parseInt('20' + ano, 10);
+
+        if (mesNum < 1 || mesNum > 12) {
+            toast.error('Mês inválido');
+            return;
+        }
+
+        const hoje = new Date();
+        const anoAtual = hoje.getFullYear();
+        const mesAtual = hoje.getMonth() + 1;
+
+        if (anoNum < anoAtual || (anoNum === anoAtual && mesNum < mesAtual)) {
+            toast.error('Cartão expirado');
+            return;
+        }
+
+        // Validar nome (mínimo 3 caracteres)
+        if (novoCartao.nome.trim().length < 3) {
+            toast.error('Nome no cartão deve ter pelo menos 3 caracteres');
+            return;
+        }
+
         setSalvandoCartao(true);
         const loadingToast = toast.loading('Salvando cartão...');
         try {
             const tokenResult = await tokenizarCartao(novoCartao);
             if (!tokenResult.success) {
-                toast.error(tokenResult.message, { id: loadingToast });
+                // Traduzir mensagens do Mercado Pago
+                let mensagemErro = tokenResult.message;
+                if (mensagemErro.includes('invalid_expiration')) {
+                    mensagemErro = 'Data de validade inválida';
+                } else if (mensagemErro.includes('invalid_cardholder_name')) {
+                    mensagemErro = 'Nome no cartão inválido';
+                } else if (mensagemErro.includes('invalid_security_code')) {
+                    mensagemErro = 'CVV inválido';
+                } else if (mensagemErro.includes('invalid_card_number')) {
+                    mensagemErro = 'Número do cartão inválido';
+                }
+
+                toast.error(mensagemErro, { id: loadingToast });
                 setSalvandoCartao(false);
                 return;
             }
@@ -218,7 +346,6 @@ export default function PagamentoPage() {
             const token = localStorage.getItem('token');
             const userStr = localStorage.getItem('user');
 
-            // Validação robusta do user
             let user = {};
             if (userStr && userStr !== 'undefined' && userStr !== 'null') {
                 try {
@@ -230,14 +357,15 @@ export default function PagamentoPage() {
             }
 
             const cartaoSelecionado = cartoes[cartaoAtivo];
+
             const dadosPagamento = {
-                token: cartaoSelecionado.tokencartao,
-                transactionAmount: parseFloat(resumo.total.toFixed(2)), // Garantir número com ponto
+                customerId: cartaoSelecionado.customerid,    // ✅ NOVO
+                cardId: cartaoSelecionado.cardid,            // ✅ NOVO
+                securityCode: cvv,                           // ✅ CVV do modal
+                transactionAmount: parseFloat(resumo.total.toFixed(2)),
                 installments: 1,
                 description: `Pedido Subscrivery - ${dadosCompra.tipo || 'assinatura'}`,
-                paymentMethodId: cartaoSelecionado.bandeira?.toLowerCase() || 'master',
-                email: user.email || user.Email,
-                securityCode: cvv
+                email: user.email || user.Email
             };
 
             const response = await fetch(`${API_URL}/pagamentos/processar`, {
@@ -367,7 +495,7 @@ export default function PagamentoPage() {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Carregando...</p>
+                    <p className="text-gray-600">{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -386,7 +514,7 @@ export default function PagamentoPage() {
                     <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/20 rounded-full mr-4">
                         <ArrowLeft className="text-white" size={24} />
                     </button>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Pagamento</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{t('payment.title')}</h1>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
             </div>
@@ -403,11 +531,11 @@ export default function PagamentoPage() {
                                         </p>
                                         <div className="flex justify-between items-end">
                                             <div>
-                                                <p className="text-xs text-gray-400 mb-1">Nome</p>
+                                                <p className="text-xs text-gray-400 mb-1">{t('payment.cardName')}</p>
                                                 <p className="font-semibold">{cartoes[cartaoAtivo].nomeimpresso}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xs text-gray-400 mb-1">Bandeira</p>
+                                                <p className="text-xs text-gray-400 mb-1">{t('payment.cardBrand')}</p>
                                                 <p className="font-semibold">{cartoes[cartaoAtivo].bandeira}</p>
                                             </div>
                                         </div>
@@ -427,7 +555,7 @@ export default function PagamentoPage() {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        Remover este cartão
+                                        {t('payment.removeCard')}
                                     </button>
 
                                     {cartoes.length > 1 && (
@@ -456,13 +584,13 @@ export default function PagamentoPage() {
                             className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-green-500 hover:text-green-600 transition-all flex items-center justify-center gap-2 mb-6"
                         >
                             <Plus size={20} />
-                            Adicionar cartão
+                            {t('payment.addCard')}
                         </button>
                         {adicionandoCartao && (
                             <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
-                                <h3 className="font-bold text-gray-800 mb-4">Adicionar cartão</h3>
+                                <h3 className="font-bold text-gray-800 mb-4">{t('payment.addCard')}</h3>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Número do cartão</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.cardNumber')}</label>
                                     <input
                                         type="text"
                                         placeholder="1234 1234 1234 1234"
@@ -473,7 +601,7 @@ export default function PagamentoPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Nome (como no cartão)</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.cardHolderName')}</label>
                                     <input
                                         type="text"
                                         placeholder="NOME COMPLETO"
@@ -484,7 +612,7 @@ export default function PagamentoPage() {
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Validade</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.expiryDate')}</label>
                                         <input
                                             type="text"
                                             placeholder="MM/AA"
@@ -523,33 +651,42 @@ export default function PagamentoPage() {
                                     className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${salvandoCartao ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
                                         }`}
                                 >
-                                    {salvandoCartao ? 'Salvando...' : 'Salvar Cartão'}
+                                    {salvandoCartao ? t('payment.saving') : t('payment.saveCard')}
                                 </button>
                             </div>
                         )}
                     </div>
                     <div className="hidden md:block">
                         <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                            <h3 className="font-bold text-gray-800 mb-4">Resumo do pedido</h3>
+                            <h3 className="font-bold text-gray-800 mb-4">{t('cart.orderSummary')}</h3>
                             {resumo && (
                                 <div className="space-y-3 mb-6">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Subtotal</span>
+                                        <span>{t('cart.subtotal')}</span>
                                         <span>R$ {resumo.subtotal.toFixed(2).replace('.', ',')}</span>
                                     </div>
-                                    <div className="flex justify-between text-green-600">
-                                        <span>Desconto Clube+</span>
-                                        <span>- R$ {resumo.descontoClub.toFixed(2).replace('.', ',')}</span>
-                                    </div>
+                                    {resumo.descontoClub > 0 && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span>{t('cart.clubDiscount')}</span>
+                                            <span>- R$ {resumo.descontoClub.toFixed(2).replace('.', ',')}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Frete</span>
+                                        <span>{t('cart.shipping')}</span>
                                         <span>R$ {resumo.frete.toFixed(2).replace('.', ',')}</span>
                                     </div>
                                     <div className="h-px bg-gray-200"></div>
                                     <div className="flex justify-between text-lg font-bold text-gray-800">
-                                        <span>Total</span>
+                                        <span>{t('cart.total')}</span>
                                         <span className="text-green-700">R$ {resumo.total.toFixed(2).replace('.', ',')}</span>
                                     </div>
+                                    {resumo.descontoClub > 0 && (
+                                        <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
+                                            <p className="text-sm text-green-700">
+                                                <span className="font-semibold">✨ {t('cart.clubBenefits')}</span> <span className="font-bold">R$ {resumo.descontoClub.toFixed(2).replace('.', ',')}</span> {t('cart.withClub')}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <button
@@ -558,7 +695,7 @@ export default function PagamentoPage() {
                                 className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${processandoPagamento ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 active:scale-95'
                                     }`}
                             >
-                                {processandoPagamento ? 'Processando...' : 'Continuar'}
+                                {processandoPagamento ? t('payment.processing') : t('cart.checkout')}
                             </button>
                         </div>
                     </div>
@@ -573,12 +710,12 @@ export default function PagamentoPage() {
                         {processandoPagamento ? 'Processando...' : `Continuar - R$ ${resumo?.total.toFixed(2).replace('.', ',') || '0,00'}`}
                     </button>
                 </div>
-            </main>
+            </main >
             <CVVModal
                 isOpen={mostrarCVVModal}
                 onClose={() => setMostrarCVVModal(false)}
                 onConfirm={handleConfirmarCVV}
             />
-        </div>
+        </div >
     );
 }

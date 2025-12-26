@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 export default function CVVModal({ isOpen, onClose, onConfirm }) {
+    const { t } = useTranslation();
     const [cvv, setCvv] = useState('');
     const handleSubmit = () => {
         if (!cvv || cvv.length < 3) {
@@ -19,11 +21,11 @@ export default function CVVModal({ isOpen, onClose, onConfirm }) {
                 >
                     <X size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Confirmar Pagamento</h2>
-                <p className="text-gray-600 mb-6">Digite o CVV do cartão para processar o pagamento</p>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('payment.confirmPayment')}</h2>
+                <p className="text-gray-600 mb-6">{t('payment.enterCVV')}</p>
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        CVV (código de segurança)
+                        {t('payment.cvv')} ({t('payment.cvvSecurityCode')})
                     </label>
                     <input
                         type="text"
@@ -45,7 +47,7 @@ export default function CVVModal({ isOpen, onClose, onConfirm }) {
                         onClick={onClose}
                         className="flex-1 py-3 border-2 border-gray-300 rounded-full font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -55,7 +57,7 @@ export default function CVVModal({ isOpen, onClose, onConfirm }) {
                             : 'bg-gray-300 cursor-not-allowed'
                             }`}
                     >
-                        Confirmar
+                        {t('common.confirm')}
                     </button>
                 </div>
             </div>
