@@ -148,8 +148,8 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       const customer = await customerClient.create({
         body: {
           email: req.usuario.email || req.usuario.Email,
-          first_name: req.usuario.nome,
-          last_name: req.usuario.sobrenome || ""
+          first_name: req.usuario.nome || "Cliente",
+          last_name: req.usuario.sobrenome || "Subscrivery"
         }
       });
       customerId = customer.id;
