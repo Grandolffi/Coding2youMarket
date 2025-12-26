@@ -4,6 +4,9 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
+  pool: true,           // Reutiliza conexões SMTP (evita novo handshake TLS a cada email)
+  maxConnections: 5,    // Máximo de conexões simultâneas
+  maxMessages: 100,     // Máximo de mensagens por conexão antes de reconectar
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
