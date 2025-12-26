@@ -127,6 +127,12 @@ export const getUsuarioId = () => {
   return usuario ? usuario.id : null;
 };
 
+// Pegar o ID do Club Market do usuário logado
+export const getClubMarketId = () => {
+  const usuario = getUsuarioLogado();
+  return usuario ? usuario.club_marketid : null;
+};
+
 
 //MANDAR EMAIL 
 export const solicitarCodigoVerificacao = async (email) => {

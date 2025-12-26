@@ -11,7 +11,8 @@ class Cliente {
     clubMember,
     dataCadastroClub,
     dataCadastro,
-    ativo
+    ativo,
+    club_marketid
   ) {
     this.id = id;
     this.nome = nome;
@@ -23,6 +24,7 @@ class Cliente {
     this.dataCadastroClub = dataCadastroClub;
     this.dataCadastro = dataCadastro;
     this.ativo = ativo;
+    this.club_marketid = club_marketid;
   }
 }
 
@@ -231,7 +233,8 @@ async function getClienteById(id) {
         telefone,
         clubmember,
         ativo,
-        dataCadastro
+        dataCadastro,
+        club_marketid
       FROM usuarios
       WHERE id = $1
       `,
@@ -246,10 +249,10 @@ async function getClienteById(id) {
 }
 
 // UPDATE CLUB MEMBER 
-async function updateClubMember(usuarioId, clubMember) {
+async function updateClubMember(usuarioId, clubMember, club_marketid = null) {
   const { rows } = await pool.query(
-    'UPDATE usuarios SET clubMember = $1 WHERE id = $2 RETURNING *',
-    [clubMember, usuarioId]
+    'UPDATE usuarios SET clubMember = $1, club_marketid = $2 WHERE id = $3 RETURNING *',
+    [clubMember, club_marketid, usuarioId]
   );
   return rows[0];
 }

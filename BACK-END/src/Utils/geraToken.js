@@ -10,6 +10,7 @@ function geraToken(cliente) {
       email: cliente.email,
       nome: cliente.nome,
       clubMember: cliente.clubMember,
+      club_marketid: cliente.club_marketid,
       ativo: cliente.ativo
     },
     process.env.JWT_SECRET,

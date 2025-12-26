@@ -116,8 +116,8 @@ router.post('/club-market', async (req, res) => {
         // Reativar status
         const clubeReativado = await updateStatusClubMarket(clubeExistente.id, 'ativa');
 
-        // Atualizar clubMember
-        await updateClubMember(usuarioId, true);
+        // Atualizar clubMember com o ID do clube
+        await updateClubMember(usuarioId, true, clubeExistente.id);
 
         // Criar nova assinatura no Mercado Pago
         const preApprovalClient = new PreApproval(client);
@@ -167,11 +167,11 @@ router.post('/club-market', async (req, res) => {
     });
 
     const clube = await insertClubMarket({
-      usuarioId,
       valorMensal: 29.90
     });
 
-    await updateClubMember(usuarioId, true);
+    // Atualizar clubMember com o ID do clube criado
+    await updateClubMember(usuarioId, true, clube.id);
 
     return res.status(201).json({
       success: true,
@@ -282,7 +282,8 @@ router.patch('/club-market/cancelar', async (req, res) => {
 
     const atualizado = await updateStatusClubMarket(clube.id, 'cancelada');
 
-    await updateClubMember(usuarioId, false);
+    // Remover club_marketid ao cancelar
+    await updateClubMember(usuarioId, false, null);
 
     return res.status(200).json({
       success: true,

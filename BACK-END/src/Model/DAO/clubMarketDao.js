@@ -1,9 +1,8 @@
 const pool = require('../../Config/Db/db');
 
 class ClubMarket {
-  constructor(id, usuarioId, dataInicio, status, valorMensal) {
+  constructor(id, dataInicio, status, valorMensal) {
     this.id = id;
-    this.usuarioId = usuarioId;
     this.dataInicio = dataInicio;
     this.status = status;
     this.valorMensal = valorMensal;
@@ -12,26 +11,19 @@ class ClubMarket {
 
 //CREATE 
 async function insertClubMarket({
-  usuarioId,
   valorMensal = 19.90,
   status = 'ativa'
 }) {
-  if (!usuarioId) {
-    console.error('Falha ao criar assinatura Club Market: usuarioId obrigatório.');
-    return false;
-  }
-
   const { rows } = await pool.query(
     `
     INSERT INTO club_market (
-      usuarioId,
       status,
       valorMensal
     )
-    VALUES ($1,$2,$3)
+    VALUES ($1,$2)
     RETURNING *
     `,
-    [usuarioId, status, valorMensal]
+    [status, valorMensal]
   );
 
   return rows[0];
@@ -45,21 +37,27 @@ async function getClubMarkets() {
   return rows;
 }
 
-//READ POR USUARIO
+//READ POR USUARIO (busca pelo club_marketid na tabela usuarios)
 async function getClubMarketPorUsuario(usuarioId) {
-  if (!usuarioId) return false;
+  if (!usuarioId) return null;
 
-  const { rows } = await pool.query(
-    `
-    SELECT *
-    FROM club_market
-    WHERE usuarioId = $1
-    LIMIT 1
-    `,
+  // Primeiro busca o club_marketid do usuário
+  const { rows: userRows } = await pool.query(
+    'SELECT club_marketid FROM usuarios WHERE id = $1',
     [usuarioId]
   );
 
-  return rows[0];
+  if (!userRows[0] || !userRows[0].club_marketid) {
+    return null;
+  }
+
+  // Depois busca os dados do club_market
+  const { rows } = await pool.query(
+    'SELECT * FROM club_market WHERE id = $1',
+    [userRows[0].club_marketid]
+  );
+
+  return rows[0] || null;
 }
 
 //READ POR ID
