@@ -11,7 +11,8 @@ function geraToken(cliente) {
       nome: cliente.nome,
       clubMember: cliente.clubMember,
       club_marketid: cliente.club_marketid,
-      ativo: cliente.ativo
+      ativo: cliente.ativo,
+      role: cliente.role || 'user' // ✅ Adicionar role ao token
     },
     process.env.JWT_SECRET,
     {

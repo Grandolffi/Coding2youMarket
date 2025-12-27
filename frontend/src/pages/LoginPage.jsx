@@ -5,7 +5,6 @@ import { FcGoogle } from "react-icons/fc";
 import { LuEye, LuEyeOff } from "react-icons/lu";
 import { login, getUsuarioId } from "../api/auth";
 import { meusEnderecos } from "../api/enderecoAPI";
-import { jwtDecode } from "jwt-decode";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -30,16 +29,11 @@ export default function Login() {
       if (res && res.token) {
         localStorage.setItem("token", res.token);
 
-        // ✅ Verificar se é admin
-        try {
-          const decoded = jwtDecode(res.token);
-          if (decoded.role === 'admin') {
-            // Redirecionar admin para /admin
-            setTimeout(() => navigate("/admin"), 1500);
-            return;
-          }
-        } catch (decodeError) {
-          console.log('Token sem role, continuando fluxo normal');
+        // ✅ Verificar se é admin usando dados retornados pelo backend
+        if (res.usuario && res.usuario.role === 'admin') {
+          // Redirecionar admin para /admin
+          setTimeout(() => navigate("/admin"), 1500);
+          return;
         }
       }
       const usuarioId = getUsuarioId();
