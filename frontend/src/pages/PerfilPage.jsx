@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import Header from "../components/Header";
 import { buscarClienteDados } from "../api/clienteAPI";
+import toast from "react-hot-toast";
 
 export default function PerfilPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [cliente, setCliente] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -12,8 +15,7 @@ export default function PerfilPage() {
     useEffect(() => {
         const carregarDados = async () => {
             const dados = await buscarClienteDados();
-            // console.log("DADOS DO CLIENTE:", dados); // Removed debug log
-            if (dados) { // Added condition based on user's snippet, assuming it's intended
+            if (dados) {
                 setCliente(dados);
             }
             setLoading(false);
@@ -23,13 +25,13 @@ export default function PerfilPage() {
     }, []);
 
     const menuItems = [
-        { label: "Dados Pessoais", path: "/dados-pessoais" },
-        { label: "Minhas Assinaturas", path: "/minhas-assinaturas" },
-        { label: "Segurança e Privacidade", path: "/seguranca" },
-        { label: "Formas de Pagamento", path: "/meus-cartoes" },
-        { label: "Meus Endereços", path: "/meus-enderecos" },
-        { label: "Suporte", path: "/suporte" },
-        { label: "Configurações", path: "/configuracoes" },
+        { label: t('profilePage.menu.personalData'), path: "/dados-pessoais" },
+        { label: t('profilePage.menu.mySubscriptions'), path: "/minhas-assinaturas" },
+        { label: t('profilePage.menu.securityPrivacy'), path: "/seguranca" },
+        { label: t('profilePage.menu.paymentMethods'), path: "/meus-cartoes" },
+        { label: t('profilePage.menu.myAddresses'), path: "/meus-enderecos" },
+        { label: t('profilePage.menu.support'), path: "/suporte" },
+        { label: t('profilePage.menu.settings'), path: "/configuracoes" },
     ];
 
     return (
@@ -52,9 +54,9 @@ export default function PerfilPage() {
                             className="w-full h-full object-cover"
                         />
                     </div>
-                    <h1 className="text-2xl font-bold text-white drop-shadow-lg">Perfil</h1>
+                    <h1 className="text-2xl font-bold text-white drop-shadow-lg">{t('profilePage.title')}</h1>
                     <p className="text-white/80 text-sm mt-1">
-                        {loading ? "Carregando..." : `Olá, ${cliente?.nome || "Usuário"}!`}
+                        {loading ? t('profilePage.loading') : t('profilePage.greeting', { name: cliente?.nome || t('profilePage.defaultUser') })}
                     </p>
                 </div>
 
@@ -80,30 +82,29 @@ export default function PerfilPage() {
                     className="mt-4 bg-white rounded-2xl shadow-lg px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-red-50 transition-all"
                     onClick={() => setShowModal(true)}
                 >
-                    <span className="text-red-600 font-medium">Deletar Conta</span>
+                    <span className="text-red-600 font-medium">{t('profilePage.deleteAccount')}</span>
                     <span className="text-red-400 text-xl">›</span>
                 </div>
                 {showModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-                            <h2 className="text-xl font-semibold mb-4">Confirmar Exclusão</h2>
-                            <p className="mb-6">Tem certeza que deseja deletar sua conta?</p>
+                            <h2 className="text-xl font-semibold mb-4">{t('profilePage.deleteModal.title')}</h2>
+                            <p className="mb-6">{t('profilePage.deleteModal.message')}</p>
                             <div className="flex justify-end space-x-4">
                                 <button
                                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                                     onClick={() => setShowModal(false)}
                                 >
-                                    Cancelar
+                                    {t('profilePage.deleteModal.cancel')}
                                 </button>
                                 <button
                                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                                     onClick={() => {
-                                        // Deletar conta confirmada
-                                        toast.success('Conta excluída com sucesso!');
-                                        setShowModal(false); // Keep modal closing behavior
+                                        toast.success(t('profilePage.deleteModal.success'));
+                                        setShowModal(false);
                                     }}
                                 >
-                                    Confirmar
+                                    {t('profilePage.deleteModal.confirm')}
                                 </button>
                             </div>
                         </div>
@@ -113,3 +114,4 @@ export default function PerfilPage() {
         </div>
     );
 }
+

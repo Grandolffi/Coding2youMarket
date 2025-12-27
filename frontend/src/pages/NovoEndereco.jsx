@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { buscarCep, criarEndereco } from '../api/enderecoAPI';
+import { buscarCep, criarEndereco, meusEnderecos } from '../api/enderecoAPI';
 import { getUsuarioId } from '../api/auth';
 import fotoFundo from '../assets/01.png';
 
@@ -14,6 +14,7 @@ export default function NovoEnderecoModal() {
   const [estado, setEstado] = useState("");
   const [apelido, setApelido] = useState("");
   const [mensagem, setMensagem] = useState({ tipo: "", texto: "" });
+  const [enderecosExistentes, setEnderecosExistentes] = useState([]);
 
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,21 @@ export default function NovoEnderecoModal() {
 
   // Detecta de onde o usuário veio
   const veioDeEnderecos = location.state?.from === 'meus-enderecos';
+
+  // Buscar endereços existentes para saber se é o primeiro
+  useEffect(() => {
+    const fetchEnderecos = async () => {
+      try {
+        const response = await meusEnderecos();
+        if (response.success) {
+          setEnderecosExistentes(response.enderecos || []);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar endereços:', error);
+      }
+    };
+    fetchEnderecos();
+  }, []);
 
   const handleCepChange = (e) => setCep(e.target.value.replace(/\D/g, ""));
 
@@ -71,8 +87,12 @@ export default function NovoEnderecoModal() {
         return;
       }
 
+      // Se não existem endereços, este será o principal
+      // Se já existem, não será principal
+      const isPrincipal = enderecosExistentes.length === 0;
+
       const novoEndereco = {
-        usuarioId, cep, rua, numero, bairro, complemento, cidade, estado, apelido, principal: true
+        usuarioId, cep, rua, numero, bairro, complemento, cidade, estado, apelido, principal: isPrincipal
       };
 
       const resultado = await criarEndereco(novoEndereco);

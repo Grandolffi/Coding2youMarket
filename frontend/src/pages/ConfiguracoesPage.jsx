@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ArrowLeft, Bell, Moon, Globe, Volume2, Eye, Smartphone, Shield, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 
 export default function ConfiguracoesPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [configuracoes, setConfiguracoes] = useState({
         notificacoesPush: true,
@@ -56,7 +58,7 @@ export default function ConfiguracoesPage() {
             <div className="relative h-48 md:h-56 w-full mb-8 overflow-hidden">
                 <img
                     src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200"
-                    alt="Configurações"
+                    alt={t('settingsPage.title')}
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-emerald-800/50" />
@@ -65,8 +67,8 @@ export default function ConfiguracoesPage() {
                         <ArrowLeft className="text-white" size={24} />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Configurações</h1>
-                        <p className="text-white/80 text-sm mt-1">Personalize sua experiência</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{t('settingsPage.title')}</h1>
+                        <p className="text-white/80 text-sm mt-1">{t('settingsPage.subtitle')}</p>
                     </div>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
@@ -77,27 +79,27 @@ export default function ConfiguracoesPage() {
                 <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Bell size={20} className="text-green-600" />
-                        Notificações
+                        {t('settingsPage.notifications.title')}
                     </h3>
 
                     <ConfigItem
                         icon={<Bell size={18} />}
-                        titulo="Notificações Push"
-                        descricao="Receba alertas no seu dispositivo"
+                        titulo={t('settingsPage.notifications.push.title')}
+                        descricao={t('settingsPage.notifications.push.description')}
                         value={configuracoes.notificacoesPush}
                         onChange={() => toggleConfig('notificacoesPush')}
                     />
                     <ConfigItem
                         icon={<Bell size={18} />}
-                        titulo="Notificações por E-mail"
-                        descricao="Atualizações sobre seus pedidos"
+                        titulo={t('settingsPage.notifications.email.title')}
+                        descricao={t('settingsPage.notifications.email.description')}
                         value={configuracoes.notificacoesEmail}
                         onChange={() => toggleConfig('notificacoesEmail')}
                     />
                     <ConfigItem
                         icon={<Bell size={18} />}
-                        titulo="Promoções e Ofertas"
-                        descricao="Fique por dentro das melhores ofertas"
+                        titulo={t('settingsPage.notifications.promotions.title')}
+                        descricao={t('settingsPage.notifications.promotions.description')}
                         value={configuracoes.notificacoesPromocoes}
                         onChange={() => toggleConfig('notificacoesPromocoes')}
                     />
@@ -106,13 +108,13 @@ export default function ConfiguracoesPage() {
                 <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Eye size={20} className="text-green-600" />
-                        Aparência
+                        {t('settingsPage.appearance.title')}
                     </h3>
 
                     <ConfigItem
                         icon={<Moon size={18} />}
-                        titulo="Modo Escuro"
-                        descricao="Reduz o cansaço visual"
+                        titulo={t('settingsPage.appearance.darkMode.title')}
+                        descricao={t('settingsPage.appearance.darkMode.description')}
                         value={configuracoes.modoEscuro}
                         onChange={() => toggleConfig('modoEscuro')}
                     />
@@ -123,8 +125,8 @@ export default function ConfiguracoesPage() {
                                 <Globe size={18} />
                             </div>
                             <div>
-                                <p className="font-medium text-gray-800">Idioma</p>
-                                <p className="text-xs text-gray-500 mt-0.5">Selecione seu idioma preferido</p>
+                                <p className="font-medium text-gray-800">{t('settingsPage.appearance.language.title')}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{t('settingsPage.appearance.language.description')}</p>
                             </div>
                         </div>
                         <select
@@ -132,9 +134,9 @@ export default function ConfiguracoesPage() {
                             onChange={(e) => setConfiguracoes({ ...configuracoes, idioma: e.target.value })}
                             className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 outline-none focus:ring-2 focus:ring-green-500"
                         >
-                            <option value="pt-BR">Português (BR)</option>
-                            <option value="en-US">English (US)</option>
-                            <option value="es-ES">Español</option>
+                            <option value="pt-BR">{t('settingsPage.appearance.language.options.ptBR')}</option>
+                            <option value="en-US">{t('settingsPage.appearance.language.options.enUS')}</option>
+                            <option value="es-ES">{t('settingsPage.appearance.language.options.esES')}</option>
                         </select>
                     </div>
                 </div>
@@ -142,34 +144,34 @@ export default function ConfiguracoesPage() {
                 <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Smartphone size={20} className="text-green-600" />
-                        Sistema
+                        {t('settingsPage.system.title')}
                     </h3>
 
                     <ConfigItem
                         icon={<Volume2 size={18} />}
-                        titulo="Sons"
-                        descricao="Sons de notificação e interação"
+                        titulo={t('settingsPage.system.sounds.title')}
+                        descricao={t('settingsPage.system.sounds.description')}
                         value={configuracoes.som}
                         onChange={() => toggleConfig('som')}
                     />
                     <ConfigItem
                         icon={<Smartphone size={18} />}
-                        titulo="Vibração"
-                        descricao="Feedback tátil nas interações"
+                        titulo={t('settingsPage.system.vibration.title')}
+                        descricao={t('settingsPage.system.vibration.description')}
                         value={configuracoes.vibrar}
                         onChange={() => toggleConfig('vibrar')}
                     />
                     <ConfigItem
                         icon={<Globe size={18} />}
-                        titulo="Localização"
-                        descricao="Acesso à sua localização"
+                        titulo={t('settingsPage.system.location.title')}
+                        descricao={t('settingsPage.system.location.description')}
                         value={configuracoes.localizacao}
                         onChange={() => toggleConfig('localizacao')}
                     />
                     <ConfigItem
                         icon={<Shield size={18} />}
-                        titulo="Usar Dados Móveis"
-                        descricao="Permitir uso de dados móveis"
+                        titulo={t('settingsPage.system.mobileData.title')}
+                        descricao={t('settingsPage.system.mobileData.description')}
                         value={configuracoes.dadosMoveis}
                         onChange={() => toggleConfig('dadosMoveis')}
                     />
@@ -178,30 +180,30 @@ export default function ConfiguracoesPage() {
                 <div className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6">
                     <div
                         className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all border-b border-gray-100"
-                        title="Funcionalidade em desenvolvimento"
+                        title={t('settingsPage.other.inDevelopment')}
                     >
-                        <span className="font-medium text-gray-800">Limpar Cache</span>
+                        <span className="font-medium text-gray-800">{t('settingsPage.other.clearCache')}</span>
                         <ChevronRight size={20} className="text-gray-400" />
                     </div>
                     <div
                         className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all border-b border-gray-100"
-                        title="Funcionalidade em desenvolvimento"
+                        title={t('settingsPage.other.inDevelopment')}
                     >
-                        <span className="font-medium text-gray-800">Termos de Uso</span>
+                        <span className="font-medium text-gray-800">{t('settingsPage.other.termsOfUse')}</span>
                         <ChevronRight size={20} className="text-gray-400" />
                     </div>
                     <div
                         className="flex items-center justify-between p-5 cursor-not-allowed opacity-50 transition-all"
-                        title="Funcionalidade em desenvolvimento"
+                        title={t('settingsPage.other.inDevelopment')}
                     >
-                        <span className="font-medium text-gray-800">Política de Privacidade</span>
+                        <span className="font-medium text-gray-800">{t('settingsPage.other.privacyPolicy')}</span>
                         <ChevronRight size={20} className="text-gray-400" />
                     </div>
                 </div>
 
                 <div className="text-center text-gray-400 text-sm">
-                    <p>Subscrivery v1.0.0</p>
-                    <p className="mt-1">© 2024 Todos os direitos reservados</p>
+                    <p>{t('settingsPage.version')}</p>
+                    <p className="mt-1">{t('settingsPage.copyright')}</p>
                 </div>
             </main>
         </div>

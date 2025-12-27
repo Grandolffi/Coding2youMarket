@@ -1,46 +1,47 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Crown, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import { minhaAssinatura, assinarPlano, cancelarAssinatura } from '../api/clubMarketAPI';
 import toast from 'react-hot-toast';
 
 export default function MinhasAssinaturasPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [assinaturaAtual, setAssinaturaAtual] = useState(null);
     const [loading, setLoading] = useState(true);
     const [processando, setProcessando] = useState(false);
     const [showModalCancelar, setShowModalCancelar] = useState(false);
 
-    // IDs dos planos no banco de dados
     const planos = [
         {
             id: 2,
-            nome: 'Entrada',
+            nome: t('mySubscriptionsPage.plans.entrada.name'),
             preco: 9.90,
             emoji: '🌱',
             desconto: 0,
             cor: 'gray',
-            beneficios: ['Frete grátis', 'Acesso básico']
+            beneficios: t('mySubscriptionsPage.plans.entrada.benefits', { returnObjects: true })
         },
         {
             id: 1,
-            nome: 'Intermediário',
+            nome: t('mySubscriptionsPage.plans.intermediario.name'),
             preco: 19.90,
             emoji: '🌿',
             desconto: 10,
             cor: 'green',
             popular: true,
-            beneficios: ['Frete grátis', '10% desconto', 'Suporte prioritário']
+            beneficios: t('mySubscriptionsPage.plans.intermediario.benefits', { returnObjects: true })
         },
         {
             id: 3,
-            nome: 'Premium',
+            nome: t('mySubscriptionsPage.plans.premium.name'),
             preco: 39.90,
             emoji: '👑',
             desconto: 25,
             cor: 'amber',
-            beneficios: ['Frete grátis', '25% desconto', 'Suporte 24/7', 'Acesso antecipado']
+            beneficios: t('mySubscriptionsPage.plans.premium.benefits', { returnObjects: true })
         }
     ];
 
@@ -66,23 +67,23 @@ export default function MinhasAssinaturasPage() {
 
     const handleAssinar = async (planoId) => {
         if (assinaturaAtual) {
-            toast.error('Você já possui uma assinatura ativa. Cancele primeiro para trocar de plano.');
+            toast.error(t('mySubscriptionsPage.toast.alreadySubscribed'));
             return;
         }
 
         setProcessando(true);
-        const loadingToast = toast.loading('Processando assinatura...');
+        const loadingToast = toast.loading(t('mySubscriptionsPage.toast.processingSubscription'));
 
         try {
             const resultado = await assinarPlano(planoId);
             if (resultado.success) {
-                toast.success('Assinatura realizada com sucesso! 🎉', { id: loadingToast });
+                toast.success(t('mySubscriptionsPage.toast.subscriptionSuccess'), { id: loadingToast });
                 await carregarAssinatura();
             } else {
                 toast.error(resultado.message, { id: loadingToast });
             }
         } catch (error) {
-            toast.error('Erro ao processar assinatura', { id: loadingToast });
+            toast.error(t('mySubscriptionsPage.toast.subscriptionError'), { id: loadingToast });
         } finally {
             setProcessando(false);
         }
@@ -91,18 +92,18 @@ export default function MinhasAssinaturasPage() {
     const handleCancelar = async () => {
         setShowModalCancelar(false);
         setProcessando(true);
-        const loadingToast = toast.loading('Cancelando assinatura...');
+        const loadingToast = toast.loading(t('mySubscriptionsPage.toast.cancelingSubscription'));
 
         try {
             const resultado = await cancelarAssinatura();
             if (resultado.success) {
-                toast.success('Assinatura cancelada com sucesso', { id: loadingToast });
+                toast.success(t('mySubscriptionsPage.toast.cancelSuccess'), { id: loadingToast });
                 setAssinaturaAtual(null);
             } else {
                 toast.error(resultado.message, { id: loadingToast });
             }
         } catch (error) {
-            toast.error('Erro ao cancelar assinatura', { id: loadingToast });
+            toast.error(t('mySubscriptionsPage.toast.cancelError'), { id: loadingToast });
         } finally {
             setProcessando(false);
         }
@@ -114,7 +115,6 @@ export default function MinhasAssinaturasPage() {
         <div className="min-h-screen bg-gray-50 pb-24">
             <Header />
 
-            {/* Hero Section */}
             <div className="relative h-48 md:h-56 w-full mb-8 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-emerald-500 to-teal-600" />
                 <div className="absolute inset-0 opacity-30">
@@ -127,8 +127,8 @@ export default function MinhasAssinaturasPage() {
                         <ArrowLeft className="text-white" size={24} />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Minhas Assinaturas</h1>
-                        <p className="text-white/80 text-sm mt-1">Gerencie seu plano Club Market</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{t('mySubscriptionsPage.title')}</h1>
+                        <p className="text-white/80 text-sm mt-1">{t('mySubscriptionsPage.subtitle')}</p>
                     </div>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
@@ -141,11 +141,10 @@ export default function MinhasAssinaturasPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Assinatura Atual */}
                         <div className="mb-8">
                             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <Crown size={20} className="text-green-600" />
-                                Sua Assinatura Atual
+                                {t('mySubscriptionsPage.currentSubscription')}
                             </h2>
 
                             {assinaturaAtual && planoAtual ? (
@@ -160,7 +159,7 @@ export default function MinhasAssinaturasPage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-3xl font-bold">R$ {planoAtual.preco.toFixed(2).replace('.', ',')}</p>
-                                            <p className="text-white/80 text-sm">/mês</p>
+                                            <p className="text-white/80 text-sm">{t('mySubscriptionsPage.perMonth')}</p>
                                         </div>
                                     </div>
 
@@ -175,8 +174,8 @@ export default function MinhasAssinaturasPage() {
                                     <div className="flex items-center justify-between pt-4 border-t border-white/20">
                                         <span className="text-sm text-white/80">
                                             {planoAtual.desconto > 0
-                                                ? `${planoAtual.desconto}% de desconto em compras`
-                                                : 'Frete grátis em todas as compras'
+                                                ? t('mySubscriptionsPage.discountOnPurchases', { percent: planoAtual.desconto })
+                                                : t('mySubscriptionsPage.freeShippingAll')
                                             }
                                         </span>
                                         <button
@@ -184,7 +183,7 @@ export default function MinhasAssinaturasPage() {
                                             disabled={processando}
                                             className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium transition-all"
                                         >
-                                            Cancelar Assinatura
+                                            {t('mySubscriptionsPage.cancelSubscription')}
                                         </button>
                                     </div>
                                 </div>
@@ -193,16 +192,15 @@ export default function MinhasAssinaturasPage() {
                                     <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Crown size={32} className="text-gray-400" />
                                     </div>
-                                    <h3 className="font-bold text-gray-800 mb-2">Você não possui assinatura</h3>
-                                    <p className="text-gray-500 text-sm mb-4">Escolha um plano abaixo para começar a economizar!</p>
+                                    <h3 className="font-bold text-gray-800 mb-2">{t('mySubscriptionsPage.noSubscription')}</h3>
+                                    <p className="text-gray-500 text-sm mb-4">{t('mySubscriptionsPage.noSubscriptionDesc')}</p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Outros Planos */}
                         <div className="mb-8">
                             <h2 className="text-lg font-bold text-gray-800 mb-4">
-                                {assinaturaAtual ? 'Outros Planos Disponíveis' : 'Escolha seu Plano'}
+                                {assinaturaAtual ? t('mySubscriptionsPage.otherPlans') : t('mySubscriptionsPage.choosePlan')}
                             </h2>
 
                             <div className="grid md:grid-cols-3 gap-4">
@@ -217,16 +215,15 @@ export default function MinhasAssinaturasPage() {
                                                 : 'bg-white border-gray-200 hover:border-green-400 hover:shadow-lg'
                                                 } ${plano.popular && !isAtual ? 'ring-2 ring-green-500 ring-offset-2' : ''}`}
                                         >
-                                            {/* Badge */}
                                             <div className="h-8 mb-2">
                                                 {plano.popular && !isAtual && (
                                                     <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                                                        POPULAR
+                                                        {t('mySubscriptionsPage.popular')}
                                                     </span>
                                                 )}
                                                 {isAtual && (
                                                     <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                                                        PLANO ATUAL
+                                                        {t('mySubscriptionsPage.currentPlan')}
                                                     </span>
                                                 )}
                                             </div>
@@ -240,7 +237,7 @@ export default function MinhasAssinaturasPage() {
                                                 <span className="text-2xl font-bold text-gray-800">
                                                     R$ {plano.preco.toFixed(2).replace('.', ',')}
                                                 </span>
-                                                <span className="text-gray-500 text-sm">/mês</span>
+                                                <span className="text-gray-500 text-sm">{t('mySubscriptionsPage.perMonth')}</span>
                                             </div>
 
                                             <ul className="space-y-2 mb-4 flex-grow">
@@ -252,18 +249,17 @@ export default function MinhasAssinaturasPage() {
                                                 ))}
                                             </ul>
 
-                                            {/* Botão sempre presente, mt-auto para alinhar na base */}
                                             <button
                                                 onClick={() => !isAtual && handleAssinar(plano.id)}
                                                 disabled={processando || assinaturaAtual || isAtual}
                                                 className={`w-full py-3 rounded-xl font-semibold transition-all mt-auto ${isAtual
-                                                        ? 'bg-green-100 text-green-600 cursor-default'
-                                                        : assinaturaAtual
-                                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                                            : 'bg-green-600 text-white hover:bg-green-700'
+                                                    ? 'bg-green-100 text-green-600 cursor-default'
+                                                    : assinaturaAtual
+                                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-green-600 text-white hover:bg-green-700'
                                                     }`}
                                             >
-                                                {isAtual ? 'Plano Ativo' : processando ? 'Processando...' : 'Assinar'}
+                                                {isAtual ? t('mySubscriptionsPage.activePlan') : processando ? t('mySubscriptionsPage.processing') : t('mySubscriptionsPage.subscribe')}
                                             </button>
                                         </div>
                                     );
@@ -272,25 +268,23 @@ export default function MinhasAssinaturasPage() {
 
                             {assinaturaAtual && (
                                 <p className="text-center text-gray-500 text-sm mt-4">
-                                    Para trocar de plano, cancele sua assinatura atual primeiro.
+                                    {t('mySubscriptionsPage.changePlanInfo')}
                                 </p>
                             )}
                         </div>
 
-                        {/* Botão Voltar */}
                         <div className="text-center">
                             <button
                                 onClick={() => navigate('/perfil')}
                                 className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 transition-all shadow-md"
                             >
-                                ← Voltar ao Perfil
+                                {t('mySubscriptionsPage.backToProfile')}
                             </button>
                         </div>
                     </>
                 )}
             </main>
 
-            {/* Modal Cancelar */}
             {showModalCancelar && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
@@ -299,17 +293,17 @@ export default function MinhasAssinaturasPage() {
                                 <X className="text-red-600" size={24} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900">Cancelar Assinatura</h2>
-                                <p className="text-sm text-gray-500">Esta ação não pode ser desfeita</p>
+                                <h2 className="text-lg font-bold text-gray-900">{t('mySubscriptionsPage.cancelModal.title')}</h2>
+                                <p className="text-sm text-gray-500">{t('mySubscriptionsPage.cancelModal.irreversible')}</p>
                             </div>
                         </div>
 
                         <div className="p-5">
                             <p className="text-gray-700 mb-4">
-                                Tem certeza que deseja cancelar sua assinatura do Club Market?
+                                {t('mySubscriptionsPage.cancelModal.confirmMessage')}
                             </p>
                             <p className="text-gray-500 text-sm">
-                                Você perderá todos os benefícios como frete grátis e descontos em produtos.
+                                {t('mySubscriptionsPage.cancelModal.losesBenefits')}
                             </p>
                         </div>
 
@@ -318,13 +312,13 @@ export default function MinhasAssinaturasPage() {
                                 onClick={() => setShowModalCancelar(false)}
                                 className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all"
                             >
-                                Manter Assinatura
+                                {t('mySubscriptionsPage.cancelModal.keepSubscription')}
                             </button>
                             <button
                                 onClick={handleCancelar}
                                 className="flex-1 py-3 px-4 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all"
                             >
-                                Cancelar
+                                {t('mySubscriptionsPage.cancelModal.cancel')}
                             </button>
                         </div>
                     </div>

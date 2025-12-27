@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco }
+const { insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco, removePrincipalFromOthers }
   = require("../Model/DAO/enderecoDao");
 
 const auth = require("../Middleware/authJWTMid");
@@ -12,7 +12,7 @@ router.use(auth);
 // READ TODOS
 router.get("/enderecos", async (req, res) => {
   try {
-   
+
     const enderecos = await getEnderecos();
     return res.status(200).json({
       success: true,
@@ -83,22 +83,26 @@ router.get("/enderecos/:id", async (req, res) => {
 // CREATE
 router.post("/enderecos", async (req, res) => {
   try {
-    const usuarioId = req.usuario.id; 
+    const usuarioId = req.usuario.id;
 
-    
-    const { 
-      cep, 
-      rua, 
-      numero, 
-      complemento, 
-      bairro, 
-      cidade, 
-      estado, 
-      apelido, 
-      principal 
+
+    const {
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      apelido,
+      principal
     } = req.body;
 
-    
+    // Se o novo endereço for principal, remove o flag dos outros
+    if (principal === true) {
+      await removePrincipalFromOthers(usuarioId);
+    }
+
     const novoEndereco = await insertEndereco({
       usuarioId,
       cep,
@@ -132,6 +136,7 @@ router.post("/enderecos", async (req, res) => {
 router.put("/enderecos/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const usuarioId = req.usuario.id;
 
     const {
       cep,
@@ -145,7 +150,7 @@ router.put("/enderecos/:id", async (req, res) => {
       principal
     } = req.body;
 
-    const enderecos = await getEnderecosPorUsuario(req.usuario.id);
+    const enderecos = await getEnderecosPorUsuario(usuarioId);
     const endereco = enderecos.find(e => e.id === id);
 
     if (!endereco) {
@@ -153,6 +158,11 @@ router.put("/enderecos/:id", async (req, res) => {
         success: false,
         message: "Endereço não encontrado ou acesso negado"
       });
+    }
+
+    // Se este endereço for marcado como principal, remove o flag dos outros
+    if (principal === true) {
+      await removePrincipalFromOthers(usuarioId, id);
     }
 
     await editEndereco(

@@ -18,17 +18,17 @@ class Endereco {
 
 //CREATE 
 async function insertEndereco(dados) {
-  const { 
-    usuarioId, 
-    cep, 
-    rua, 
-    numero, 
-    complemento, 
-    bairro, 
-    cidade, 
-    estado, 
-    apelido, 
-    principal = false 
+  const {
+    usuarioId,
+    cep,
+    rua,
+    numero,
+    complemento,
+    bairro,
+    cidade,
+    estado,
+    apelido,
+    principal = false
   } = dados;
 
   try {
@@ -43,10 +43,10 @@ async function insertEndereco(dados) {
       [usuarioId, cep, rua, numero, complemento, bairro, cidade, estado, apelido, principal]
     );
 
-    return result.rows[0]; 
+    return result.rows[0];
   } catch (error) {
     console.error("Erro na DAO insertEndereco:", error.message);
-    throw error; 
+    throw error;
   }
 }
 
@@ -126,8 +126,30 @@ async function deleteEndereco(id) {
   return result.rows.length > 0;
 }
 
+// Remove o flag 'principal' de todos os outros endereços do usuário
+async function removePrincipalFromOthers(usuarioId, excludeId = null) {
+  if (!usuarioId) {
+    console.error("usuarioId não informado.");
+    return false;
+  }
+
+  try {
+    const query = excludeId
+      ? `UPDATE enderecos SET principal = false WHERE usuarioid = $1 AND id != $2 AND principal = true`
+      : `UPDATE enderecos SET principal = false WHERE usuarioid = $1 AND principal = true`;
+
+    const params = excludeId ? [usuarioId, excludeId] : [usuarioId];
+    await pool.query(query, params);
+    return true;
+  } catch (error) {
+    console.error("Erro ao remover principal de outros endereços:", error.message);
+    throw error;
+  }
+}
+
 // EXPORTS 
 
 module.exports = {
-  Endereco, insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco
+  Endereco, insertEndereco, getEnderecos, getEnderecosPorUsuario, editEndereco, deleteEndereco, removePrincipalFromOthers
 };
+

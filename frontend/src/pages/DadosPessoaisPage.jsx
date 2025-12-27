@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Edit2, Check, X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import { buscarClienteDados, editarCliente } from '../api/clienteAPI';
 import toast from 'react-hot-toast';
 
 export default function DadosPessoaisPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [usuario, setUsuario] = useState(null);
     const [editando, setEditando] = useState(false);
     const [dadosTemp, setDadosTemp] = useState(null);
@@ -24,7 +26,6 @@ export default function DadosPessoaisPage() {
                         email: dados.email || '',
                         telefone: dados.telefone || '',
                         cpf: dados.cpf || '',
-
                         genero: dados.genero || 'Não informado',
                         foto: dados.foto || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face'
                     };
@@ -55,7 +56,6 @@ export default function DadosPessoaisPage() {
         setSalvando(true);
 
         try {
-            // Remove formatação do telefone e CPF antes de enviar
             const dadosParaEnviar = {
                 nome: dadosTemp.nome,
                 email: dadosTemp.email,
@@ -68,13 +68,13 @@ export default function DadosPessoaisPage() {
             if (resultado.success) {
                 setUsuario(dadosTemp);
                 setEditando(false);
-                toast.success('Dados atualizados com sucesso!');
+                toast.success(t('personalDataPage.toast.success'));
             } else {
-                toast.error(resultado.message || 'Erro ao atualizar dados');
+                toast.error(resultado.message || t('personalDataPage.toast.error'));
             }
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            toast.error('Erro ao salvar alterações');
+            toast.error(t('personalDataPage.toast.saveError'));
         } finally {
             setSalvando(false);
         }
@@ -95,17 +95,14 @@ export default function DadosPessoaisPage() {
         return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9, 11)}`;
     };
 
-
-
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
             <Header />
 
-            {/* Banner com imagem de fundo */}
             <div className="relative h-48 md:h-56 w-full mb-8 overflow-hidden">
                 <img
                     src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1200"
-                    alt="Dados Pessoais"
+                    alt={t('personalDataPage.title')}
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-emerald-800/50" />
@@ -113,7 +110,7 @@ export default function DadosPessoaisPage() {
                     <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/20 rounded-full mr-4 transition-all">
                         <ArrowLeft className="text-white" size={24} />
                     </button>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Dados Pessoais</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{t('personalDataPage.title')}</h1>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
             </div>
@@ -125,17 +122,16 @@ export default function DadosPessoaisPage() {
                     </div>
                 ) : !usuario ? (
                     <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
-                        <p className="text-gray-600">Não foi possível carregar os dados do usuário.</p>
+                        <p className="text-gray-600">{t('personalDataPage.errorLoading')}</p>
                         <button
                             onClick={() => window.location.reload()}
                             className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all"
                         >
-                            Tentar novamente
+                            {t('personalDataPage.tryAgain')}
                         </button>
                     </div>
                 ) : (
                     <>
-                        {/* Card da Foto de Perfil */}
                         <div className="bg-white rounded-3xl shadow-lg p-6 mb-6 relative">
                             <div className="flex flex-col items-center">
                                 <div className="relative">
@@ -156,7 +152,6 @@ export default function DadosPessoaisPage() {
                                 <p className="text-gray-500 text-sm">{usuario.email}</p>
                             </div>
 
-                            {/* Botão de Editar */}
                             {!editando && (
                                 <button
                                     onClick={handleEditar}
@@ -167,18 +162,16 @@ export default function DadosPessoaisPage() {
                             )}
                         </div>
 
-                        {/* Formulário de Dados */}
                         <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
                             <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
                                 <User size={20} className="text-green-600" />
-                                Informações Pessoais
+                                {t('personalDataPage.personalInfo')}
                             </h3>
 
                             <div className="space-y-5">
-                                {/* Nome Completo */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Nome Completo
+                                        {t('personalDataPage.fullName')}
                                     </label>
                                     {editando ? (
                                         <input
@@ -195,12 +188,11 @@ export default function DadosPessoaisPage() {
                                     )}
                                 </div>
 
-                                {/* Email - Não editável */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        E-mail
+                                        {t('personalDataPage.email')}
                                         {editando && (
-                                            <span className="ml-2 text-xs text-gray-400 font-normal">(não editável)</span>
+                                            <span className="ml-2 text-xs text-gray-400 font-normal">{t('personalDataPage.notEditable')}</span>
                                         )}
                                     </label>
                                     <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 rounded-xl">
@@ -212,10 +204,9 @@ export default function DadosPessoaisPage() {
                                     </div>
                                 </div>
 
-                                {/* Telefone */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        Telefone
+                                        {t('personalDataPage.phone')}
                                     </label>
                                     {editando ? (
                                         <input
@@ -233,10 +224,9 @@ export default function DadosPessoaisPage() {
                                     )}
                                 </div>
 
-                                {/* CPF */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">
-                                        CPF
+                                        {t('personalDataPage.cpf')}
                                     </label>
                                     {editando ? (
                                         <input
@@ -248,16 +238,14 @@ export default function DadosPessoaisPage() {
                                         />
                                     ) : (
                                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                            <span className="text-gray-400 text-sm font-medium">CPF</span>
+                                            <span className="text-gray-400 text-sm font-medium">{t('personalDataPage.cpf')}</span>
                                             <span className="text-gray-800">{usuario.cpf}</span>
                                         </div>
                                     )}
                                 </div>
-
                             </div>
                         </div>
 
-                        {/* Botões de Ação quando Editando */}
                         {editando && (
                             <div className="flex gap-4 mb-6">
                                 <button
@@ -265,7 +253,7 @@ export default function DadosPessoaisPage() {
                                     className="flex-1 py-4 bg-gray-200 text-gray-700 font-semibold rounded-full hover:bg-gray-300 transition-all flex items-center justify-center gap-2"
                                 >
                                     <X size={20} />
-                                    Cancelar
+                                    {t('personalDataPage.cancel')}
                                 </button>
                                 <button
                                     onClick={handleSalvar}
@@ -275,29 +263,27 @@ export default function DadosPessoaisPage() {
                                     {salvando ? (
                                         <>
                                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            Salvando...
+                                            {t('personalDataPage.saving')}
                                         </>
                                     ) : (
                                         <>
                                             <Check size={20} />
-                                            Salvar Alterações
+                                            {t('personalDataPage.saveChanges')}
                                         </>
                                     )}
                                 </button>
                             </div>
                         )}
 
-                        {/* Dica de Segurança */}
                         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
                                     <span className="text-xl">🔒</span>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-amber-800 mb-1">Seus dados estão protegidos</h4>
+                                    <h4 className="font-semibold text-amber-800 mb-1">{t('personalDataPage.securityTip.title')}</h4>
                                     <p className="text-sm text-amber-700">
-                                        Suas informações pessoais são criptografadas e armazenadas de forma segura.
-                                        Nunca compartilhamos seus dados com terceiros.
+                                        {t('personalDataPage.securityTip.description')}
                                     </p>
                                 </div>
                             </div>

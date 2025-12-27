@@ -170,5 +170,379 @@
     "trackOrder": "Acompanhar Pedido",
     "continueShopping": "Continuar Comprando",
     "viewOrders": "Ver Todos os Pedidos"
+  },
+  "clubMarketPage": {
+    "title": "Club Market",
+    "subtitle": "Economize em todas as suas compras com benefícios exclusivos",
+    "mostPopular": "MAIS POPULAR",
+    "perMonth": "/mês",
+    "discount": "{{percent}}% de desconto",
+    "plans": {
+      "entrada": {
+        "name": "Entrada",
+        "benefits": {
+          "freeShipping": "Frete grátis em todas as compras",
+          "noDiscount": "Sem desconto em produtos",
+          "noPrioritySupport": "Suporte prioritário"
+        }
+      },
+      "intermediario": {
+        "name": "Intermediário",
+        "benefits": {
+          "freeShipping": "Frete grátis em todas as compras",
+          "discount": "10% de desconto em produtos",
+          "prioritySupport": "Suporte prioritário"
+        }
+      },
+      "premium": {
+        "name": "Premium",
+        "benefits": {
+          "freeShipping": "Frete grátis em todas as compras",
+          "discount": "25% de desconto em produtos",
+          "prioritySupport": "Suporte prioritário 24/7",
+          "earlyAccess": "Acesso antecipado a promoções"
+        }
+      }
+    },
+    "cta": {
+      "planSelected": "Plano {{name}} selecionado!",
+      "selectPlan": "Selecione um plano para continuar",
+      "cancelInfo": "Cancele quando quiser, sem compromisso ou multa.",
+      "subscribeNow": "Assinar Agora →",
+      "processing": "Processando...",
+      "selectPlanBtn": "Selecione um plano",
+      "securePayment": "Pagamento seguro",
+      "cancelAnytime": "Cancele a qualquer momento",
+      "dedicatedSupport": "Suporte dedicado"
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "question1": "Como funciona o desconto?",
+      "answer1": "O desconto é aplicado automaticamente em todos os produtos elegíveis no momento da compra.",
+      "question2": "Posso cancelar a qualquer momento?",
+      "answer2": "Sim! Você pode cancelar sua assinatura a qualquer momento, sem multas ou taxas adicionais.",
+      "question3": "O frete grátis vale para qualquer pedido?",
+      "answer3": "Sim, o frete grátis é válido para todos os pedidos, sem valor mínimo de compra."
+    },
+    "alreadyMember": {
+      "title": "Você já é membro do Club Market!",
+      "currentPlan": "Plano atual:",
+      "perMonth": "/mês",
+      "manageSubscription": "Gerenciar Minha Assinatura"
+    },
+    "subscribeBtn": "🎉 Assinar Agora"
+  },
+  "profilePage": {
+    "title": "Perfil",
+    "loading": "Carregando...",
+    "greeting": "Olá, {{name}}!",
+    "defaultUser": "Usuário",
+    "menu": {
+      "personalData": "Dados Pessoais",
+      "mySubscriptions": "Minhas Assinaturas",
+      "securityPrivacy": "Segurança e Privacidade",
+      "paymentMethods": "Formas de Pagamento",
+      "myAddresses": "Meus Endereços",
+      "support": "Suporte",
+      "settings": "Configurações"
+    },
+    "deleteAccount": "Deletar Conta",
+    "deleteModal": {
+      "title": "Confirmar Exclusão",
+      "message": "Tem certeza que deseja deletar sua conta?",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar",
+      "success": "Conta excluída com sucesso!"
+    }
+  },
+  "personalDataPage": {
+    "title": "Dados Pessoais",
+    "errorLoading": "Não foi possível carregar os dados do usuário.",
+    "tryAgain": "Tentar novamente",
+    "personalInfo": "Informações Pessoais",
+    "fullName": "Nome Completo",
+    "email": "E-mail",
+    "notEditable": "(não editável)",
+    "phone": "Telefone",
+    "cpf": "CPF",
+    "cancel": "Cancelar",
+    "saving": "Salvando...",
+    "saveChanges": "Salvar Alterações",
+    "securityTip": {
+      "title": "Seus dados estão protegidos",
+      "description": "Suas informações pessoais são criptografadas e armazenadas de forma segura. Nunca compartilhamos seus dados com terceiros."
+    },
+    "toast": {
+      "success": "Dados atualizados com sucesso!",
+      "error": "Erro ao atualizar dados",
+      "saveError": "Erro ao salvar alterações"
+    }
+  },
+  "mySubscriptionsPage": {
+    "title": "Minhas Assinaturas",
+    "subtitle": "Gerencie seu plano Club Market",
+    "currentSubscription": "Sua Assinatura Atual",
+    "noSubscription": "Você não possui assinatura",
+    "noSubscriptionDesc": "Escolha um plano abaixo para começar a economizar!",
+    "perMonth": "/mês",
+    "discountOnPurchases": "{{percent}}% de desconto em compras",
+    "freeShippingAll": "Frete grátis em todas as compras",
+    "cancelSubscription": "Cancelar Assinatura",
+    "otherPlans": "Outros Planos Disponíveis",
+    "choosePlan": "Escolha seu Plano",
+    "popular": "POPULAR",
+    "currentPlan": "PLANO ATUAL",
+    "activePlan": "Plano Ativo",
+    "processing": "Processando...",
+    "subscribe": "Assinar",
+    "changePlanInfo": "Para trocar de plano, cancele sua assinatura atual primeiro.",
+    "backToProfile": "← Voltar ao Perfil",
+    "plans": {
+      "entrada": {
+        "name": "Entrada",
+        "benefits": [
+          "Frete grátis",
+          "Acesso básico"
+        ]
+      },
+      "intermediario": {
+        "name": "Intermediário",
+        "benefits": [
+          "Frete grátis",
+          "10% desconto",
+          "Suporte prioritário"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "benefits": [
+          "Frete grátis",
+          "25% desconto",
+          "Suporte 24/7",
+          "Acesso antecipado"
+        ]
+      }
+    },
+    "cancelModal": {
+      "title": "Cancelar Assinatura",
+      "irreversible": "Esta ação não pode ser desfeita",
+      "confirmMessage": "Tem certeza que deseja cancelar sua assinatura do Club Market?",
+      "losesBenefits": "Você perderá todos os benefícios como frete grátis e descontos em produtos.",
+      "keepSubscription": "Manter Assinatura",
+      "cancel": "Cancelar"
+    },
+    "toast": {
+      "alreadySubscribed": "Você já possui uma assinatura ativa. Cancele primeiro para trocar de plano.",
+      "processingSubscription": "Processando assinatura...",
+      "subscriptionSuccess": "Assinatura realizada com sucesso! 🎉",
+      "subscriptionError": "Erro ao processar assinatura",
+      "cancelingSubscription": "Cancelando assinatura...",
+      "cancelSuccess": "Assinatura cancelada com sucesso",
+      "cancelError": "Erro ao cancelar assinatura"
+    }
+  },
+  "securityPrivacyPage": {
+    "title": "Segurança e Privacidade",
+    "loading": "Carregando...",
+    "registeredEmail": "Seu e-mail cadastrado:",
+    "password": "Senha:",
+    "sendCode": "Enviar Código"
+  },
+  "myAddressesPage": {
+    "title": "Meus Endereços",
+    "loading": "Carregando...",
+    "loadingAddresses": "Carregando seus endereços...",
+    "addressCount": "{{count}} endereço(s) cadastrado(s)",
+    "noAddresses": "Nenhum endereço cadastrado",
+    "noAddressesDesc": "Adicione um endereço para facilitar suas entregas",
+    "mainAddress": "Endereço principal",
+    "addNewAddress": "Adicionar novo endereço",
+    "backToProfile": "← Voltar ao Perfil",
+    "setAsPrimary": "Definir como principal",
+    "deleteModal": {
+      "title": "Excluir Endereço",
+      "irreversible": "Esta ação não pode ser desfeita",
+      "confirmMessage": "Tem certeza que deseja excluir este endereço?",
+      "cancel": "Cancelar",
+      "delete": "Excluir"
+    },
+    "toast": {
+      "deleting": "Excluindo endereço...",
+      "deleteSuccess": "Endereço excluído com sucesso!",
+      "deleteError": "Erro ao excluir endereço",
+      "settingPrimary": "Definindo endereço principal...",
+      "setPrimarySuccess": "Endereço principal definido com sucesso!",
+      "setPrimaryError": "Erro ao definir endereço principal"
+    }
+  },
+  "securityPage": {
+    "title": "Segurança e Privacidade",
+    "subtitle": "Gerencie suas credenciais",
+    "loading": "Carregando suas informações...",
+    "emailCard": {
+      "title": "Email Cadastrado",
+      "subtitle": "Seu email de acesso à conta",
+      "label": "Email",
+      "notProvided": "Não informado"
+    },
+    "passwordCard": {
+      "title": "Senha",
+      "subtitle": "Sua senha de acesso",
+      "label": "Senha atual"
+    },
+    "changePassword": "Alterar Senha",
+    "securityTip": {
+      "title": "Dica de Segurança",
+      "description": "Recomendamos alterar sua senha periodicamente para manter sua conta segura."
+    },
+    "backToProfile": "← Voltar ao Perfil"
+  },
+  "supportPage": {
+    "title": "Suporte",
+    "subtitle": "Estamos aqui para ajudar",
+    "channels": {
+      "liveChat": "Chat ao Vivo",
+      "liveChatDesc": "Em desenvolvimento",
+      "phone": "Telefone",
+      "email": "E-mail"
+    },
+    "businessHours": {
+      "title": "Horário de Atendimento",
+      "schedule": "Segunda a Sexta: 8h às 20h | Sábado: 9h às 14h"
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "items": [
+        {
+          "question": "Como faço para rastrear meu pedido?",
+          "answer": "Você pode rastrear seu pedido acessando a seção 'Meus Pedidos' no seu perfil. Lá você encontrará todas as informações e o status atualizado da entrega."
+        },
+        {
+          "question": "Qual o prazo de entrega?",
+          "answer": "O prazo de entrega varia de acordo com a sua localização. Geralmente, entregas na mesma cidade são realizadas em até 24 horas. Para outras regiões, o prazo pode ser de 3 a 7 dias úteis."
+        },
+        {
+          "question": "Como solicitar reembolso?",
+          "answer": "Para solicitar reembolso, entre em contato conosco através do chat ou e-mail. Analisaremos sua solicitação e, se aprovada, o valor será estornado em até 7 dias úteis."
+        },
+        {
+          "question": "Posso alterar meu endereço de entrega?",
+          "answer": "Sim! Você pode alterar o endereço de entrega antes do pedido ser despachado. Acesse 'Meus Pedidos' e clique em 'Alterar Endereço'."
+        },
+        {
+          "question": "Quais formas de pagamento são aceitas?",
+          "answer": "Aceitamos cartões de crédito (Visa, Mastercard, Elo, American Express), cartões de débito, PIX e boleto bancário."
+        }
+      ]
+    },
+    "contactForm": {
+      "title": "Envie sua Mensagem",
+      "placeholder": "Descreva sua dúvida ou problema...",
+      "sending": "Enviando...",
+      "sendMessage": "Enviar Mensagem",
+      "successMessage": "✅ Mensagem enviada com sucesso! Responderemos em breve."
+    }
+  },
+  "settingsPage": {
+    "title": "Configurações",
+    "subtitle": "Personalize sua experiência",
+    "notifications": {
+      "title": "Notificações",
+      "push": {
+        "title": "Notificações Push",
+        "description": "Receba alertas no seu dispositivo"
+      },
+      "email": {
+        "title": "Notificações por E-mail",
+        "description": "Atualizações sobre seus pedidos"
+      },
+      "promotions": {
+        "title": "Promoções e Ofertas",
+        "description": "Fique por dentro das melhores ofertas"
+      }
+    },
+    "appearance": {
+      "title": "Aparência",
+      "darkMode": {
+        "title": "Modo Escuro",
+        "description": "Reduz o cansaço visual"
+      },
+      "language": {
+        "title": "Idioma",
+        "description": "Selecione seu idioma preferido",
+        "options": {
+          "ptBR": "Português (BR)",
+          "enUS": "English (US)",
+          "esES": "Español"
+        }
+      }
+    },
+    "system": {
+      "title": "Sistema",
+      "sounds": {
+        "title": "Sons",
+        "description": "Sons de notificação e interação"
+      },
+      "vibration": {
+        "title": "Vibração",
+        "description": "Feedback tátil nas interações"
+      },
+      "location": {
+        "title": "Localização",
+        "description": "Acesso à sua localização"
+      },
+      "mobileData": {
+        "title": "Usar Dados Móveis",
+        "description": "Permitir uso de dados móveis"
+      }
+    },
+    "other": {
+      "clearCache": "Limpar Cache",
+      "termsOfUse": "Termos de Uso",
+      "privacyPolicy": "Política de Privacidade",
+      "inDevelopment": "Funcionalidade em desenvolvimento"
+    },
+    "version": "Subscrivery v1.0.0",
+    "copyright": "© 2024 Todos os direitos reservados"
+  },
+  "myCardsPage": {
+    "title": "Meus Cartões",
+    "loading": "Carregando cartões...",
+    "noCards": "Nenhum cartão cadastrado",
+    "noCardsDesc": "Adicione um cartão para facilitar seus pagamentos",
+    "cardDetails": "Detalhes do Cartão",
+    "name": "Nome",
+    "expiry": "Validade",
+    "brand": "Bandeira",
+    "lastDigits": "Final",
+    "nameOnCard": "Nome no Cartão",
+    "removeCard": "Remover cartão",
+    "addNewCard": "Adicionar novo cartão",
+    "cancel": "Cancelar",
+    "allCards": "Todos os Cartões",
+    "newCard": {
+      "title": "Novo Cartão",
+      "cardNumber": "Número do cartão",
+      "cardNumberPlaceholder": "1234 1234 1234 1234",
+      "nameOnCard": "Nome no cartão",
+      "nameOnCardPlaceholder": "NOME COMO NO CARTÃO",
+      "expiryDate": "Data de expiração",
+      "expiryPlaceholder": "MM/AA",
+      "cvv": "CVV",
+      "cvvPlaceholder": "123",
+      "brand": "Bandeira",
+      "saveCard": "Salvar Cartão"
+    },
+    "confirmRemove": "Tem certeza que deseja remover este cartão?",
+    "toast": {
+      "saving": "Salvando cartão...",
+      "saveSuccess": "Cartão salvo com sucesso!",
+      "saveError": "Erro ao adicionar cartão",
+      "removing": "Removendo cartão...",
+      "removeSuccess": "Cartão removido com sucesso!",
+      "removeError": "Erro ao remover cartão",
+      "paymentSystemError": "Sistema de pagamento não inicializado",
+      "loadPaymentError": "Erro ao carregar sistema de pagamento"
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { assinarPlano, minhaAssinatura } from "../api/clubMarketAPI";
 import Header from "../components/Header";
 import toast from "react-hot-toast";
@@ -7,6 +8,7 @@ import toast from "react-hot-toast";
 
 export default function ClubMarketPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [planoSelecionado, setPlanoSelecionado] = useState(null);
     const [clubAtivo, setClubAtivo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -30,21 +32,21 @@ export default function ClubMarketPage() {
     const planos = [
         {
             id: 2, // ID no banco
-            nome: 'Entrada',
+            nome: t('clubMarketPage.plans.entrada.name'),
             preco: 9.90,
             emoji: '🌱',
             desconto: 0,
             freteGratis: true,
             cor: 'gray',
             beneficios: [
-                { texto: 'Frete grátis em todas as compras', ativo: true },
-                { texto: 'Sem desconto em produtos', ativo: false },
-                { texto: 'Suporte prioritário', ativo: false },
+                { texto: t('clubMarketPage.plans.entrada.benefits.freeShipping'), ativo: true },
+                { texto: t('clubMarketPage.plans.entrada.benefits.noDiscount'), ativo: false },
+                { texto: t('clubMarketPage.plans.entrada.benefits.noPrioritySupport'), ativo: false },
             ]
         },
         {
             id: 1, // ID no banco
-            nome: 'Intermediário',
+            nome: t('clubMarketPage.plans.intermediario.name'),
             preco: 19.90,
             emoji: '🌿',
             desconto: 10,
@@ -52,24 +54,24 @@ export default function ClubMarketPage() {
             cor: 'green',
             popular: true,
             beneficios: [
-                { texto: 'Frete grátis em todas as compras', ativo: true },
-                { texto: '10% de desconto em produtos', ativo: true },
-                { texto: 'Suporte prioritário', ativo: true },
+                { texto: t('clubMarketPage.plans.intermediario.benefits.freeShipping'), ativo: true },
+                { texto: t('clubMarketPage.plans.intermediario.benefits.discount'), ativo: true },
+                { texto: t('clubMarketPage.plans.intermediario.benefits.prioritySupport'), ativo: true },
             ]
         },
         {
             id: 3, // ID no banco
-            nome: 'Premium',
+            nome: t('clubMarketPage.plans.premium.name'),
             preco: 39.90,
             emoji: '👑',
             desconto: 25,
             freteGratis: true,
             cor: 'amber',
             beneficios: [
-                { texto: 'Frete grátis em todas as compras', ativo: true },
-                { texto: '25% de desconto em produtos', ativo: true },
-                { texto: 'Suporte prioritário 24/7', ativo: true },
-                { texto: 'Acesso antecipado a promoções', ativo: true },
+                { texto: t('clubMarketPage.plans.premium.benefits.freeShipping'), ativo: true },
+                { texto: t('clubMarketPage.plans.premium.benefits.discount'), ativo: true },
+                { texto: t('clubMarketPage.plans.premium.benefits.prioritySupport'), ativo: true },
+                { texto: t('clubMarketPage.plans.premium.benefits.earlyAccess'), ativo: true },
             ]
         }
     ];
@@ -140,9 +142,9 @@ export default function ClubMarketPage() {
                     <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mb-4 shadow-2xl">
                         <span className="text-5xl">⭐</span>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg text-center">Club Market</h1>
+                    <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg text-center">{t('clubMarketPage.title')}</h1>
                     <p className="text-white/80 text-lg mt-3 text-center px-4 max-w-xl">
-                        Economize em todas as suas compras com benefícios exclusivos
+                        {t('clubMarketPage.subtitle')}
                     </p>
                 </div>
 
@@ -165,7 +167,7 @@ export default function ClubMarketPage() {
                                 {/* Badge Popular */}
                                 {plano.popular && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                                        MAIS POPULAR
+                                        {t('clubMarketPage.mostPopular')}
                                     </div>
                                 )}
 
@@ -190,13 +192,13 @@ export default function ClubMarketPage() {
                                             {plano.preco.toFixed(2).replace('.', ',')}
                                         </span>
                                     </div>
-                                    <span className="text-gray-500 text-sm">/mês</span>
+                                    <span className="text-gray-500 text-sm">{t('clubMarketPage.perMonth')}</span>
                                 </div>
 
                                 {/* Badge Desconto */}
                                 <div className="text-center mb-6">
                                     <span className={`inline-block px-4 py-2 ${styles.badge} rounded-full text-sm font-bold`}>
-                                        {plano.desconto}% de desconto
+                                        {t('clubMarketPage.discount', { percent: plano.desconto })}
                                     </span>
                                 </div>
 
@@ -222,12 +224,12 @@ export default function ClubMarketPage() {
                 <div className="bg-white rounded-3xl shadow-xl p-8 text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
                         {planoSelecionado
-                            ? `Plano ${planos.find(p => p.id === planoSelecionado)?.nome} selecionado!`
-                            : 'Selecione um plano para continuar'
+                            ? t('clubMarketPage.cta.planSelected', { name: planos.find(p => p.id === planoSelecionado)?.nome })
+                            : t('clubMarketPage.cta.selectPlan')
                         }
                     </h2>
                     <p className="text-gray-500 mb-6">
-                        Cancele quando quiser, sem compromisso ou multa.
+                        {t('clubMarketPage.cta.cancelInfo')}
                     </p>
 
                     <button
@@ -238,40 +240,40 @@ export default function ClubMarketPage() {
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
                     >
-                        {assinando ? 'Processando...' : planoSelecionado ? 'Assinar Agora →' : 'Selecione um plano'}
+                        {assinando ? t('clubMarketPage.cta.processing') : planoSelecionado ? t('clubMarketPage.cta.subscribeNow') : t('clubMarketPage.cta.selectPlanBtn')}
                     </button>
 
                     <div className="mt-6 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
                         <div className="flex items-center gap-2">
                             <span className="text-green-500">✓</span>
-                            Pagamento seguro
+                            {t('clubMarketPage.cta.securePayment')}
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-green-500">✓</span>
-                            Cancele a qualquer momento
+                            {t('clubMarketPage.cta.cancelAnytime')}
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-green-500">✓</span>
-                            Suporte dedicado
+                            {t('clubMarketPage.cta.dedicatedSupport')}
                         </div>
                     </div>
                 </div>
 
                 {/* FAQ Section */}
                 <div className="mt-12">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Perguntas Frequentes</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">{t('clubMarketPage.faq.title')}</h2>
                     <div className="space-y-4">
                         <div className="bg-white rounded-2xl p-5 shadow-md">
-                            <h3 className="font-semibold text-gray-800 mb-2">Como funciona o desconto?</h3>
-                            <p className="text-gray-600 text-sm">O desconto é aplicado automaticamente em todos os produtos elegíveis no momento da compra.</p>
+                            <h3 className="font-semibold text-gray-800 mb-2">{t('clubMarketPage.faq.question1')}</h3>
+                            <p className="text-gray-600 text-sm">{t('clubMarketPage.faq.answer1')}</p>
                         </div>
                         <div className="bg-white rounded-2xl p-5 shadow-md">
-                            <h3 className="font-semibold text-gray-800 mb-2">Posso cancelar a qualquer momento?</h3>
-                            <p className="text-gray-600 text-sm">Sim! Você pode cancelar sua assinatura a qualquer momento, sem multas ou taxas adicionais.</p>
+                            <h3 className="font-semibold text-gray-800 mb-2">{t('clubMarketPage.faq.question2')}</h3>
+                            <p className="text-gray-600 text-sm">{t('clubMarketPage.faq.answer2')}</p>
                         </div>
                         <div className="bg-white rounded-2xl p-5 shadow-md">
-                            <h3 className="font-semibold text-gray-800 mb-2">O frete grátis vale para qualquer pedido?</h3>
-                            <p className="text-gray-600 text-sm">Sim, o frete grátis é válido para todos os pedidos, sem valor mínimo de compra.</p>
+                            <h3 className="font-semibold text-gray-800 mb-2">{t('clubMarketPage.faq.question3')}</h3>
+                            <p className="text-gray-600 text-sm">{t('clubMarketPage.faq.answer3')}</p>
                         </div>
                     </div>
                 </div>
@@ -286,16 +288,16 @@ export default function ClubMarketPage() {
                         <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-6 text-center">
                             <div className="text-5xl mb-4">⭐</div>
                             <h3 className="text-2xl font-bold text-purple-900 mb-2">
-                                Você já é membro do Club Market!
+                                {t('clubMarketPage.alreadyMember.title')}
                             </h3>
                             <p className="text-purple-700 mb-6">
-                                Plano atual: <strong>R$ {Number(clubAtivo.valormensal || 0).toFixed(2).replace('.', ',')}/mês</strong>
+                                {t('clubMarketPage.alreadyMember.currentPlan')} <strong>R$ {Number(clubAtivo.valormensal || 0).toFixed(2).replace('.', ',')}{t('clubMarketPage.alreadyMember.perMonth')}</strong>
                             </p>
                             <button
                                 onClick={() => navigate('/perfil')}
                                 className="px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-full hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
                             >
-                                Gerenciar Minha Assinatura
+                                {t('clubMarketPage.alreadyMember.manageSubscription')}
                             </button>
                         </div>
                     ) : (
@@ -307,7 +309,7 @@ export default function ClubMarketPage() {
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                         >
-                            {assinando ? '⏳ Processando...' : planoSelecionado ? '🎉 Assinar Agora' : 'Selecione um Plano'}
+                            {assinando ? '⏳ ' + t('clubMarketPage.cta.processing') : planoSelecionado ? t('clubMarketPage.subscribeBtn') : t('clubMarketPage.cta.selectPlanBtn')}
                         </button>
                     )}
                 </div>

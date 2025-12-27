@@ -170,5 +170,379 @@
         "trackOrder": "Track Order",
         "continueShopping": "Continue Shopping",
         "viewOrders": "View All Orders"
+    },
+    "clubMarketPage": {
+        "title": "Club Market",
+        "subtitle": "Save on all your purchases with exclusive benefits",
+        "mostPopular": "MOST POPULAR",
+        "perMonth": "/month",
+        "discount": "{{percent}}% discount",
+        "plans": {
+            "entrada": {
+                "name": "Starter",
+                "benefits": {
+                    "freeShipping": "Free shipping on all orders",
+                    "noDiscount": "No product discount",
+                    "noPrioritySupport": "Priority support"
+                }
+            },
+            "intermediario": {
+                "name": "Intermediate",
+                "benefits": {
+                    "freeShipping": "Free shipping on all orders",
+                    "discount": "10% discount on products",
+                    "prioritySupport": "Priority support"
+                }
+            },
+            "premium": {
+                "name": "Premium",
+                "benefits": {
+                    "freeShipping": "Free shipping on all orders",
+                    "discount": "25% discount on products",
+                    "prioritySupport": "24/7 priority support",
+                    "earlyAccess": "Early access to promotions"
+                }
+            }
+        },
+        "cta": {
+            "planSelected": "{{name}} Plan selected!",
+            "selectPlan": "Select a plan to continue",
+            "cancelInfo": "Cancel anytime, no commitment or fees.",
+            "subscribeNow": "Subscribe Now →",
+            "processing": "Processing...",
+            "selectPlanBtn": "Select a plan",
+            "securePayment": "Secure payment",
+            "cancelAnytime": "Cancel anytime",
+            "dedicatedSupport": "Dedicated support"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "question1": "How does the discount work?",
+            "answer1": "The discount is automatically applied to all eligible products at checkout.",
+            "question2": "Can I cancel at any time?",
+            "answer2": "Yes! You can cancel your subscription at any time, with no penalties or additional fees.",
+            "question3": "Is free shipping valid for any order?",
+            "answer3": "Yes, free shipping is valid for all orders, with no minimum purchase required."
+        },
+        "alreadyMember": {
+            "title": "You are already a Club Market member!",
+            "currentPlan": "Current plan:",
+            "perMonth": "/month",
+            "manageSubscription": "Manage My Subscription"
+        },
+        "subscribeBtn": "🎉 Subscribe Now"
+    },
+    "profilePage": {
+        "title": "Profile",
+        "loading": "Loading...",
+        "greeting": "Hello, {{name}}!",
+        "defaultUser": "User",
+        "menu": {
+            "personalData": "Personal Data",
+            "mySubscriptions": "My Subscriptions",
+            "securityPrivacy": "Security and Privacy",
+            "paymentMethods": "Payment Methods",
+            "myAddresses": "My Addresses",
+            "support": "Support",
+            "settings": "Settings"
+        },
+        "deleteAccount": "Delete Account",
+        "deleteModal": {
+            "title": "Confirm Deletion",
+            "message": "Are you sure you want to delete your account?",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "success": "Account deleted successfully!"
+        }
+    },
+    "personalDataPage": {
+        "title": "Personal Data",
+        "errorLoading": "Unable to load user data.",
+        "tryAgain": "Try again",
+        "personalInfo": "Personal Information",
+        "fullName": "Full Name",
+        "email": "Email",
+        "notEditable": "(not editable)",
+        "phone": "Phone",
+        "cpf": "CPF",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "saveChanges": "Save Changes",
+        "securityTip": {
+            "title": "Your data is protected",
+            "description": "Your personal information is encrypted and stored securely. We never share your data with third parties."
+        },
+        "toast": {
+            "success": "Data updated successfully!",
+            "error": "Error updating data",
+            "saveError": "Error saving changes"
+        }
+    },
+    "mySubscriptionsPage": {
+        "title": "My Subscriptions",
+        "subtitle": "Manage your Club Market plan",
+        "currentSubscription": "Your Current Subscription",
+        "noSubscription": "You don't have a subscription",
+        "noSubscriptionDesc": "Choose a plan below to start saving!",
+        "perMonth": "/month",
+        "discountOnPurchases": "{{percent}}% discount on purchases",
+        "freeShippingAll": "Free shipping on all orders",
+        "cancelSubscription": "Cancel Subscription",
+        "otherPlans": "Other Available Plans",
+        "choosePlan": "Choose Your Plan",
+        "popular": "POPULAR",
+        "currentPlan": "CURRENT PLAN",
+        "activePlan": "Active Plan",
+        "processing": "Processing...",
+        "subscribe": "Subscribe",
+        "changePlanInfo": "To change plans, cancel your current subscription first.",
+        "backToProfile": "← Back to Profile",
+        "plans": {
+            "entrada": {
+                "name": "Starter",
+                "benefits": [
+                    "Free shipping",
+                    "Basic access"
+                ]
+            },
+            "intermediario": {
+                "name": "Intermediate",
+                "benefits": [
+                    "Free shipping",
+                    "10% discount",
+                    "Priority support"
+                ]
+            },
+            "premium": {
+                "name": "Premium",
+                "benefits": [
+                    "Free shipping",
+                    "25% discount",
+                    "24/7 Support",
+                    "Early access"
+                ]
+            }
+        },
+        "cancelModal": {
+            "title": "Cancel Subscription",
+            "irreversible": "This action cannot be undone",
+            "confirmMessage": "Are you sure you want to cancel your Club Market subscription?",
+            "losesBenefits": "You will lose all benefits such as free shipping and product discounts.",
+            "keepSubscription": "Keep Subscription",
+            "cancel": "Cancel"
+        },
+        "toast": {
+            "alreadySubscribed": "You already have an active subscription. Cancel first to change plans.",
+            "processingSubscription": "Processing subscription...",
+            "subscriptionSuccess": "Subscription successful! 🎉",
+            "subscriptionError": "Error processing subscription",
+            "cancelingSubscription": "Canceling subscription...",
+            "cancelSuccess": "Subscription canceled successfully",
+            "cancelError": "Error canceling subscription"
+        }
+    },
+    "securityPrivacyPage": {
+        "title": "Security and Privacy",
+        "loading": "Loading...",
+        "registeredEmail": "Your registered email:",
+        "password": "Password:",
+        "sendCode": "Send Code"
+    },
+    "myAddressesPage": {
+        "title": "My Addresses",
+        "loading": "Loading...",
+        "loadingAddresses": "Loading your addresses...",
+        "addressCount": "{{count}} address(es) registered",
+        "noAddresses": "No addresses registered",
+        "noAddressesDesc": "Add an address to make your deliveries easier",
+        "mainAddress": "Main address",
+        "addNewAddress": "Add new address",
+        "backToProfile": "← Back to Profile",
+        "setAsPrimary": "Set as primary",
+        "deleteModal": {
+            "title": "Delete Address",
+            "irreversible": "This action cannot be undone",
+            "confirmMessage": "Are you sure you want to delete this address?",
+            "cancel": "Cancel",
+            "delete": "Delete"
+        },
+        "toast": {
+            "deleting": "Deleting address...",
+            "deleteSuccess": "Address deleted successfully!",
+            "deleteError": "Error deleting address",
+            "settingPrimary": "Setting primary address...",
+            "setPrimarySuccess": "Primary address set successfully!",
+            "setPrimaryError": "Error setting primary address"
+        }
+    },
+    "securityPage": {
+        "title": "Security and Privacy",
+        "subtitle": "Manage your credentials",
+        "loading": "Loading your information...",
+        "emailCard": {
+            "title": "Registered Email",
+            "subtitle": "Your account access email",
+            "label": "Email",
+            "notProvided": "Not provided"
+        },
+        "passwordCard": {
+            "title": "Password",
+            "subtitle": "Your access password",
+            "label": "Current password"
+        },
+        "changePassword": "Change Password",
+        "securityTip": {
+            "title": "Security Tip",
+            "description": "We recommend changing your password periodically to keep your account secure."
+        },
+        "backToProfile": "← Back to Profile"
+    },
+    "supportPage": {
+        "title": "Support",
+        "subtitle": "We're here to help",
+        "channels": {
+            "liveChat": "Live Chat",
+            "liveChatDesc": "In development",
+            "phone": "Phone",
+            "email": "Email"
+        },
+        "businessHours": {
+            "title": "Business Hours",
+            "schedule": "Monday to Friday: 8am to 8pm | Saturday: 9am to 2pm"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "items": [
+                {
+                    "question": "How can I track my order?",
+                    "answer": "You can track your order by accessing the 'My Orders' section in your profile. There you will find all the information and the updated delivery status."
+                },
+                {
+                    "question": "What is the delivery time?",
+                    "answer": "The delivery time varies according to your location. Generally, deliveries in the same city are made within 24 hours. For other regions, the time may be 3 to 7 business days."
+                },
+                {
+                    "question": "How to request a refund?",
+                    "answer": "To request a refund, contact us through chat or email. We will analyze your request and, if approved, the amount will be refunded within 7 business days."
+                },
+                {
+                    "question": "Can I change my delivery address?",
+                    "answer": "Yes! You can change the delivery address before the order is shipped. Go to 'My Orders' and click on 'Change Address'."
+                },
+                {
+                    "question": "What payment methods are accepted?",
+                    "answer": "We accept credit cards (Visa, Mastercard, Elo, American Express), debit cards, PIX and bank slip."
+                }
+            ]
+        },
+        "contactForm": {
+            "title": "Send your Message",
+            "placeholder": "Describe your question or issue...",
+            "sending": "Sending...",
+            "sendMessage": "Send Message",
+            "successMessage": "✅ Message sent successfully! We'll reply soon."
+        }
+    },
+    "settingsPage": {
+        "title": "Settings",
+        "subtitle": "Customize your experience",
+        "notifications": {
+            "title": "Notifications",
+            "push": {
+                "title": "Push Notifications",
+                "description": "Receive alerts on your device"
+            },
+            "email": {
+                "title": "Email Notifications",
+                "description": "Updates about your orders"
+            },
+            "promotions": {
+                "title": "Promotions and Offers",
+                "description": "Stay up to date with the best deals"
+            }
+        },
+        "appearance": {
+            "title": "Appearance",
+            "darkMode": {
+                "title": "Dark Mode",
+                "description": "Reduces eye strain"
+            },
+            "language": {
+                "title": "Language",
+                "description": "Select your preferred language",
+                "options": {
+                    "ptBR": "Portuguese (BR)",
+                    "enUS": "English (US)",
+                    "esES": "Spanish"
+                }
+            }
+        },
+        "system": {
+            "title": "System",
+            "sounds": {
+                "title": "Sounds",
+                "description": "Notification and interaction sounds"
+            },
+            "vibration": {
+                "title": "Vibration",
+                "description": "Tactile feedback on interactions"
+            },
+            "location": {
+                "title": "Location",
+                "description": "Access to your location"
+            },
+            "mobileData": {
+                "title": "Use Mobile Data",
+                "description": "Allow mobile data usage"
+            }
+        },
+        "other": {
+            "clearCache": "Clear Cache",
+            "termsOfUse": "Terms of Use",
+            "privacyPolicy": "Privacy Policy",
+            "inDevelopment": "Feature in development"
+        },
+        "version": "Subscrivery v1.0.0",
+        "copyright": "© 2024 All rights reserved"
+    },
+    "myCardsPage": {
+        "title": "My Cards",
+        "loading": "Loading cards...",
+        "noCards": "No cards registered",
+        "noCardsDesc": "Add a card to make your payments easier",
+        "cardDetails": "Card Details",
+        "name": "Name",
+        "expiry": "Expiry",
+        "brand": "Brand",
+        "lastDigits": "Last Digits",
+        "nameOnCard": "Name on Card",
+        "removeCard": "Remove card",
+        "addNewCard": "Add new card",
+        "cancel": "Cancel",
+        "allCards": "All Cards",
+        "newCard": {
+            "title": "New Card",
+            "cardNumber": "Card number",
+            "cardNumberPlaceholder": "1234 1234 1234 1234",
+            "nameOnCard": "Name on card",
+            "nameOnCardPlaceholder": "NAME AS ON CARD",
+            "expiryDate": "Expiry date",
+            "expiryPlaceholder": "MM/YY",
+            "cvv": "CVV",
+            "cvvPlaceholder": "123",
+            "brand": "Brand",
+            "saveCard": "Save Card"
+        },
+        "confirmRemove": "Are you sure you want to remove this card?",
+        "toast": {
+            "saving": "Saving card...",
+            "saveSuccess": "Card saved successfully!",
+            "saveError": "Error adding card",
+            "removing": "Removing card...",
+            "removeSuccess": "Card removed successfully!",
+            "removeError": "Error removing card",
+            "paymentSystemError": "Payment system not initialized",
+            "loadPaymentError": "Error loading payment system"
+        }
     }
 }
