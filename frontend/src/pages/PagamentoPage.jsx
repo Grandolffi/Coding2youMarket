@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
-import CVVModal from '../components/cvvmodal';
 import { meusCartoes, deletarCartao } from '../api/cartaoAPI';
 import { verMeuCarrinho, limparCarrinho } from '../api/carrinhoAPI';
 import { criarPedido, meusPedidos } from '../api/pedidosAPI';
@@ -24,7 +23,6 @@ export default function PagamentoPage() {
     const [processandoPagamento, setProcessandoPagamento] = useState(false);
     const [loading, setLoading] = useState(true);
     const [resumo, setResumo] = useState(null);
-    const [mostrarCVVModal, setMostrarCVVModal] = useState(false);
     const [novoCartao, setNovoCartao] = useState({
         numero: '',
         nome: '',
@@ -349,7 +347,7 @@ export default function PagamentoPage() {
 
         try {
             // Tokenizar cartão com MercadoPago
-            const token = await tokenizarCartao({
+            const resultado = await tokenizarCartao({
                 numero: novoCartao.numero.replace(/\s/g, ''),
                 nome: novoCartao.nome,
                 validade: novoCartao.validade,
@@ -357,11 +355,11 @@ export default function PagamentoPage() {
                 cpf: novoCartao.cpf.replace(/\D/g, '')
             });
 
-            if (!token) {
-                throw new Error('Erro ao gerar token do cartão');
+            if (!resultado.success || !resultado.token) {
+                throw new Error(resultado.message || 'Erro ao gerar token do cartão');
             }
 
-            console.log('Token gerado:', token);
+            console.log('Token gerado:', resultado.token);
 
             // Processar pagamento
             const response = await fetch(`${API_URL}/pagamentos/processar-direto`, {
@@ -371,11 +369,11 @@ export default function PagamentoPage() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    token: token,
+                    token: resultado.token,  // ✅ Agora envia SÓ a string do token
                     transactionAmount: resumo.total,
                     installments: 1,
                     description: dadosCompra.tipoCompra === 'club' ? 'Club Market' : 'Compra Subscrivery',
-                    paymentMethodId: 'visa'
+                    paymentMethodId: resultado.bandeira || 'visa'  // ✅ Usa bandeira detectada
                 })
             });
 
@@ -621,11 +619,6 @@ export default function PagamentoPage() {
                     </button>
                 </div>
             </main >
-            <CVVModal
-                isOpen={mostrarCVVModal}
-                onClose={() => setMostrarCVVModal(false)}
-                onConfirm={handleConfirmarCVV}
-            />
         </div >
     );
 }

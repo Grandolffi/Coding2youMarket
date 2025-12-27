@@ -28,22 +28,28 @@ router.post("/pagamentos/processar-direto", auth, async (req, res) => {
         }
 
         console.log('💳 Processando pagamento direto...');
-        console.log('Token:', token ? 'Presente' : 'Ausente');
-        console.log('Valor:', transactionAmount);
+        console.log('✅ Token:', token);
+        console.log('✅ Valor:', transactionAmount);
+        console.log('✅ Payment Method:', paymentMethodId);
+        console.log('✅ Email:', req.usuario.email);
 
         const paymentClient = new Payment(client);
 
-        const payment = await paymentClient.create({
-            body: {
-                transaction_amount: Number(transactionAmount),
-                token: token,
-                description: description || "Pedido Subscrivery",
-                installments: installments || 1,
-                payment_method_id: paymentMethodId || "visa",
-                payer: {
-                    email: req.usuario.email || `user${usuarioId}@subscrivery.com`
-                }
+        const paymentData = {
+            transaction_amount: Number(transactionAmount),
+            token: token,
+            description: description || "Pedido Subscrivery",
+            installments: Number(installments) || 1,
+            payment_method_id: paymentMethodId || "master",
+            payer: {
+                email: req.usuario.email || req.usuario.Email || `user${usuarioId}@test.com`
             }
+        };
+
+        console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));
+
+        const payment = await paymentClient.create({
+            body: paymentData
         });
 
         console.log('✅ Pagamento criado:', payment.id, 'Status:', payment.status);
@@ -66,12 +72,18 @@ router.post("/pagamentos/processar-direto", auth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Erro ao processar pagamento:", error);
+        console.error("❌ Erro ao processar pagamento:");
+        console.error("Error completo:", JSON.stringify(error, null, 2));
+        console.error("Message:", error.message);
+        console.error("Status:", error.status);
+        console.error("Cause:", error.cause);
 
         return res.status(500).json({
             success: false,
             message: "Erro ao processar pagamento",
-            details: error.cause?.[0]?.description || error.message
+            details: error.cause?.[0]?.description || error.message,
+            errorCode: error.cause?.[0]?.code,
+            status: error.status
         });
     }
 });
