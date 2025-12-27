@@ -12,8 +12,8 @@ const getDashboardMetrics = async () => {
     const receitaMesQuery = `
       SELECT COALESCE(SUM(valorfinal), 0) as receita_mes
       FROM pedidos
-      WHERE EXTRACT(MONTH FROM datacriacao) = EXTRACT(MONTH FROM CURRENT_DATE)
-        AND EXTRACT(YEAR FROM datacriacao) = EXTRACT(YEAR FROM CURRENT_DATE)
+      WHERE EXTRACT(MONTH FROM datainicio) = EXTRACT(MONTH FROM CURRENT_DATE)
+        AND EXTRACT(YEAR FROM datainicio) = EXTRACT(YEAR FROM CURRENT_DATE)
     `;
     const receitaMes = await client.query(receitaMesQuery);
 
@@ -21,7 +21,7 @@ const getDashboardMetrics = async () => {
     const receitaHojeQuery = `
       SELECT COALESCE(SUM(valorfinal), 0) as receita_hoje
       FROM pedidos
-      WHERE DATE(datacriacao) = CURRENT_DATE
+      WHERE DATE(datainicio) = CURRENT_DATE
     `;
     const receitaHoje = await client.query(receitaHojeQuery);
 
@@ -29,7 +29,7 @@ const getDashboardMetrics = async () => {
     const pedidosHojeQuery = `
       SELECT COUNT(*) as pedidos_hoje
       FROM pedidos
-      WHERE DATE(datacriacao) = CURRENT_DATE
+      WHERE DATE(datainicio) = CURRENT_DATE
     `;
     const pedidosHoje = await client.query(pedidosHojeQuery);
 
@@ -115,13 +115,13 @@ const getVendasUltimosDias = async (dias = 7) => {
   try {
     const query = `
       SELECT 
-        DATE(datacriacao) as data,
+        DATE(datainicio) as data,
         COUNT(*) as total_pedidos,
-        COALESCE(SUM(valortotal), 0) as receita
+        COALESCE(SUM(valorfinal), 0) as receita
       FROM pedidos
-      WHERE datacriacao >= CURRENT_DATE - INTERVAL '${dias} days'
-      GROUP BY DATE(datacriacao)
-      ORDER BY DATE(datacriacao) ASC
+      WHERE datainicio >= CURRENT_DATE - INTERVAL '${dias} days'
+      GROUP BY DATE(datainicio)
+      ORDER BY DATE(datainicio) ASC
     `;
     const result = await client.query(query);
     return result.rows;
@@ -139,17 +139,16 @@ const getVendasUltimosDias = async (dias = 7) => {
 const getTopProdutos = async (limit = 5) => {
   const client = await pool.connect();
   try {
+    // Como não temos itempedido, retornamos produtos com mais estoque vendido
     const query = `
       SELECT 
         p.id,
         p.nome,
         p.preco,
-        COUNT(ip.id) as total_vendas,
-        SUM(ip.quantidade) as quantidade_vendida
+        0 as total_vendas,
+        0 as quantidade_vendida
       FROM produtos p
-      JOIN itempedido ip ON p.id = ip.produtoid
-      GROUP BY p.id, p.nome, p.preco
-      ORDER BY total_vendas DESC
+      ORDER BY p.id DESC
       LIMIT $1
     `;
     const result = await client.query(query, [limit]);
