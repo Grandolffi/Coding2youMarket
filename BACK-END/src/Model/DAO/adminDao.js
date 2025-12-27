@@ -8,18 +8,18 @@ const pool = require('../../Config/Db/db');
 const getDashboardMetrics = async () => {
   const client = await pool.connect();
   try {
-    // Receita total do mês
+    // Receita total do mês (valor final após descontos)
     const receitaMesQuery = `
-      SELECT COALESCE(SUM(valortotal), 0) as receita_mes
+      SELECT COALESCE(SUM(valorfinal), 0) as receita_mes
       FROM pedidos
       WHERE EXTRACT(MONTH FROM datacriacao) = EXTRACT(MONTH FROM CURRENT_DATE)
         AND EXTRACT(YEAR FROM datacriacao) = EXTRACT(YEAR FROM CURRENT_DATE)
     `;
     const receitaMes = await client.query(receitaMesQuery);
 
-    // Receita total de hoje
+    // Receita total de hoje (valor final após descontos)
     const receitaHojeQuery = `
-      SELECT COALESCE(SUM(valortotal), 0) as receita_hoje
+      SELECT COALESCE(SUM(valorfinal), 0) as receita_hoje
       FROM pedidos
       WHERE DATE(datacriacao) = CURRENT_DATE
     `;
@@ -76,7 +76,7 @@ const getDashboardMetrics = async () => {
     `;
     const estoqueBaixo = await client.query(estoqueBaixoQuery);
 
-    return {
+    const result = {
       receita: {
         mes: parseFloat(receitaMes.rows[0].receita_mes) || 0,
         hoje: parseFloat(receitaHoje.rows[0].receita_hoje) || 0
@@ -96,6 +96,9 @@ const getDashboardMetrics = async () => {
         baixo: parseInt(estoqueBaixo.rows[0].produtos_estoque_baixo) || 0
       }
     };
+
+    console.log('📊 Dashboard Metrics:', JSON.stringify(result, null, 2));
+    return result;
   } catch (error) {
     console.error('Erro em getDashboardMetrics:', error);
     throw error;

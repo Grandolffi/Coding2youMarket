@@ -113,6 +113,9 @@ router.post("/pedidos", async (req, res) => {
       });
     }
 
+    // Calcular desconto = valorTotal - valorFinal
+    const descontoClub = parseFloat(valorTotal) - parseFloat(valorFinal);
+
     const pedido = await insertPedido({
       usuarioId,
       enderecoId,
@@ -120,6 +123,7 @@ router.post("/pedidos", async (req, res) => {
       diaEntrega,
       valorTotal,
       valorFinal,
+      descontoClub, // ✅ Salvar o desconto
       dataProximaEntrega,
       dataProximaCobranca
     });
