@@ -39,10 +39,11 @@ router.get('/club-market/meu', async (req, res) => {
 
     const clube = await getClubMarketPorUsuario(usuarioId);
 
+    // ✅ Retornar null ao invés de 404 quando não tiver assinatura
     if (!clube) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuário não possui assinatura Club Market'
+      return res.status(200).json({
+        success: true,
+        clube: null
       });
     }
 

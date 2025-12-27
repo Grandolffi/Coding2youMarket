@@ -52,6 +52,19 @@ export default function PagamentoPage() {
 
     const calcularResumo = async () => {
         try {
+            // ✅ Se for assinatura de club, usar valor do state
+            if (dadosCompra.tipoCompra === 'club') {
+                const valorClub = dadosCompra.valorClub || 0;
+                setResumo({
+                    subtotal: valorClub,
+                    descontoClub: 0,
+                    frete: 0,
+                    total: valorClub
+                });
+                return;
+            }
+
+            // Compra normal de carrinho
             const carrinho = await verMeuCarrinho();
             if (!carrinho || carrinho.length === 0) {
                 setResumo({
