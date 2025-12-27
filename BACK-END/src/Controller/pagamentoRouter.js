@@ -285,7 +285,10 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
 
     // Converter vírgula para ponto (formato brasileiro → americano)
     const valorLimpo = String(transactionAmount).replace(',', '.');
-    const valorNumerico = Number(valorLimpo);
+    let valorNumerico = Number(valorLimpo);
+
+    // Arredondar para 2 casas decimais (MP exige exatamente 2 casas)
+    valorNumerico = Math.round(valorNumerico * 100) / 100;
 
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       console.error('❌ Valor inválido:', transactionAmount, '→', valorNumerico);
