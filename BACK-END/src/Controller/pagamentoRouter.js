@@ -317,33 +317,6 @@ router.post("/pagamentos/processar", auth, async (req, res) => {
     });
   }
 });
-const cartaoSalvo = await salvarCartaoTokenizado({
-  usuarioId,
-  customerId: customerId,
-  cardId: card.id,
-  tokenCartao: null,
-  bandeira: card.payment_method.id,
-  ultimos4Digitos: card.last_four_digits,
-  nomeImpresso: card.cardholder.name || nomeImpresso,
-  principal: principal || false,
-  isDebito: false
-});
-
-return res.status(201).json({
-  success: true,
-  message: "Cartão salvo com sucesso",
-  cartao: cartaoSalvo
-});
-
-  } catch (error) {
-  console.error("❌ Erro fatal ao salvar cartão:", error);
-  return res.status(500).json({
-    success: false,
-    message: "Erro ao salvar cartão no sistema",
-    error: error.message
-  });
-}
-});
 
 // PROCESSAR PAGAMENTO COM SAVED CARD
 router.post("/pagamentos/processar", auth, async (req, res) => {
