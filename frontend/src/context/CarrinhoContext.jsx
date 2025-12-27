@@ -8,8 +8,11 @@ export function CarrinhoProvider({ children }) {
     const incrementarContador = useCallback((quantidade = 1) => {
         setContadorCarrinho(prev => prev + quantidade);
     }, []);
+    const decrementarContador = useCallback((quantidade = 1) => {
+        setContadorCarrinho(prev => Math.max(0, prev - quantidade));
+    }, []);
     return (
-        <CarrinhoContext.Provider value={{ contadorCarrinho, atualizarContador, incrementarContador }}>
+        <CarrinhoContext.Provider value={{ contadorCarrinho, atualizarContador, incrementarContador, decrementarContador }}>
             {children}
         </CarrinhoContext.Provider>
     );
