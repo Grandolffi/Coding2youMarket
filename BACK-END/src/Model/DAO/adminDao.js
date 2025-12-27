@@ -1,4 +1,4 @@
-const pool = require('../Connection/Connection');
+const pool = require('../../Config/Db/db');
 
 // ==================== DASHBOARD METRICS ====================
 
