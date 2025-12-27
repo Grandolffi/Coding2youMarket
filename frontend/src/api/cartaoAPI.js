@@ -36,19 +36,20 @@ export const meusCartoes = async () => {
 
 export const adicionarCartao = async (dadosCartao) => {
     try {
-        const response = await fetch(`${BASE_URL}/api/cartoes`, {
+        // ✅ Usar o endpoint correto do Mercado Pago
+        const response = await fetch(`${BASE_URL}/api/pagamentos/salvar-cartao`, {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(dadosCartao),
         });
         const json = await response.json();
         if (!response.ok) {
-            return { success: false, message: json.message };
+            return { success: false, message: json.message || 'Erro ao salvar cartão' };
         }
         return { success: true, ...json };
     } catch (error) {
         console.error('Erro ao adicionar cartão:', error);
-        return { success: false, message: 'Erro interno ao adicionar cartão.' };
+        return { success: false, message: error.message || 'Erro interno ao adicionar cartão.' };
     }
 };
 

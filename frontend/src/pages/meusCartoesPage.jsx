@@ -39,6 +39,7 @@ export default function MeusCartoesPage() {
         bandeira: 'Mastercard'
     });
     const [loading, setLoading] = useState(true);
+    const [mp, setMp] = useState(null);
 
     const handleProximoCartao = () => {
         setCartaoAtivo((prev) => (prev + 1) % cartoes.length);
@@ -65,6 +66,17 @@ export default function MeusCartoesPage() {
             }
         };
         fetchCards();
+
+        // Inicializar SDK do Mercado Pago
+        const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+        if (window.MercadoPago && publicKey) {
+            const mpInstance = new window.MercadoPago(publicKey);
+            setMp(mpInstance);
+            console.log('✅ Mercado Pago SDK inicializado');
+        } else {
+            console.error('❌ SDK do Mercado Pago não encontrado ou chave pública ausente');
+            toast.error('Erro ao carregar sistema de pagamento');
+        }
     }, []);
 
 
@@ -72,39 +84,62 @@ export default function MeusCartoesPage() {
         if (novoCartao.numero && novoCartao.nome && novoCartao.validade && novoCartao.cvv) {
             const loadingToast = toast.loading('Salvando cartão...');
             try {
-                // Prepara dados no formato esperado pelo backend
+                // Verificar se o SDK está pronto
+                if (!mp) {
+                    toast.error('Sistema de pagamento não inicializado', { id: loadingToast });
+                    return;
+                }
+
                 const numeroLimpo = novoCartao.numero.replace(/\s/g, '');
+                const [mes, ano] = novoCartao.validade.split('/');
+
+                // 🔐 GERAR TOKEN REAL com Mercado Pago SDK
+                console.log('🔄 Generating card token...');
+                const cardData = {
+                    cardNumber: numeroLimpo,
+                    cardholderName: novoCartao.nome,
+                    cardExpirationMonth: mes,
+                    cardExpirationYear: `20${ano}`, // Converter AA para 20AA
+                    securityCode: novoCartao.cvv,
+                    identificationType: 'CPF', // Pode ser alterado se necessário
+                    identificationNumber: '12345678909' // Em produção, pegar do cadastro do usuário
+                };
+
+                const tokenResponse = await mp.createCardToken(cardData);
+                console.log('✅ Token gerado:', tokenResponse.id);
+
+                // Preparar dados para o backend
                 const dadosParaEnviar = {
-                    tokenCartao: `tok_${Date.now()}`, // Token simulado (em produção seria do gateway de pagamento)
+                    token: tokenResponse.id, // ✅ TOKEN REAL
                     bandeira: novoCartao.bandeira,
-                    ultimos4Digitos: numeroLimpo.slice(-4),
+                    ultimos4digitos: numeroLimpo.slice(-4),
                     nomeImpresso: novoCartao.nome,
-                    principal: cartoes.length === 0, // Primeiro cartão é principal
-                    isDebito: false
+                    principal: cartoes.length === 0,
                 };
 
                 const response = await adicionarCartao(dadosParaEnviar);
                 if (response.success) {
-                    // Adiciona o cartão retornado ou cria um objeto para exibição
+                    // Adiciona o cartão retornado
                     const cartaoCriado = response.cartao || {
                         id: response.id || Date.now(),
                         numero: `**** **** **** ${numeroLimpo.slice(-4)}`,
                         nome: novoCartao.nome,
                         validade: novoCartao.validade,
-                        bandeira: novoCartao.bandeira,
+                        bandeira: response.cartao?.bandeira || novoCartao.bandeira,
                         ultimos4digitos: numeroLimpo.slice(-4)
                     };
                     setCartoes([...cartoes, cartaoCriado]);
                     setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', bandeira: 'Mastercard' });
                     setAdicionandoCartao(false);
                     setCartaoAtivo(cartoes.length);
-                    toast.success('Cartão adicionado com sucesso!', { id: loadingToast });
+                    toast.success('Cartão salvo com sucesso!', { id: loadingToast });
                 } else {
                     toast.error(response.message || 'Erro ao adicionar cartão', { id: loadingToast });
                 }
             } catch (error) {
-                console.error('Erro ao adicionar cartão:', error);
-                toast.error('Erro ao adicionar cartão', { id: loadingToast });
+                console.error('❌ Erro ao adicionar cartão:', error);
+                const errorMsg = error.message || 'Verifique os dados do cartão';
+                toast.error(`Erro: ${errorMsg}`, { id: loadingToast });
             }
         }
     };

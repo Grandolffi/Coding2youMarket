@@ -128,6 +128,92 @@ router.put("/pagamentos/:id/status", auth, async (req, res) => {
   return res.json({ success: true, pagamento });
 });
 
+// ✅ PAGAMENTO DIRETO COM TOKEN (SEM SALVAR CARTÃO)
+router.post("/pagamentos/processar-direto", auth, async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const {
+      token,
+      transactionAmount,
+      installments,
+      description,
+      paymentMethodId
+    } = req.body;
+
+    // Validação
+    if (!token || !transactionAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Token e valor são obrigatórios"
+      });
+    }
+
+    console.log('💳 Processando pagamento direto...');
+    console.log('✅ Token:', token);
+    console.log('✅ Valor:', transactionAmount);
+
+    const paymentClient = new Payment(client);
+
+    // Criar pagamento com token
+    const paymentData = {
+      transaction_amount: Number(Number(transactionAmount).toFixed(2)),
+      token: token,
+      description: description || "Compra Coding2You Market",
+      installments: Number(installments) || 1,
+      payment_method_id: paymentMethodId || "master",
+      payer: {
+        email: req.usuario.email || "test@test.com",
+        identification: {
+          type: "CPF",
+          number: "12345678909" // Em produção, pegar do usuário
+        }
+      }
+    };
+
+    console.log('📦 Enviando ao Mercado Pago...');
+
+    const payment = await paymentClient.create({
+      body: paymentData
+    });
+
+    console.log('✅ Pagamento criado:', payment.id, 'Status:', payment.status);
+
+    // Salvar no banco
+    await insertPagamentoMercadoPago({
+      usuarioId,
+      cartaoId: null, // Sem cartão salvo
+      valor: transactionAmount,
+      status: payment.status,
+      transacaoId: payment.id.toString()
+    });
+
+    return res.status(201).json({
+      success: true,
+      status: payment.status,
+      statusDetail: payment.status_detail,
+      mercadoPagoId: payment.id,
+      message: payment.status === 'approved' ? 'Pagamento aprovado!' : 'Pagamento processado'
+    });
+
+  } catch (error) {
+    console.error("❌ Erro ao processar pagamento:", error);
+
+    let errorMessage = "Erro ao processar pagamento";
+    let errorDetails = error.message;
+
+    if (error.cause && error.cause.length > 0) {
+      errorDetails = error.cause.map(e => e.description).join('; ');
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: errorMessage,
+      details: errorDetails
+    });
+  }
+});
+
+
 // SALVAR CARTÃO COM CUSTOMER (SAVED CARD)
 router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
   try {
@@ -170,8 +256,31 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       await salvarCustomerId(usuarioId, customerId);
       console.log("✅ Customer criado no MP:", customerId);
 
-      // 🕒 Pequeno delay para garantir propagação no Sandbox
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 🕒 Delay aumentado para 3 segundos (Sandbox pode ser lento)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // ✅ Verificar se o customer foi propagado (retry até 2x)
+      let customerExists = false;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          await customerClient.get({ customerId });
+          customerExists = true;
+          console.log(`✅ Customer verificado (tentativa ${attempt})`);
+          break;
+        } catch (err) {
+          console.log(`⚠️ Customer ainda não propagado (tentativa ${attempt}/2)`);
+          if (attempt < 2) await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+
+      if (!customerExists) {
+        console.error('❌ Customer não propagou após 3 tentativas');
+        return res.status(500).json({
+          success: false,
+          message: "Erro de propagação do sistema. Tente novamente em alguns segundos.",
+          error: 'customer_propagation_timeout'
+        });
+      }
     }
 
     // 3️⃣ Salvar cartão no Customer
@@ -205,7 +314,7 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
 
         return res.status(400).json({
           success: false,
-          message: "Erro de sincronização. Tente salvar novamente.",
+          message: "Erro de sincronização. Por favor, tente novamente.",
           error: 'customer_not_found_retry'
         });
       }

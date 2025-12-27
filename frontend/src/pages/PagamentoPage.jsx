@@ -1,103 +1,51 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, CreditCard, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
-import { meusCartoes, deletarCartao } from '../api/cartaoAPI';
 import { verMeuCarrinho, limparCarrinho } from '../api/carrinhoAPI';
 import { criarPedido, meusPedidos } from '../api/pedidosAPI';
-import { initMercadoPago, tokenizarCartao, detectarBandeira, formatarNumeroCartao, formatarValidade } from '../services/mercadoPagoService';
+import { initMercadoPago, tokenizarCartao, formatarNumeroCartao, formatarValidade } from '../services/mercadoPagoService';
 
 const API_URL = 'https://coding2youmarket-production.up.railway.app/api';
 const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
 
 export default function PagamentoPage() {
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
-    const [cartoes, setCartoes] = useState([]);
-    const [cartaoAtivo, setCartaoAtivo] = useState(0);
-    const [adicionandoCartao, setAdicionandoCartao] = useState(false);
-    const [salvandoCartao, setSalvandoCartao] = useState(false);
     const [processandoPagamento, setProcessandoPagamento] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [resumo, setResumo] = useState(null);
-    const [novoCartao, setNovoCartao] = useState({
+    const [cartao, setCartao] = useState({
         numero: '',
         nome: '',
         validade: '',
         cvv: '',
         cpf: ''
     });
+
     const dadosCompra = location.state || {};
+
     useEffect(() => {
-        const inicializar = async () => {
-            initMercadoPago(MP_PUBLIC_KEY);
-
-            // Verificar Club duplicado
-            if (dadosCompra.tipoCompra === 'club') {
-                try {
-                    const pedidos = await meusPedidos();
-                    const clubExistente = (pedidos || []).find(
-                        p => p.frequencia === 'club' &&
-                            (p.status === 'ativa' || p.status === 'pausada')
-                    );
-
-                    if (clubExistente) {
-                        toast.error(t('payment.clubAlreadyActive') || 'Você já possui um Club Market ativo!');
-                        setTimeout(() => navigate('/pedidos'), 2000);
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Erro ao verificar club:', error);
-                }
-            }
-
-            carregarCartoes();
-            calcularResumo();
-        };
-
-        inicializar();
+        initMercadoPago(MP_PUBLIC_KEY);
+        calcularResumo();
     }, []);
-
-    const carregarCartoes = async () => {
-        try {
-            const { success, cartoes: cartoesBackend } = await meusCartoes();
-            if (success && cartoesBackend.length > 0) {
-                setCartoes(cartoesBackend);
-            }
-        } catch (error) {
-            console.error('Erro ao carregar cartões:', error);
-            toast.error('Erro ao carregar cartões');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const calcularResumo = async () => {
         try {
-            // Se for compra Club, usar valor fixo
             if (dadosCompra.tipoCompra === 'club') {
                 const valorClub = dadosCompra.valorClub || 39.90;
                 setResumo({
                     subtotal: valorClub,
                     descontoClub: 0,
-                    frete: 0, // Club não tem frete
+                    frete: 0,
                     total: valorClub
                 });
                 return;
             }
 
-            // Compra normal - calcular carrinho
             const carrinho = await verMeuCarrinho();
             if (!carrinho || carrinho.length === 0) {
-                setResumo({
-                    subtotal: 0,
-                    descontoClub: 0,
-                    frete: 0,
-                    total: 0
-                });
+                setResumo({ subtotal: 0, descontoClub: 0, frete: 0, total: 0 });
                 return;
             }
 
@@ -107,155 +55,67 @@ export default function PagamentoPage() {
                 return acc + (preco * quantidade);
             }, 0);
 
-            // Buscar Club ativo do usuário
             const pedidos = await meusPedidos();
-
-            const valorFrete = 10.23; // Valor padrão do frete
+            const valorFrete = 10.23;
             let descontoClub = 0;
-            let percentualDesconto = 0;
 
-            // Verificar se tem Club ativo
             const clubAtivo = (pedidos || []).find(
-                p => p.frequencia === 'club' &&
-                    (p.status === 'ativa' || p.status === 'pausada')
+                p => p.frequencia === 'club' && (p.status === 'ativa' || p.status === 'pausada')
             );
 
             if (clubAtivo) {
-                // Desconto no FRETE (sempre R$ 10,23 para membros Club)
                 descontoClub += valorFrete;
-
-                // Aplicar desconto ADICIONAL nos produtos baseado no plano
                 const valorFinal = clubAtivo.valorfinal || clubAtivo.valortotal;
+                let percentualDesconto = 0;
 
-                // R$ 9,90 = Entrada (só frete grátis)
-                // R$ 19,90 = Intermediário (frete grátis + 10% desconto produtos)
-                // R$ 39,90 = Premium (frete grátis + 25% desconto produtos)
-                if (valorFinal >= 39) {
-                    percentualDesconto = 0.25; // 25%
-                } else if (valorFinal >= 19) {
-                    percentualDesconto = 0.10; // 10%
-                } else {
-                    percentualDesconto = 0; // Só frete grátis
-                }
+                if (valorFinal >= 39) percentualDesconto = 0.25;
+                else if (valorFinal >= 19) percentualDesconto = 0.10;
 
-                // Somar desconto dos produtos ao desconto do frete
                 descontoClub += (subtotal * percentualDesconto);
             }
 
             const frete = subtotal > 0 ? valorFrete : 0;
             const total = subtotal + frete - descontoClub;
 
-            setResumo({
-                subtotal,
-                descontoClub,
-                frete,
-                total,
-                temClub: !!clubAtivo,
-                percentualDesconto
-            });
+            setResumo({ subtotal, descontoClub, frete, total });
         } catch (error) {
             console.error('Erro ao calcular resumo:', error);
             setResumo({ subtotal: 0, descontoClub: 0, frete: 0, total: 0 });
         }
     };
 
-    const handleProximoCartao = () => {
-        setCartaoAtivo((prev) => (prev + 1) % cartoes.length);
-    };
-
-    const handleCartaoAnterior = () => {
-        setCartaoAtivo((prev) => (prev - 1 + cartoes.length) % cartoes.length);
-    };
-
-    const handleDeletarCartao = async (cartaoId) => {
-        // Toast com confirmação bonita ao invés de confirm()
-        toast((t) => (
-            <div className="flex flex-col gap-3">
-                <p className="font-medium">Tem certeza que deseja excluir este cartão?</p>
-                <div className="flex gap-2">
-                    <button
-                        onClick={async () => {
-                            toast.dismiss(t.id);
-                            const loadingToast = toast.loading('Removendo cartão...');
-                            try {
-                                const response = await deletarCartao(cartaoId);
-
-                                if (response.success) {
-                                    toast.success('Cartão removido com sucesso!', { id: loadingToast });
-
-                                    // Atualiza lista IMEDIATAMENTE removendo o cartão
-                                    const novosCartoes = cartoes.filter(c => c.id !== cartaoId);
-                                    setCartoes(novosCartoes);
-
-                                    // Ajusta índice ativo
-                                    if (novosCartoes.length === 0) {
-                                        // Sem cartões, reseta
-                                        setCartaoAtivo(0);
-                                    } else if (cartaoAtivo >= novosCartoes.length) {
-                                        // Índice fora do range, vai pro último
-                                        setCartaoAtivo(novosCartoes.length - 1);
-                                    }
-                                } else {
-                                    toast.error(response.message || 'Erro ao remover cartão', { id: loadingToast });
-                                }
-                            } catch (error) {
-                                console.error('Erro ao deletar cartão:', error);
-                                toast.error('Erro ao remover cartão', { id: loadingToast });
-                            }
-                        }}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700"
-                    >
-                        Excluir
-                    </button>
-                    <button
-                        onClick={() => toast.dismiss(t.id)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
-                    >
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        ), { duration: 10000 });
-    };
-
-
-    const handleContinuar = () => {
-        if (cartoes.length === 0) {
-            toast.error('Adicione um cartão para continuar');
-            return;
-        }
-        if (!resumo || resumo.total === 0) {
-            toast.error('Carrinho vazio. Adicione produtos para continuar.');
-            return;
-        }
-        // Abrir modal CVV
-        setMostrarCVVModal(true);
-    };
-    const handleAdicionarCartao = async () => {
-        if (!novoCartao.numero || !novoCartao.nome || !novoCartao.cvv || !novoCartao.validade || !novoCartao.cpf) {
+    const handlePagar = async () => {
+        if (!cartao.numero || !cartao.nome || !cartao.cvv || !cartao.validade || !cartao.cpf) {
             toast.error('Preencha todos os campos do cartão');
             return;
         }
 
-        setSalvandoCartao(true);
-        const loadingToast = toast.loading('Salvando cartão...');
+        if (!resumo || resumo.total === 0) {
+            toast.error('Carrinho vazio');
+            return;
+        }
+
+        setProcessandoPagamento(true);
+        const loadingToast = toast.loading('Processando pagamento...');
 
         try {
             // 1. Tokenizar cartão
             const resultado = await tokenizarCartao({
-                numero: novoCartao.numero.replace(/\s/g, ''),
-                nome: novoCartao.nome,
-                validade: novoCartao.validade,
-                cvv: novoCartao.cvv,
-                cpf: novoCartao.cpf.replace(/\D/g, '')
+                numero: cartao.numero.replace(/\s/g, ''),
+                nome: cartao.nome,
+                validade: cartao.validade,
+                cvv: cartao.cvv,
+                cpf: cartao.cpf.replace(/\D/g, '')
             });
 
             if (!resultado.success || !resultado.token) {
-                throw new Error(resultado.message || 'Erro ao gerar token');
+                throw new Error(resultado.message || 'Erro ao gerar token do cartão');
             }
 
-            // 2. Salvar no Backend
-            const response = await fetch(`${API_URL}/pagamentos/salvar-cartao`, {
+            console.log('✅ Token gerado:', resultado.token);
+
+            // 2. Processar pagamento direto
+            const response = await fetch(`${API_URL}/pagamentos/processar-direto`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -263,52 +123,43 @@ export default function PagamentoPage() {
                 },
                 body: JSON.stringify({
                     token: resultado.token,
-                    bandeira: resultado.bandeira || 'unknown',
-                    ultimos4digitos: resultado.ultimos4Digitos || novoCartao.numero.slice(-4),
-                    nomeImpresso: novoCartao.nome,
-                    principal: cartoes.length === 0 // Primeiro cartão é principal
+                    transactionAmount: resumo.total,
+                    installments: 1,
+                    description: dadosCompra.tipoCompra === 'club' ? 'Assinatura Club Market' : 'Compra Coding2You Market',
+                    paymentMethodId: resultado.bandeira || 'master'
                 })
             });
 
             const data = await response.json();
 
-            if (data.success) {
-                toast.success('Cartão salvo com sucesso!', { id: loadingToast });
-                setAdicionandoCartao(false);
-                carregarCartoes(); // Atualiza a lista
-                // Limpar form
-                setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', cpf: '' });
-            } else {
-                // Se der erro de customer, sugerir tentar novamente (o backend já limpou o customer inválido)
-                if (data.error === 'customer_not_found') {
-                    toast.error('Erro de sincronização. Por favor, tente salvar novamente.', { id: loadingToast, duration: 5000 });
-                } else {
-                    toast.error(data.message || 'Erro ao salvar cartão', { id: loadingToast });
-                }
-            }
+            if (data.success && data.status === 'approved') {
+                toast.success('Pagamento aprovado!', { id: loadingToast });
 
+                // 3. Criar pedido
+                await criarPedido({
+                    items: dadosCompra.tipoCompra === 'club' ? [] : await verMeuCarrinho(),
+                    total: resumo.total,
+                    tipoCompra: dadosCompra.tipoCompra || 'normal'
+                });
+
+                // 4. Limpar carrinho se não for club
+                if (dadosCompra.tipoCompra !== 'club') {
+                    await limparCarrinho();
+                }
+
+                // Redirecionar para confirmação
+                navigate('/confirmacao', { state: { mercadoPagoId: data.mercadoPagoId } });
+            } else {
+                toast.error(data.details || data.message || 'Pagamento recusado', { id: loadingToast });
+            }
         } catch (error) {
-            console.error('Erro:', error);
-            toast.error('Erro ao salvar cartão', { id: loadingToast });
+            console.error('❌ Erro:', error);
+            toast.error(error.message || 'Erro ao processar pagamento', { id: loadingToast });
         } finally {
-            setSalvandoCartao(false);
+            setProcessandoPagamento(false);
         }
     };
 
-    const formatarCartaoDisplay = (cartao) => {
-        const ultimos4 = cartao.ultimos4digitos || '****';
-        return `•••• •••• •••• ${ultimos4}`;
-    };
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">{t('common.loading')}</p>
-                </div>
-            </div>
-        );
-    }
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
             <Header />
@@ -323,203 +174,120 @@ export default function PagamentoPage() {
                     <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/20 rounded-full mr-4">
                         <ArrowLeft className="text-white" size={24} />
                     </button>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{t('payment.title')}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Payment</h1>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl"></div>
             </div>
+
             <main className="container mx-auto px-4 md:px-8 max-w-5xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        {cartoes.length > 0 && (
-                            <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
-                                <div className="relative">
-                                    <div className="w-full aspect-[1.586] bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden">
-                                        <div className="w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-lg mb-6"></div>
-                                        <p className="text-xl md:text-2xl font-mono tracking-wider mb-6">
-                                            {formatarCartaoDisplay(cartoes[cartaoAtivo])}
-                                        </p>
-                                        <div className="flex justify-between items-end">
-                                            <div>
-                                                <p className="text-xs text-gray-400 mb-1">{t('payment.cardName')}</p>
-                                                <p className="font-semibold">{cartoes[cartaoAtivo].nomeimpresso}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-gray-400 mb-1">{t('payment.cardBrand')}</p>
-                                                <p className="font-semibold">{cartoes[cartaoAtivo].bandeira}</p>
-                                            </div>
-                                        </div>
-                                        <div className="absolute top-6 right-6">
-                                            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                                <CreditCard size={24} />
-                                            </div>
-                                        </div>
-                                        <div className="absolute top-6 right-20 text-2xl">📡</div>
-                                    </div>
-
-                                    {/* Botão Deletar Cartão - Sempre visível */}
-                                    <button
-                                        onClick={() => handleDeletarCartao(cartoes[cartaoAtivo].id)}
-                                        className="mt-3 w-full py-2 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all flex items-center justify-center gap-2 border border-red-200"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        {t('payment.removeCard')}
-                                    </button>
-
-                                    {cartoes.length > 1 && (
-                                        <div className="flex justify-center gap-2 mt-4">
-                                            <button onClick={handleCartaoAnterior} className="p-2 hover:bg-gray-100 rounded-full">
-                                                <ChevronLeft size={20} />
-                                            </button>
-                                            <div className="flex gap-2 items-center">
-                                                {cartoes.map((_, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={`h-2 rounded-full transition-all ${idx === cartaoAtivo ? 'w-8 bg-gray-900' : 'w-2 bg-gray-300'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <button onClick={handleProximoCartao} className="p-2 hover:bg-gray-100 rounded-full">
-                                                <ChevronRight size={20} />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                        <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
+                            <h3 className="font-bold text-gray-800 mb-4">Add card</h3>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                                <input
+                                    type="text"
+                                    placeholder="1234 1234 1234 1234"
+                                    maxLength="19"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                    value={cartao.numero}
+                                    onChange={(e) => setCartao({ ...cartao, numero: formatarNumeroCartao(e.target.value) })}
+                                />
                             </div>
-                        )}
-                        <button
-                            onClick={() => setAdicionandoCartao(!adicionandoCartao)}
-                            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-green-500 hover:text-green-600 transition-all flex items-center justify-center gap-2 mb-6"
-                        >
-                            <Plus size={20} />
-                            {t('payment.addCard')}
-                        </button>
-                        {adicionandoCartao && (
-                            <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
-                                <h3 className="font-bold text-gray-800 mb-4">{t('payment.addCard')}</h3>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Name (as on card)</label>
+                                <input
+                                    type="text"
+                                    placeholder="APRO"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none uppercase"
+                                    value={cartao.nome}
+                                    onChange={(e) => setCartao({ ...cartao, nome: e.target.value.toUpperCase() })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.cardNumber')}</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Expiry</label>
                                     <input
                                         type="text"
-                                        placeholder="1234 1234 1234 1234"
-                                        maxLength="19"
+                                        placeholder="12/25"
+                                        maxLength="5"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                        value={novoCartao.numero}
-                                        onChange={(e) => setNovoCartao({ ...novoCartao, numero: formatarNumeroCartao(e.target.value) })}
+                                        value={cartao.validade}
+                                        onChange={(e) => setCartao({ ...cartao, validade: formatarValidade(e.target.value) })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.cardHolderName')}</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
                                     <input
                                         type="text"
-                                        placeholder="NOME COMPLETO"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none uppercase"
-                                        value={novoCartao.nome}
-                                        onChange={(e) => setNovoCartao({ ...novoCartao, nome: e.target.value.toUpperCase() })}
+                                        placeholder="123"
+                                        maxLength="4"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                        value={cartao.cvv}
+                                        onChange={(e) => setCartao({ ...cartao, cvv: e.target.value.replace(/\D/g, '') })}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('payment.expiryDate')}</label>
-                                        <input
-                                            type="text"
-                                            placeholder="MM/AA"
-                                            maxLength="5"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                            value={novoCartao.validade}
-                                            onChange={(e) => setNovoCartao({ ...novoCartao, validade: formatarValidade(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div className="col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                                        <input
-                                            type="text"
-                                            placeholder="123"
-                                            maxLength="4"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                            value={novoCartao.cvv}
-                                            onChange={(e) => setNovoCartao({ ...novoCartao, cvv: e.target.value.replace(/\D/g, '') })}
-                                        />
-                                    </div>
-                                    <div className="col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
-                                        <input
-                                            type="text"
-                                            placeholder="CPF"
-                                            maxLength="14"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-xs"
-                                            value={novoCartao.cpf}
-                                            onChange={(e) => setNovoCartao({ ...novoCartao, cpf: e.target.value.replace(/\D/g, '') })}
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
+                                    <input
+                                        type="text"
+                                        placeholder="CPF"
+                                        maxLength="14"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-xs"
+                                        value={cartao.cpf}
+                                        onChange={(e) => setCartao({ ...cartao, cpf: e.target.value.replace(/\D/g, '') })}
+                                    />
                                 </div>
-                                <button
-                                    onClick={handleAdicionarCartao}
-                                    disabled={salvandoCartao}
-                                    className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${salvandoCartao ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
-                                        }`}
-                                >
-                                    {salvandoCartao ? 'Processando...' : 'Salvar Cartão'}
-                                </button>
                             </div>
-                        )}
+                        </div>
                     </div>
-                    <div className="hidden md:block">
+
+                    <div>
                         <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                            <h3 className="font-bold text-gray-800 mb-4">{t('cart.orderSummary')}</h3>
+                            <h3 className="font-bold text-gray-800 mb-4">Order Summary</h3>
                             {resumo && (
                                 <div className="space-y-3 mb-6">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('cart.subtotal')}</span>
+                                        <span>Subtotal</span>
                                         <span>R$ {resumo.subtotal.toFixed(2).replace('.', ',')}</span>
                                     </div>
                                     {resumo.descontoClub > 0 && (
                                         <div className="flex justify-between text-green-600">
-                                            <span>{t('cart.clubDiscount')}</span>
+                                            <span>Club+ Discount</span>
                                             <span>- R$ {resumo.descontoClub.toFixed(2).replace('.', ',')}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('cart.shipping')}</span>
+                                        <span>Shipping</span>
                                         <span>R$ {resumo.frete.toFixed(2).replace('.', ',')}</span>
                                     </div>
                                     <div className="h-px bg-gray-200"></div>
                                     <div className="flex justify-between text-lg font-bold text-gray-800">
-                                        <span>{t('cart.total')}</span>
+                                        <span>Total</span>
                                         <span className="text-green-700">R$ {resumo.total.toFixed(2).replace('.', ',')}</span>
                                     </div>
                                     {resumo.descontoClub > 0 && (
                                         <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
                                             <p className="text-sm text-green-700">
-                                                <span className="font-semibold">✨ {t('cart.clubBenefits')}</span> <span className="font-bold">R$ {resumo.descontoClub.toFixed(2).replace('.', ',')}</span> {t('cart.withClub')}
+                                                ✨ You saved R$ {resumo.descontoClub.toFixed(2).replace('.', ',')} with Club+
                                             </p>
                                         </div>
                                     )}
                                 </div>
                             )}
                             <button
-                                onClick={handleContinuar}
+                                onClick={handlePagar}
                                 disabled={processandoPagamento}
                                 className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${processandoPagamento ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 active:scale-95'
                                     }`}
                             >
-                                {processandoPagamento ? t('payment.processing') : t('cart.checkout')}
+                                {processandoPagamento ? 'Processing...' : 'Continue'}
                             </button>
                         </div>
                     </div>
                 </div>
-                <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40">
-                    <button
-                        onClick={handleContinuar}
-                        disabled={processandoPagamento}
-                        className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${processandoPagamento ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 active:scale-95'
-                            }`}
-                    >
-                        {processandoPagamento ? 'Processando...' : `Continuar - R$ ${resumo?.total.toFixed(2).replace('.', ',') || '0,00'}`}
-                    </button>
-                </div>
-            </main >
-        </div >
+            </main>
+        </div>
     );
 }
