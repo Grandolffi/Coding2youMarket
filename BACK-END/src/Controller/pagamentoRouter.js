@@ -140,6 +140,11 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         message: "Token do cartão é obrigatório"
       });
     }
+
+    // 🔍 LOG DEBUG - Verificar Credenciais
+    const tokenPrefix = process.env.MP_ACCESS_TOKEN ? process.env.MP_ACCESS_TOKEN.substring(0, 5) : 'MISSING';
+    console.log(`🔑 MP Credential Prefix (Save Card): ${tokenPrefix}...`);
+
     // 1️⃣ Buscar customer_id no banco
     let customerId = await getCustomerIdPorUsuario(usuarioId);
 
@@ -147,25 +152,30 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
     if (!customerId) {
       const customerClient = new Customer(client);
 
-      // Email: usar real OU fake (sandbox.local) - NUNCA @testuser.com
-      const emailCustomer = req.usuario.email || `user_${usuarioId}@sandbox.local`;
+      // 🛡️ Email Seguro: Teste Sandbox exige email de test user ou email único válido.
+      // Para evitar erro 400/500 por email inválido, usaremos um padrão seguro se o do usuário falhar.
+      const emailCustomer = req.usuario.email || `user_${usuarioId}_${Date.now()}@testuser.com`;
+
+      console.log(`👤 Criando Customer para: ${emailCustomer}`);
 
       const customer = await customerClient.create({
         body: {
           email: emailCustomer,
-          first_name: req.usuario.nome || "Cliente",
-          last_name: "App"
+          first_name: req.usuario.nome || "Test",
+          last_name: "Customer"
         }
       });
 
       customerId = customer.id;
       await salvarCustomerId(usuarioId, customerId);
-      console.log("✅ Customer criado:", customerId);
+      console.log("✅ Customer criado no MP:", customerId);
+
+      // 🕒 Pequeno delay para garantir propagação no Sandbox
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // 2️⃣ Salvar cartão no Customer
-    console.log('Tentando criar cartão para customer:', customerId);
-    console.log('Token recebido:', token ? 'Presente' : 'Ausente');
+    // 3️⃣ Salvar cartão no Customer
+    console.log(`💳 Tentando associar token ${token} ao Customer ${customerId}...`);
 
     const cardClient = new CustomerCard(client);
     let card;
@@ -175,55 +185,42 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
         customer_id: customerId,
         body: { token }
       });
-      console.log('Cartão criado com sucesso! ID:', card.id);
-
-      // ✅ Agora sim, salvar customer_id no banco (só depois que o card foi criado)
-      await salvarCustomerId(usuarioId, customerId);
-      console.log('Customer_id salvo no banco:', customerId);
+      console.log('✅ Cartão criado com sucesso! ID:', card.id);
 
     } catch (error) {
-      console.error('Erro ao criar cartão:', {
-        message: error.message,
-        status: error.status,
-        cause: error.cause
-      });
+      console.error('❌ Erro ao criar cartão no MP:', JSON.stringify(error, null, 2));
 
-      // Se o customer não existe (404), deletar do banco e do MP
-      if (error.status === 404) {
-        console.log('Customer inválido, tentando deletar...');
+      // Se erro for Customer Not Found (404) ou bad_request que indica customer inválido
+      if (error.status === 404 || (error.cause && error.cause.some(c => c.code === '10026'))) { // 10026: customer not found
+        console.log('⚠️ Customer parece inválido/inexistente. Limpando dados...');
 
-        // Deletar customer do Mercado Pago
-        const customerClient = new Customer(client);
-        try {
-          await customerClient.remove({ customerId: customerId });
-          console.log('Customer deletado do MP');
-        } catch (delError) {
-          console.log('Não foi possível deletar customer:', delError.message);
-        }
-
-        // Limpar do banco também
+        // Limpar do banco para forçar recriação na próxima
         await salvarCustomerId(usuarioId, null);
+
+        // Tentar deletar do MP só pra limpar sujeira, se existir
+        try {
+          const customerClient = new Customer(client);
+          await customerClient.remove({ customerId: customerId });
+        } catch (ignored) { }
 
         return res.status(400).json({
           success: false,
-          message: 'Erro ao adicionar cartão. Tente novamente.',
-          error: 'customer_not_found'
+          message: "Erro de sincronização. Tente salvar novamente.",
+          error: 'customer_not_found_retry'
         });
-      } else {
-        throw error;
       }
+      throw error;
     }
 
-
-    // 3️⃣ Salvar card_id e customer_id no banco
+    // 4️⃣ Salvar card no banco
     const cartaoSalvo = await salvarCartaoTokenizado({
       usuarioId,
       customerId: customerId,
       cardId: card.id,
-      tokenCartao: null, // Não armazenar mais o token
+      tokenCartao: null,
       bandeira: card.payment_method.id,
       ultimos4Digitos: card.last_four_digits,
-      nomeImpresso: card.cardholder.name,
+      nomeImpresso: card.cardholder.name || nomeImpresso,
       principal: principal || false,
       isDebito: false
     });
@@ -233,11 +230,12 @@ router.post("/pagamentos/salvar-cartao", auth, async (req, res) => {
       message: "Cartão salvo com sucesso",
       cartao: cartaoSalvo
     });
+
   } catch (error) {
-    console.error('Erro ao salvar cartão:', error);
+    console.error("❌ Erro fatal ao salvar cartão:", error);
     return res.status(500).json({
       success: false,
-      message: "Erro ao salvar cartão",
+      message: "Erro ao salvar cartão no sistema",
       error: error.message
     });
   }

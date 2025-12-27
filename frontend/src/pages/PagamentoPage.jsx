@@ -167,111 +167,6 @@ export default function PagamentoPage() {
         setCartaoAtivo((prev) => (prev - 1 + cartoes.length) % cartoes.length);
     };
 
-    const handleAdicionarCartao = async () => {
-        // Validações básicas
-        if (!novoCartao.numero || !novoCartao.nome || !novoCartao.validade || !novoCartao.cvv) {
-            toast.error(t('payment.fillAllFields') || 'Preencha todos os campos do cartão');
-            return;
-        }
-
-        // Validar número do cartão (13-19 dígitos)
-        const numeroLimpo = novoCartao.numero.replace(/\s/g, '');
-        if (numeroLimpo.length < 13 || numeroLimpo.length > 19) {
-            toast.error(t('payment.invalidCardNumber') || 'Número do cartão deve ter entre 13 e 19 dígitos');
-            return;
-        }
-
-        // Validar CVV (3-4 dígitos)
-        if (novoCartao.cvv.length < 3 || novoCartao.cvv.length > 4) {
-            toast.error(t('payment.invalidCVV') || 'CVV deve ter 3 ou 4 dígitos');
-            return;
-        }
-
-        // Validar validade (MM/AA)
-        if (novoCartao.validade.length !== 5) {
-            toast.error(t('payment.invalidExpiry') || 'Validade inválida. Use o formato MM/AA');
-            return;
-        }
-
-        const [mes, ano] = novoCartao.validade.split('/');
-        const mesNum = parseInt(mes, 10);
-        const anoNum = parseInt('20' + ano, 10);
-
-        if (mesNum < 1 || mesNum > 12) {
-            toast.error('Mês inválido');
-            return;
-        }
-
-        const hoje = new Date();
-        const anoAtual = hoje.getFullYear();
-        const mesAtual = hoje.getMonth() + 1;
-
-        if (anoNum < anoAtual || (anoNum === anoAtual && mesNum < mesAtual)) {
-            toast.error('Cartão expirado');
-            return;
-        }
-
-        // Validar nome (mínimo 3 caracteres)
-        if (novoCartao.nome.trim().length < 3) {
-            toast.error('Nome no cartão deve ter pelo menos 3 caracteres');
-            return;
-        }
-
-        setSalvandoCartao(true);
-        const loadingToast = toast.loading('Salvando cartão...');
-        try {
-            const tokenResult = await tokenizarCartao(novoCartao);
-            if (!tokenResult.success) {
-                // Traduzir mensagens do Mercado Pago
-                let mensagemErro = tokenResult.message;
-                if (mensagemErro.includes('invalid_expiration')) {
-                    mensagemErro = 'Data de validade inválida';
-                } else if (mensagemErro.includes('invalid_cardholder_name')) {
-                    mensagemErro = 'Nome no cartão inválido';
-                } else if (mensagemErro.includes('invalid_security_code')) {
-                    mensagemErro = 'CVV inválido';
-                } else if (mensagemErro.includes('invalid_card_number')) {
-                    mensagemErro = 'Número do cartão inválido';
-                }
-
-                toast.error(mensagemErro, { id: loadingToast });
-                setSalvandoCartao(false);
-                return;
-            }
-
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/pagamentos/salvar-cartao`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    token: tokenResult.token,
-                    bandeira: tokenResult.bandeira, // ✅ USA A BANDEIRA DO MP!
-                    ultimos4digitos: tokenResult.ultimos4Digitos, // ✅ USA OS 4 DÍGITOS DO MP!
-                    nomeImpresso: novoCartao.nome,
-                    principal: cartoes.length === 0
-                })
-            });
-            const data = await response.json();
-            if (data.success) {
-                toast.success('Cartão adicionado com sucesso!', { id: loadingToast });
-                await carregarCartoes();
-                setAdicionandoCartao(false);
-                setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', cpf: '' });
-            } else {
-                toast.error(data.message || 'Erro ao adicionar cartão', { id: loadingToast });
-            }
-        } catch (error) {
-            console.error('Erro ao adicionar cartão:', error);
-            toast.error('Erro ao adicionar cartão. Tente novamente.', { id: loadingToast });
-        } finally {
-            setSalvandoCartao(false);
-        }
-    };
-
-
     const handleDeletarCartao = async (cartaoId) => {
         // Toast com confirmação bonita ao invés de confirm()
         toast((t) => (
@@ -336,17 +231,17 @@ export default function PagamentoPage() {
         // Abrir modal CVV
         setMostrarCVVModal(true);
     };
-    const handlePagarDireto = async () => {
+    const handleAdicionarCartao = async () => {
         if (!novoCartao.numero || !novoCartao.nome || !novoCartao.cvv || !novoCartao.validade || !novoCartao.cpf) {
             toast.error('Preencha todos os campos do cartão');
             return;
         }
 
-        setProcessandoPagamento(true);
-        const loadingToast = toast.loading('Processando pagamento...');
+        setSalvandoCartao(true);
+        const loadingToast = toast.loading('Salvando cartão...');
 
         try {
-            // Tokenizar cartão com MercadoPago
+            // 1. Tokenizar cartão
             const resultado = await tokenizarCartao({
                 numero: novoCartao.numero.replace(/\s/g, ''),
                 nome: novoCartao.nome,
@@ -356,41 +251,47 @@ export default function PagamentoPage() {
             });
 
             if (!resultado.success || !resultado.token) {
-                throw new Error(resultado.message || 'Erro ao gerar token do cartão');
+                throw new Error(resultado.message || 'Erro ao gerar token');
             }
 
-            console.log('Token gerado:', resultado.token);
-
-            // Processar pagamento
-            const response = await fetch(`${API_URL}/pagamentos/processar-direto`, {
+            // 2. Salvar no Backend
+            const response = await fetch(`${API_URL}/pagamentos/salvar-cartao`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    token: resultado.token,  // ✅ Agora envia SÓ a string do token
-                    transactionAmount: resumo.total,
-                    installments: 1,
-                    description: dadosCompra.tipoCompra === 'club' ? 'Club Market' : 'Compra Subscrivery',
-                    paymentMethodId: resultado.bandeira || 'visa'  // ✅ Usa bandeira detectada
+                    token: resultado.token,
+                    bandeira: resultado.bandeira || 'unknown',
+                    ultimos4digitos: resultado.ultimos4Digitos || novoCartao.numero.slice(-4),
+                    nomeImpresso: novoCartao.nome,
+                    principal: cartoes.length === 0 // Primeiro cartão é principal
                 })
             });
 
-            const result = await response.json();
+            const data = await response.json();
 
-            if (result.success && result.status === 'approved') {
-                toast.success('Pagamento aprovado!', { id: loadingToast });
-                navigate('/pedidos');
+            if (data.success) {
+                toast.success('Cartão salvo com sucesso!', { id: loadingToast });
+                setAdicionandoCartao(false);
+                carregarCartoes(); // Atualiza a lista
+                // Limpar form
+                setNovoCartao({ numero: '', nome: '', validade: '', cvv: '', cpf: '' });
             } else {
-                toast.error(result.message || `Pagamento ${result.status}`, { id: loadingToast });
+                // Se der erro de customer, sugerir tentar novamente (o backend já limpou o customer inválido)
+                if (data.error === 'customer_not_found') {
+                    toast.error('Erro de sincronização. Por favor, tente salvar novamente.', { id: loadingToast, duration: 5000 });
+                } else {
+                    toast.error(data.message || 'Erro ao salvar cartão', { id: loadingToast });
+                }
             }
 
         } catch (error) {
-            console.error('Erro ao processar pagamento:', error);
-            toast.error('Erro ao processar pagamento', { id: loadingToast });
+            console.error('Erro:', error);
+            toast.error('Erro ao salvar cartão', { id: loadingToast });
         } finally {
-            setProcessandoPagamento(false);
+            setSalvandoCartao(false);
         }
     };
 
@@ -554,12 +455,12 @@ export default function PagamentoPage() {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={handlePagarDireto}
-                                    disabled={processandoPagamento}
-                                    className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${processandoPagamento ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                                    onClick={handleAdicionarCartao}
+                                    disabled={salvandoCartao}
+                                    className={`w-full py-3 rounded-full font-semibold text-white transition-all shadow-lg ${salvandoCartao ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
                                         }`}
                                 >
-                                    {processandoPagamento ? 'Processando...' : 'Pagar Agora'}
+                                    {salvandoCartao ? 'Processando...' : 'Salvar Cartão'}
                                 </button>
                             </div>
                         )}
