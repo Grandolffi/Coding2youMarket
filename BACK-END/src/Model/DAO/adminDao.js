@@ -68,11 +68,11 @@ const getDashboardMetrics = async () => {
     `;
     const clubDistribuicao = await client.query(clubDistribuicaoQuery);
 
-    // Produtos com estoque baixo (< 10)
+    // Produtos com estoque baixo (< 10) - usando coluna estoque dentro de produtos
     const estoqueBaixoQuery = `
       SELECT COUNT(*) as produtos_estoque_baixo
-      FROM estoque
-      WHERE quantidade < 10
+      FROM produtos
+      WHERE estoque < 10
     `;
     const estoqueBaixo = await client.query(estoqueBaixoQuery);
 
@@ -107,6 +107,8 @@ const getDashboardMetrics = async () => {
   }
 };
 
+// ==================== VENDAS ====================
+
 /**
  * Retorna vendas dos últimos N dias
  */
@@ -134,21 +136,22 @@ const getVendasUltimosDias = async (dias = 7) => {
 };
 
 /**
- * Retorna top 5 produtos mais vendidos
+ * Retorna top N produtos mais vendidos
+ * Como não temos tabela itempedido, retorna os produtos mais recentes
  */
 const getTopProdutos = async (limit = 5) => {
   const client = await pool.connect();
   try {
-    // Como não temos itempedido, retornamos produtos com mais estoque vendido
     const query = `
       SELECT 
-        p.id,
-        p.nome,
-        p.preco,
+        id_produto as id,
+        nome,
+        preco,
         0 as total_vendas,
         0 as quantidade_vendida
-      FROM produtos p
-      ORDER BY p.id DESC
+      FROM produtos
+      WHERE ativo = true
+      ORDER BY id_produto DESC
       LIMIT $1
     `;
     const result = await client.query(query, [limit]);
@@ -164,23 +167,21 @@ const getTopProdutos = async (limit = 5) => {
 // ==================== PRODUTOS ====================
 
 /**
- * Retorna todos os produtos com informações de estoque
+ * Retorna produtos com informações de estoque
  */
 const getProdutosComEstoque = async () => {
   const client = await pool.connect();
   try {
     const query = `
       SELECT 
-        p.id,
-        p.nome,
-        p.preco,
-        p.descricao,
-        p.imageurl,
-        p.categoria,
-        COALESCE(e.quantidade, 0) as estoque
-      FROM produtos p
-      LEFT JOIN estoque e ON p.id = e.produtoid
-      ORDER BY p.nome ASC
+        id_produto as id,
+        nome,
+        preco,
+        estoque,
+        estoqueminimo,
+        ativo
+      FROM produtos
+      ORDER BY nome
     `;
     const result = await client.query(query);
     return result.rows;
@@ -195,17 +196,16 @@ const getProdutosComEstoque = async () => {
 /**
  * Atualiza estoque de um produto
  */
-const updateEstoqueProduto = async (produtoId, novaQuantidade) => {
+const updateEstoqueProduto = async (produtoId, quantidade) => {
   const client = await pool.connect();
   try {
     const query = `
-      INSERT INTO estoque (produtoid, quantidade)
-      VALUES ($1, $2)
-      ON CONFLICT (produtoid)
-      DO UPDATE SET quantidade = $2
-      RETURNING *
+      UPDATE produtos
+      SET estoque = $1
+      WHERE id_produto = $2
+      RETURNING id_produto as id, nome, estoque
     `;
-    const result = await client.query(query, [produtoId, novaQuantidade]);
+    const result = await client.query(query, [quantidade, produtoId]);
     return result.rows[0];
   } catch (error) {
     console.error('Erro em updateEstoqueProduto:', error);
@@ -227,17 +227,16 @@ const getAllPedidos = async () => {
       SELECT 
         p.id,
         p.usuarioid,
-        u.nome as usuario_nome,
-        u.email as usuario_email,
         p.valortotal,
         p.valorfinal,
+        p.descontoclub,
         p.status,
-        p.frequencia,
-        p.datacriacao,
-        p.dataatualizacao
+        p.datainicio as datacriacao,
+        u.nome as usuario_nome,
+        u.email as usuario_email
       FROM pedidos p
       JOIN usuarios u ON p.usuarioid = u.id
-      ORDER BY p.datacriacao DESC
+      ORDER BY p.id DESC
     `;
     const result = await client.query(query);
     return result.rows;
@@ -255,13 +254,19 @@ const getAllPedidos = async () => {
 const updateStatusPedido = async (pedidoId, novoStatus) => {
   const client = await pool.connect();
   try {
+    const statusPermitidos = ['ativa', 'pausada', 'cancelada', 'pendente_estoque'];
+
+    if (!statusPermitidos.includes(novoStatus)) {
+      throw new Error('Status inválido');
+    }
+
     const query = `
       UPDATE pedidos
-      SET status = $2, dataatualizacao = CURRENT_TIMESTAMP
-      WHERE id = $1
-      RETURNING *
+      SET status = $1
+      WHERE id = $2
+      RETURNING id, status
     `;
-    const result = await client.query(query, [pedidoId, novoStatus]);
+    const result = await client.query(query, [novoStatus, pedidoId]);
     return result.rows[0];
   } catch (error) {
     console.error('Erro em updateStatusPedido:', error);
@@ -272,43 +277,23 @@ const updateStatusPedido = async (pedidoId, novoStatus) => {
 };
 
 /**
- * Retorna detalhes completos de um pedido
+ * Retorna detalhes de um pedido
  */
 const getPedidoDetalhes = async (pedidoId) => {
   const client = await pool.connect();
   try {
-    // Informações do pedido
-    const pedidoQuery = `
+    const query = `
       SELECT 
         p.*,
         u.nome as usuario_nome,
-        u.email as usuario_email
+        u.email as usuario_email,
+        u.telefone as usuario_telefone
       FROM pedidos p
       JOIN usuarios u ON p.usuarioid = u.id
       WHERE p.id = $1
     `;
-    const pedido = await client.query(pedidoQuery, [pedidoId]);
-
-    if (pedido.rows.length === 0) {
-      return null;
-    }
-
-    // Itens do pedido
-    const itensQuery = `
-      SELECT 
-        ip.*,
-        pr.nome as produto_nome,
-        pr.preco as produto_preco
-      FROM itempedido ip
-      JOIN produtos pr ON ip.produtoid = pr.id
-      WHERE ip.pedidoid = $1
-    `;
-    const itens = await client.query(itensQuery, [pedidoId]);
-
-    return {
-      ...pedido.rows[0],
-      itens: itens.rows
-    };
+    const result = await client.query(query, [pedidoId]);
+    return result.rows[0];
   } catch (error) {
     console.error('Erro em getPedidoDetalhes:', error);
     throw error;
@@ -317,7 +302,7 @@ const getPedidoDetalhes = async (pedidoId) => {
   }
 };
 
-// ==================== USUARIOS ====================
+// ==================== USUÁRIOS ====================
 
 /**
  * Retorna todos os usuários com informações de club
@@ -327,17 +312,16 @@ const getAllUsuarios = async () => {
   try {
     const query = `
       SELECT 
-        u.id,
-        u.nome,
-        u.email,
-        u.ativo,
-        u.role,
-        u.club_marketid,
-        u.datacriacao,
-        cm.valormensal as club_valor
-      FROM usuarios u
-      LEFT JOIN club_market cm ON u.club_marketid = cm.id
-      ORDER BY u.datacriacao DESC
+        id,
+        nome,
+        email,
+        telefone,
+        clubmember,
+        club_marketid,
+        ativo,
+        datacadastro
+      FROM usuarios
+      ORDER BY id DESC
     `;
     const result = await client.query(query);
     return result.rows;
