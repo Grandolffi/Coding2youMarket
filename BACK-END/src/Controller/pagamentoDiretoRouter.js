@@ -27,26 +27,35 @@ router.post("/pagamentos/processar-direto", auth, async (req, res) => {
             });
         }
 
+        // 1. Log para verificar credenciais (sem expor a chave inteira)
+        const tokenPrefix = process.env.MP_ACCESS_TOKEN ? process.env.MP_ACCESS_TOKEN.substring(0, 5) : 'MISSING';
+        console.log(`🔑 MP Credential Prefix: ${tokenPrefix}...`);
+
         console.log('💳 Processando pagamento direto...');
         console.log('✅ Token:', token);
         console.log('✅ Valor:', transactionAmount);
-        console.log('✅ Payment Method:', paymentMethodId);
-        console.log('✅ Email:', req.usuario.email);
+
+        // 2. Email Seguro - Para evitar erro de validação de email
+        // Em produção deve ser o email real, mas em teste sandbox as vezes requer email de test user
+        const payerEmail = req.usuario.email || `test_user_${123456}@testuser.com`;
+        console.log('✅ Payer Email:', payerEmail);
 
         const paymentClient = new Payment(client);
 
+        // 3. Payload Simplificado
         const paymentData = {
             transaction_amount: Number(transactionAmount),
             token: token,
-            description: description || "Pedido Subscrivery",
+            description: description || "Coding2You Market",
             installments: Number(installments) || 1,
             payment_method_id: paymentMethodId || "master",
             payer: {
-                email: req.usuario.email || req.usuario.Email || `user${usuarioId}@test.com`
-            }
+                email: payerEmail
+            },
+            binary_mode: true // Força aprovado ou rejeitado (sem pendente)
         };
 
-        console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));
+        console.log('📦 Dados enviados ao MP:', JSON.stringify(paymentData, null, 2));
 
         const payment = await paymentClient.create({
             body: paymentData
@@ -68,22 +77,27 @@ router.post("/pagamentos/processar-direto", auth, async (req, res) => {
             status: payment.status,
             statusDetail: payment.status_detail,
             mercadoPagoId: payment.id,
-            message: payment.status === 'approved' ? 'Pagamento aprovado!' : 'Pagamento em processamento'
+            message: payment.status === 'approved' ? 'Pagamento aprovado!' : 'Pagamento processado'
         });
 
     } catch (error) {
         console.error("❌ Erro ao processar pagamento:");
         console.error("Error completo:", JSON.stringify(error, null, 2));
-        console.error("Message:", error.message);
-        console.error("Status:", error.status);
-        console.error("Cause:", error.cause);
+
+        // Tentar extrair mensagem útil
+        let errorMessage = "Erro ao processar pagamento";
+        let errorDetails = error.message;
+
+        if (error.cause && error.cause.length > 0) {
+            errorDetails = error.cause.map(e => e.description).join('; ');
+        }
 
         return res.status(500).json({
             success: false,
-            message: "Erro ao processar pagamento",
-            details: error.cause?.[0]?.description || error.message,
-            errorCode: error.cause?.[0]?.code,
-            status: error.status
+            message: errorMessage,
+            details: errorDetails,
+            errorCode: error.status || 500,
+            mpStatus: error.status
         });
     }
 });
