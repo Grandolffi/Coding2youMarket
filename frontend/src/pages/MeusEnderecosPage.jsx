@@ -72,7 +72,7 @@ export default function MeusEnderecosPage() {
     const getIconeApelido = (apelido) => {
         const apelidoLower = (apelido || '').toLowerCase();
         if (apelidoLower.includes('casa') || apelidoLower.includes('home')) {
-            return <Home size={20} className="text-verde-salvia-600" />;
+            return <Home size={20} className="text-[#85B693]" />;
         }
         if (apelidoLower.includes('trabalho') || apelidoLower.includes('work') || apelidoLower.includes('empresa')) {
             return <Briefcase size={20} className="text-blue-600" />;
@@ -121,7 +121,7 @@ export default function MeusEnderecosPage() {
             <Header />
 
             <div className="relative h-48 md:h-56 w-full mb-8 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-verde-salvia-600 via-green-500 to-emerald-600" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#85B693] to-[#2F6C50]" />
                 <div className="absolute inset-0 opacity-30">
                     <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
                     <div className="absolute bottom-10 right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
@@ -144,7 +144,7 @@ export default function MeusEnderecosPage() {
             <main className="container mx-auto px-4 md:px-8 max-w-3xl">
                 {loading ? (
                     <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
-                        <div className="animate-spin w-12 h-12 border-4 border-verde-salvia border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <div className="animate-spin w-12 h-12 border-4 border-[#85B693] border-t-transparent rounded-full mx-auto mb-4"></div>
                         <p className="text-gray-500">{t('myAddressesPage.loadingAddresses')}</p>
                     </div>
                 ) : enderecos.length === 0 ? (
@@ -169,7 +169,7 @@ export default function MeusEnderecosPage() {
                                         </div>
                                         <div className="flex-1">
                                             {endereco.apelido && (
-                                                <span className="inline-block px-3 py-1 bg-verde-salvia-100 text-verde-petroleo text-xs font-semibold rounded-full mb-2">
+                                                <span className="inline-block px-3 py-1 bg-[#EBF4EE] text-[#2F6C50] text-xs font-semibold rounded-full mb-2">
                                                     {endereco.apelido}
                                                 </span>
                                             )}
@@ -196,7 +196,7 @@ export default function MeusEnderecosPage() {
                                 </div>
                                 {endereco.principal ? (
                                     <div className="mt-3 pt-3 border-t border-gray-100">
-                                        <span className="text-xs text-verde-salvia-600 font-medium flex items-center gap-1">
+                                        <span className="text-xs text-[#85B693] font-medium flex items-center gap-1">
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
@@ -207,7 +207,7 @@ export default function MeusEnderecosPage() {
                                     <div className="mt-3 pt-3 border-t border-gray-100">
                                         <button
                                             onClick={() => handleDefinirPrincipal(endereco)}
-                                            className="text-xs text-gray-500 hover:text-verde-salvia-600 font-medium flex items-center gap-1 transition-colors"
+                                            className="text-xs text-gray-500 hover:text-[#85B693] font-medium flex items-center gap-1 transition-colors"
                                         >
                                             <Star size={14} />
                                             {t('myAddressesPage.setAsPrimary')}
@@ -221,7 +221,7 @@ export default function MeusEnderecosPage() {
 
                 <button
                     onClick={() => navigate('/novoEndereco', { state: { from: 'meus-enderecos' } })}
-                    className="w-full py-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-xl font-medium transition-all flex items-center justify-center gap-2 hover:border-verde-salvia hover:text-verde-salvia-600 mb-6"
+                    className="w-full py-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-xl font-medium transition-all flex items-center justify-center gap-2 hover:border-[#85B693] hover:text-[#85B693] mb-6"
                 >
                     <Plus size={20} />
                     {t('myAddressesPage.addNewAddress')}
@@ -269,7 +269,7 @@ export default function MeusEnderecosPage() {
                                         </div>
                                         <div>
                                             {enderecoParaExcluir.apelido && (
-                                                <span className="inline-block px-2 py-0.5 bg-verde-salvia-100 text-verde-petroleo text-xs font-semibold rounded-full mb-1">
+                                                <span className="inline-block px-2 py-0.5 bg-[#EBF4EE] text-[#2F6C50] text-xs font-semibold rounded-full mb-1">
                                                     {enderecoParaExcluir.apelido}
                                                 </span>
                                             )}
