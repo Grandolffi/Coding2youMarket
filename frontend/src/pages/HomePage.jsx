@@ -11,7 +11,7 @@ import { listarProdutos } from '../api/produtoAPI';
 import { banners, getProdutoImagem } from '../assets/imagens';
 
 // Dados mockados para testar (remover depois que a API funcionar)
-const MOCK_CATEGORIAS = ['Hortifruti', 'Carnes', 'Laticínios', 'Padaria', 'Bebidas', 'Mercearia'];
+const MOCK_CATEGORIAS = ['Hortifruti', 'Carnes', 'Laticínios', 'Padaria', 'Bebidas', 'Mercearia', 'Limpeza', 'Higiene'];
 
 const MOCK_PRODUTOS = [
   { id: 1, nome: 'Maçã Gala', categoria: 'Hortifruti', preco: 8.90, estoque: 50, imagemUrl: getProdutoImagem('maca') },
