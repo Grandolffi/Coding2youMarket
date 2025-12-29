@@ -62,7 +62,11 @@ async function processarPedidoRecorrente(pedido) {
 
         console.log(`   📦 ${itens.length} item(ns) encontrado(s)`);
 
-        // b) Criar novo pedido com status 'pendente'
+        // b) Calcular próxima data baseado na frequência
+        const diasProxima = pedido.frequencia === 'semanal' ? 7 :
+            pedido.frequencia === 'quinzenal' ? 15 : 30;
+
+        // c) Criar novo pedido com status 'ativa' e datas calculadas
         const { rows: [novoPedido] } = await client.query(`
       INSERT INTO pedidos (
         usuarioid,
@@ -74,7 +78,9 @@ async function processarPedidoRecorrente(pedido) {
         dataproximaentrega,
         dataproximacobranca
       ) 
-      VALUES ($1, $2, $3, $4, $5, NOW(), NULL, NULL)
+      VALUES ($1, $2, $3, $4, $5, NOW(), 
+              CURRENT_DATE + INTERVAL '2 days',
+              CURRENT_DATE + INTERVAL '2 days')
       RETURNING *
     `, [
             pedido.usuarioid,
@@ -86,7 +92,7 @@ async function processarPedidoRecorrente(pedido) {
 
         console.log(`   ✅ Novo pedido criado #${novoPedido.id} com status 'ativa'`);
 
-        // c) Copiar todos os itens do pedido original para o novo
+        // d) Copiar todos os itens do pedido original para o novo
         for (const item of itens) {
             await client.query(`
         INSERT INTO pedido_itens (
@@ -105,10 +111,6 @@ async function processarPedidoRecorrente(pedido) {
         }
 
         console.log(`   ✅ ${itens.length} iten(s) copiado(s) para o novo pedido`);
-
-        // d) Calcular próxima data baseado na frequência
-        const diasProxima = pedido.frequencia === 'semanal' ? 7 :
-            pedido.frequencia === 'quinzenal' ? 15 : 30;
 
         // e) Atualizar pedido original com novas datas
         await client.query(`
@@ -142,7 +144,7 @@ async function processarPedidoRecorrente(pedido) {
                 const { rows: produtosDetalhes } = await pool.query(`
                     SELECT pi.quantidade, pi.precounitario, p.nome
                     FROM pedido_itens pi
-                    LEFT JOIN produtos p ON pi.produtoid = p.id
+                    LEFT JOIN produtos p ON pi.produtoid = p.id_produto
                     WHERE pi.pedidoid = $1
                 `, [novoPedido.id]);
 
