@@ -255,12 +255,19 @@ export default function MeusPedidosPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.nextDelivery')}</p>
-                                                        <p className="font-semibold text-gray-800">{formatDate(pedido.dataproximaentrega)}</p>
+                                                        <p className="font-semibold text-gray-800">
+                                                            {pedido.frequencia === 'unica' || !pedido.dataproximaentrega
+                                                                ? formatDate(new Date(new Date(pedido.datainicio || pedido.createdat).getTime() + 2 * 24 * 60 * 60 * 1000).toISOString())
+                                                                : formatDate(pedido.dataproximaentrega)
+                                                            }
+                                                        </p>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.nextCharge')}</p>
-                                                        <p className="font-semibold text-gray-800">{formatDate(pedido.dataproximacobranca)}</p>
-                                                    </div>
+                                                    {pedido.frequencia !== 'unica' && pedido.dataproximacobranca && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.nextCharge')}</p>
+                                                            <p className="font-semibold text-gray-800">{formatDate(pedido.dataproximacobranca)}</p>
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('orders.totalValue')}</p>
                                                         <p className="font-bold text-verde-salvia-600 text-lg">{formatCurrency(pedido.valorfinal || pedido.valortotal || 0)}</p>
