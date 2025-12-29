@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Users, ShoppingCart, Star, Package, TrendingUp, DollarSign, LogOut, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+// Admin Dashboard - Gestão completa do e-commerce
 const API_URL = import.meta.env.VITE_API_URL || 'https://coding2youmarket-production.up.railway.app/api';
 
 export default function AdminPanel() {
