@@ -128,15 +128,15 @@ async function getPedidosPorUsuario(usuarioId) {
                     if (itens && itens.length > 0) {
                         const produtoIds = itens.map(item => item.produtoid);
                         const { rows: produtos } = await pool.query(
-                            `SELECT id, nome 
+                            `SELECT id_produto, nome 
                             FROM produtos 
-                            WHERE id = ANY($1)`,
+                            WHERE id_produto = ANY($1)`,
                             [produtoIds]
                         );
 
                         // Mapear nomes dos produtos para os itens
                         pedido.itens = itens.map(item => {
-                            const produto = produtos.find(p => p.id === item.produtoid);
+                            const produto = produtos.find(p => p.id_produto === item.produtoid);
                             return {
                                 ...item,
                                 nome: produto?.nome || `Produto ${item.produtoid}`

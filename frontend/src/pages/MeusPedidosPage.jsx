@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Header from "../components/Header";
 import { meusPedidos, cancelarPedido, pausarPedido } from "../api/pedidosAPI";
 import { getUsuarioId } from "../api/auth";
+import { getProdutoImagem } from '../assets/imagens';
 
 export default function MeusPedidosPage() {
     const navigate = useNavigate();
@@ -288,8 +289,15 @@ export default function MeusPedidosPage() {
                                                                 {pedido.itens.map((item, idx) => (
                                                                     <div
                                                                         key={idx}
-                                                                        className="flex justify-between items-center px-3 py-2.5 bg-gray-50 rounded-lg"
+                                                                        className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 rounded-lg"
                                                                     >
+                                                                        {/* Imagem do Produto */}
+                                                                        <img
+                                                                            src={getProdutoImagem(item.nome)}
+                                                                            alt={item.nome}
+                                                                            className="w-12 h-12 object-cover rounded-lg"
+                                                                            onError={(e) => e.target.style.display = 'none'}
+                                                                        />
                                                                         <div className="flex-1">
                                                                             <p className="font-medium text-gray-800 text-sm">
                                                                                 {item.nome || item.produto?.nome || `Item ${idx + 1}`}
