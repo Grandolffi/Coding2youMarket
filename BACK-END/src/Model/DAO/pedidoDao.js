@@ -113,15 +113,13 @@ async function getPedidosPorUsuario(usuarioId) {
                 try {
                     const { rows: itens } = await pool.query(
                         `SELECT 
-                            pi.id,
-                            pi.quantidade,
-                            pi.precounitario,
-                            p.nome,
-                            p.imagemurl
-                        FROM pedido_itens pi
-                        LEFT JOIN produtos p ON pi.produtoid = p.id
-                        WHERE pi.pedidoid = $1
-                        ORDER BY pi.id`,
+                            id,
+                            quantidade,
+                            precounitario,
+                            produtoid
+                        FROM pedido_itens
+                        WHERE pedidoid = $1
+                        ORDER BY id`,
                         [pedido.id]
                     );
                     pedido.itens = itens || [];
