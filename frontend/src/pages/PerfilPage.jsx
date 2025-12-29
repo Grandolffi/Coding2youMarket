@@ -30,8 +30,6 @@ export default function PerfilPage() {
         { label: t('profilePage.menu.securityPrivacy'), path: "/seguranca" },
         { label: t('profilePage.menu.paymentMethods'), path: "/meus-cartoes" },
         { label: t('profilePage.menu.myAddresses'), path: "/meus-enderecos" },
-        { label: t('profilePage.menu.support'), path: "/suporte" },
-        { label: t('profilePage.menu.settings'), path: "/configuracoes" },
     ];
 
     return (
