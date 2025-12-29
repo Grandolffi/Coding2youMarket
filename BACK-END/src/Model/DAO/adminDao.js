@@ -137,21 +137,21 @@ const getVendasUltimosDias = async (dias = 7) => {
 
 /**
  * Retorna top N produtos mais vendidos
- * Como não temos tabela itempedido, retorna os produtos mais recentes
  */
 const getTopProdutos = async (limit = 5) => {
   const client = await pool.connect();
   try {
     const query = `
       SELECT 
-        id_produto as id,
-        nome,
-        preco,
-        0 as total_vendas,
-        0 as quantidade_vendida
-      FROM produtos
-      WHERE ativo = true
-      ORDER BY id_produto DESC
+        p.id_produto as id,
+        p.nome,
+        p.preco,
+        COALESCE(SUM(pi.quantidade), 0) as quantidade_vendida
+      FROM produtos p
+      LEFT JOIN pedido_itens pi ON p.id_produto = pi.produtoid
+      WHERE p.ativo = true
+      GROUP BY p.id_produto, p.nome, p.preco
+      ORDER BY quantidade_vendida DESC
       LIMIT $1
     `;
     const result = await client.query(query, [limit]);

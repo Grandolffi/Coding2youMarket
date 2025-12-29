@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Users, ShoppingCart, Star, Package, TrendingUp, DollarSign, LogOut } from 'lucide-react';
+import { BarChart3, Users, ShoppingCart, Star, Package, TrendingUp, DollarSign, LogOut, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://coding2youmarket-production.up.railway.app/api';
@@ -332,8 +332,15 @@ export default function AdminPanel() {
                 {/* Products Tab */}
                 {activeTab === 'produtos' && (
                     <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                        <div className="p-6 border-b">
+                        <div className="p-6 border-b flex items-center justify-between">
                             <h2 className="text-xl font-bold">Gestão de Produtos</h2>
+                            <button
+                                onClick={() => toast.info('Funcionalidade de adicionar produto em desenvolvimento')}
+                                className="flex items-center gap-2 px-4 py-2 bg-verde-salvia-600 text-white rounded-lg hover:bg-verde-salvia-700 transition-colors font-medium text-sm"
+                            >
+                                <Plus size={18} />
+                                Adicionar Produto
+                            </button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full">
@@ -378,8 +385,8 @@ export default function AdminPanel() {
                                                     </div>
                                                 ) : (
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${p.estoque === 0 ? 'bg-red-100 text-red-800 border border-red-300' :
-                                                            p.estoque < 10 ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-verde-salvia-100 text-green-800'
+                                                        p.estoque < 10 ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-verde-salvia-100 text-green-800'
                                                         }`}>
                                                         {p.estoque === 0 ? '⚠️ SEM ESTOQUE' : p.estoque}
                                                     </span>
