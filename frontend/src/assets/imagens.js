@@ -160,6 +160,8 @@ export const produtosImagens = {
     'oleo': oleo,
     'graos': graos,
     'sal': sal,
+    'salrefinado': sal,
+    'refinado': sal,
 
     // Laticínios
     'leite': leite,

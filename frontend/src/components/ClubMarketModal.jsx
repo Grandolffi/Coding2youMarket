@@ -66,7 +66,7 @@ export default function ClubMarketModal({ isOpen, onClose }) {
                             <span className="px-3 py-1.5 bg-verde-salvia-100 rounded-lg text-sm font-bold text-verde-petroleo">
                                 R$ 9,90
                             </span>
-                            <span className="px-3 py-1.5 bg-verde-salvia-600 rounded-lg text-sm font-bold text-white shadow-md">
+                            <span className="px-3 py-1.5 bg-verde-salvia-100 rounded-lg text-sm font-bold text-verde-petroleo shadow-md">
                                 R$ 19,90
                             </span>
                             <span className="px-3 py-1.5 bg-verde-salvia-100 rounded-lg text-sm font-bold text-verde-petroleo">
