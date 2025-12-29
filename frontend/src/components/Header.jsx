@@ -72,8 +72,9 @@ export default function Header() {
 
                     {/* Layout Mobile */}
                     <div className="flex md:hidden items-center justify-between">
-                        <Link to="/" className="flex items-center">
+                        <Link to="/" className="flex items-center gap-2">
                             <img src={logo} alt="Logo" className="h-8 w-auto object-contain rounded-full" style={{ mixBlendMode: 'multiply' }} />
+                            <span className="text-base font-bold text-gray-800">Subscrivery</span>
                         </Link>
                         <div className="flex items-center gap-2">
                             <TrocaIdioma />
