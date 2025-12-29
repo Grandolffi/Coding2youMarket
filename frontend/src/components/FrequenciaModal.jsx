@@ -8,6 +8,7 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
     const [tipoCompra, setTipoCompra] = useState('assinatura');
     const [frequenciaSelecionada, setFrequenciaSelecionada] = useState('quinzenal');
     const [diaPreferencial, setDiaPreferencial] = useState('');
+    const [erroData, setErroData] = useState('');
     const [enderecos, setEnderecos] = useState([]);
     const [enderecoSelecionado, setEnderecoSelecionado] = useState(null);
     const [loadingEnderecos, setLoadingEnderecos] = useState(true);
@@ -249,13 +250,30 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                                         <input
                                             type="date"
                                             value={diaPreferencial}
-                                            onChange={(e) => setDiaPreferencial(e.target.value)}
-                                            className="w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-verde-salvia focus:border-transparent outline-none"
+                                            onChange={(e) => {
+                                                const dataSelecionada = e.target.value;
+                                                const hoje = new Date().toISOString().split('T')[0];
+                                                if (dataSelecionada && dataSelecionada < hoje) {
+                                                    setErroData('A data não pode ser anterior à data atual.');
+                                                    setDiaPreferencial('');
+                                                } else {
+                                                    setErroData('');
+                                                    setDiaPreferencial(dataSelecionada);
+                                                }
+                                            }}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className={`w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-sm border rounded-xl focus:ring-2 focus:ring-verde-salvia focus:border-transparent outline-none ${erroData ? 'border-red-400' : 'border-gray-300'}`}
                                         />
                                     </div>
-                                    <p className="text-[10px] md:text-xs text-gray-500 mt-2">
-                                        {t('frequency.preferredDayDesc')}
-                                    </p>
+                                    {erroData ? (
+                                        <p className="text-[10px] md:text-xs text-red-500 mt-2">
+                                            ⚠️ {erroData}
+                                        </p>
+                                    ) : (
+                                        <p className="text-[10px] md:text-xs text-gray-500 mt-2">
+                                            {t('frequency.preferredDayDesc')}
+                                        </p>
+                                    )}
                                 </div>
                             </>
                         )}
