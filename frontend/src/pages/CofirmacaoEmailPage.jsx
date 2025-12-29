@@ -128,6 +128,11 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
+    padding: "32px",
+    backgroundColor: "#FFFFFF",
+    borderRadius: "16px",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    border: "1px solid #E5E7EB",
   },
   logo: {
     fontWeight: "600",
