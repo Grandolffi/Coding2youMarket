@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const pool = require('../Config/Db/db');
+const { enviarEmailPedidoRecorrente } = require('./emailService');
 
 
 async function processarEntregasRecorrentes() {
@@ -126,7 +127,46 @@ async function processarPedidoRecorrente(pedido) {
         // f) Commit da transação
         await client.query('COMMIT');
 
-        console.log(`✅ Pedido recorrente #${pedido.id} processado com sucesso → Novo pedido #${novoPedido.id} (pendente)`);
+        console.log(`✅ Pedido recorrente #${pedido.id} processado com sucesso → Novo pedido #${novoPedido.id} (ativa)`);
+
+        // g) Enviar email de notificação (fora da transação)
+        try {
+            // Buscar dados do usuário
+            const { rows: [usuario] } = await pool.query(
+                `SELECT nome, email FROM usuarios WHERE id = $1`,
+                [pedido.usuarioid]
+            );
+
+            if (usuario && usuario.email) {
+                // Buscar detalhes dos produtos
+                const { rows: produtosDetalhes } = await pool.query(`
+                    SELECT pi.quantidade, pi.precounitario, p.nome
+                    FROM pedido_itens pi
+                    LEFT JOIN produtos p ON pi.produtoid = p.id
+                    WHERE pi.pedidoid = $1
+                `, [novoPedido.id]);
+
+                const itensEmail = produtosDetalhes.map(p => ({
+                    quantidade: p.quantidade,
+                    nome: p.nome,
+                    preco: parseFloat(p.precounitario)
+                }));
+
+                await enviarEmailPedidoRecorrente({
+                    email: usuario.email,
+                    nome: usuario.nome || 'Cliente',
+                    pedidoId: novoPedido.id,
+                    valorTotal: parseFloat(novoPedido.valortotal),
+                    dataEntrega: novaData.toLocaleDateString('pt-BR'),
+                    itens: itensEmail
+                });
+
+                console.log(`   📧 Email enviado para ${usuario.email}`);
+            }
+        } catch (emailError) {
+            // Não bloquear o fluxo se o email falhar
+            console.error(`   ⚠️  Falha ao enviar email: ${emailError.message}`);
+        }
 
     } catch (error) {
         // Rollback em caso de erro
