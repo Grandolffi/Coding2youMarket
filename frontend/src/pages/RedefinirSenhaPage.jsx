@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BotaoVerde from "../components/botaoVerde";
 import { atualizarSenha, getUsuarioId } from "../api/auth";
+import logoPrincipal2 from "../assets/Logo Subscrivery/Logo Principal 2.png";
 
 export default function RedefinirSenhaPage() {
   const navigate = useNavigate();
@@ -75,9 +76,9 @@ export default function RedefinirSenhaPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 font-sans">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-sm">
-        <span className="text-green-800 font-semibold text-lg block mb-6">
-          ☕ Subscrivery
-        </span>
+        <div className="mb-6">
+          <img src={logoPrincipal2} alt="Logo Subscrivery" className="h-10 w-auto object-contain mix-blend-multiply" />
+        </div>
 
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
           Nova Senha
@@ -129,8 +130,8 @@ export default function RedefinirSenhaPage() {
         {mensagem.texto && (
           <p
             className={`mt-4 text-center text-sm font-medium ${mensagem.tipo === "erro"
-                ? "text-red-500"
-                : "text-verde-petroleo"
+              ? "text-red-500"
+              : "text-verde-petroleo"
               }`}
           >
             {mensagem.texto}

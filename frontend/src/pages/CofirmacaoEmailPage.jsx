@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import BotaoVerde from "../components/botaoVerde";
 import { Link, useNavigate } from "react-router-dom";
 import { solicitarCodigoVerificacao } from "../api/auth";
-import logo from "../assets/logobranco.jpeg";
+import logoPrincipal2 from "../assets/Logo Subscrivery/Logo Principal 2.png";
 
 export default function ConfirmacaoEmailPage() {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ export default function ConfirmacaoEmailPage() {
     <div style={styles.container}>
       <div style={styles.left}>
         <div style={styles.form}>
-          <img src={logo} alt="Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply', marginBottom: '20px' }} />
+          <img src={logoPrincipal2} alt="Logo Subscrivery" style={{ height: '40px', width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply', marginBottom: '20px' }} />
           <h1 style={styles.title}>Recuperar Senha</h1>
           <p style={styles.subtitle}>
             Enviaremos um código para validar seu acesso.
