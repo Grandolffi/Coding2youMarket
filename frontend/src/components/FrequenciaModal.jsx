@@ -262,7 +262,7 @@ export default function FrequenciaModal({ isOpen, onClose, onConfirmar }) {
                                                 }
                                             }}
                                             min={new Date().toISOString().split('T')[0]}
-                                            className={`w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-sm border rounded-xl focus:ring-2 focus:ring-verde-salvia focus:border-transparent outline-none ${erroData ? 'border-red-400' : 'border-gray-300'}`}
+                                            className={`w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 text-xs md:text-sm border rounded-xl focus:ring-2 focus:ring-verde-salvia focus:border-transparent outline-none ${erroData ? 'border-red-400' : 'border-gray-300'}`}
                                         />
                                     </div>
                                     {erroData ? (

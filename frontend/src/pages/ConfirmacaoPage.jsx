@@ -78,7 +78,7 @@ export default function ConfirmacaoPage() {
                     </div>
                 </div>
                 {/* Texto extra */}
-                <p className="text-center text-gray-600 text-sm mt-8 px-4">
+                <p className="text-center text-gray-500 text-xs md:text-sm px-2 pb-4">
                     Enviamos uma confirmação por email 📧
                 </p>
             </div>

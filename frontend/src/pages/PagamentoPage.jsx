@@ -481,7 +481,7 @@ export default function PagamentoPage() {
                                         {/* Botão Deletar */}
                                         <button
                                             onClick={() => handleDeletarCartao(cartoes[cartaoAtivo].id)}
-                                            className="absolute bottom-6 right-6 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-all shadow-lg"
+                                            className="absolute top-6 left-6 md:bottom-6 md:top-auto md:left-auto md:right-6 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-all shadow-lg"
                                             title="Excluir cartão"
                                         >
                                             <Trash2 size={18} />

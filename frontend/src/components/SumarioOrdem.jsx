@@ -8,7 +8,7 @@ export default function SumarioOrdem({ resumo, onCriarAssinatura, loading }) {
     const frete = resumo?.frete || 0;
     const total = resumo?.total || 0;
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+        <div className="bg-white rounded-2xl shadow-lg p-6 lg:sticky lg:top-24">
             <h2 className="text-xl font-bold text-gray-800 mb-6">{t('cart.orderSummary') || t('payment.orderSummary')}</h2>
             {/* Detalhes do Pedido */}
             <div className="space-y-3 mb-6">
@@ -84,7 +84,7 @@ export default function SumarioOrdem({ resumo, onCriarAssinatura, loading }) {
                     }
         `}
             >
-                {loading ? t('common.loading') : t('cart.checkout')}
+                {loading ? t('common.loading') : `${t('cart.checkout')} R$ ${total.toFixed(2).replace('.', ',')}`}
             </button>
         </div>
     );
